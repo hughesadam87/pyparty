@@ -1,0 +1,8 @@
+from shape_models.abstract_shape import Particle
+from shape_models.circles import Circle, Dimer
+
+PARTICLETYPES=\
+    {
+     'circle': Circle,
+     'dimer' : Dimer,
+     }
