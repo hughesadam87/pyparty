@@ -186,9 +186,6 @@ class Canvas(HasTraits):
             raise NotImplementedError
         return axes
     
-    def add(self, *args, **kwargs):
-        """ Wrapper to self.particles.add_particle """
-        self._particles.add_particle(*args, **kwargs)
         
     # Private methods
     def _draw_particles(self):
@@ -276,7 +273,7 @@ class Canvas(HasTraits):
             instead"""
         
         # LATER CALL SOME METHOD LIKE PARTICLES.SHOW()
-        return self._particles.names
+        return self._particles._names
     
     def _set_particles(self, particleinstance):
         """ For now, only Instance(ParticleManager) is supported. """
@@ -289,13 +286,22 @@ class Canvas(HasTraits):
     # Delegate dictionary interface to ParticleManager
     # -----------
     def __getitem__(self, keyslice):
-        return self._particles.__getitem__(keyslice)
+        """ Employs particle manager interface; however, returns as_tuple, instead
+            of the actual MetaParticle"""
+        out =self._particles.__getitem__(keyslice)
+        if not hasattr(out, '__iter__'):
+            out = [out]
+        return [p.as_tuple() for p in out]
     
     def __delitem__(self, key):
         return self._particles.__delitem__(key)    
     
     def __setitem__(self, key, particle):
         return self._particles.__setitem__(key, particles)
+    
+    def __getattr__(self, attr, *args, **kwargs):
+        return getattr(self._particles, attr, *args, **kwargs)
+        
            
            
 class ScaledCanvas(Canvas):

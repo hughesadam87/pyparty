@@ -37,10 +37,11 @@ class MetaParticle(HasTraits):
     particle = Instance(Particle)
     
     def as_tuple(self):
-        return (self.index, self.name, self.color, self.particle)
+        return (self.name, self.color, self.particle)
     
     def as_array(self):
         return np.array(self.as_tuple)
+    
 
 
 class ParticleManager(HasTraits):
@@ -56,9 +57,10 @@ class ParticleManager(HasTraits):
     
     # Cached properties (requires depends_on for caching)
 #    panel = Property(depends_on = 'plist')
-    colors = Property(Tuple, depends_on = 'plist')
-    names = Property(Tuple, depends_on = 'plist')
-    _namemap = Property(Tuple, depends_on = 'names')
+      # Private so canvas doesn't publicize them
+    _colors = Property(Tuple, depends_on = 'plist')
+    _names = Property(Tuple, depends_on = 'plist')
+    _namemap = Property(Tuple, depends_on = '_names')
 
     def _ifilter(self, attr, fcn):
         subset = self._attr_subset(attr)
@@ -69,10 +71,10 @@ class ParticleManager(HasTraits):
         """ Return numpy array subset of self.plist based on attr. """
         
         if attr == 'color':
-            out = self.colors
+            out = self._colors
 
         elif attr == 'name':
-            out = self.names
+            out = self._names
 
         elif attr in CUSTOM_DESCRIPTORS:
             userfcn = CUSTOM_DESCRIPTORS[attr]
@@ -91,21 +93,21 @@ class ParticleManager(HasTraits):
         return np.array(out)
         
     @cached_property
-    def _get_colors(self):
+    def _get__colors(self):
         return tuple(p.color for p in self.plist)
 
     @cached_property
-    def _get_names(self):
+    def _get__names(self):
         return tuple(p.name for p in self.plist)
 
     @cached_property
     def _get__namemap(self):
         """ Store light map of name to index for faster name lookup """
-        return dict( (name, idx) for idx,name in enumerate(self.names))    
+        return dict( (name, idx) for idx,name in enumerate(self._names))    
         
     
     # ADD INDEX KEYWORD TO SUPPORT INSERTIONS
-    def add_particle(self, particle, name='', idx=None, color=None,
+    def add(self, particle, name='', idx=None, color=None,
                       *traitargs, **traitkwargs):
         """ If color not passed, default color is used
             If not idx, put in last entry  """
@@ -154,19 +156,33 @@ class ParticleManager(HasTraits):
     
     def pop(self, idx):
         self.plist.pop(idx)
-
         
-
+    def index(self, *names):
+        """ Return index given names """
+        out = tuple(self._namemap[name] for name in names)
+        if len(out) == 1:
+            out = out[0]
+        return out
+        
     # Slicing Interface (HOW HARD WOULD IT BE TO RETURN PARTICLE MANAGER CLASS!)? 
     # -----------
     def __getitem__(self, keyslice):
         """ Supports single name lookup; otherwise defers to list delitem"""
 
-        if isinstance(keyslice, basestring):
+        if hasattr(keyslice, '__iter__'):
+            outlist = []
+            for idx in keyslice:
+                if isinstance(idx, basestring):
+                    idx = self._namemap[idx]
+                outlist.append(self.plist[idx])
+            return outlist
+    
+
+        elif isinstance(keyslice, basestring):
             idx = self._namemap[keyslice]
             return self.plist[idx]
 
-        else:
+        else: # if slice or int
             return self.plist[keyslice]
         
     def __delitem__(self, keyslice):
@@ -243,7 +259,7 @@ class ParticleManager(HasTraits):
         
     @property
     def ptype_count(self):
-        """ Unique particle types and colors. """
+        """ Unique particle types and _colors. """
         return ( (typ, self.ptypes.count(typ)) for typ in self.ptypes)
     
     def available(self):
@@ -268,8 +284,9 @@ class ParticleManager(HasTraits):
  
         return '"%s"' % '", "'.join(iterable)
     
-    # Other representation
-    # ----------
+
+    # Other representations
+    # -------------
     
     #@cached_property
     #def _get_panel(self):
@@ -281,16 +298,17 @@ class ParticleManager(HasTraits):
 if __name__ == '__main__':
     p=ParticleManager()
     p.count
-    p.add_particle(particle='circle', key='heythere')
+    p.add(particle='circle', key='heythere')
     print p.plist
     
     fooparticle = PARTICLETYPES['circle'](radius=5)
     bazpart = PARTICLETYPES['circle'](radius=5)
 
-    p.add_particle(particle=fooparticle)
-    p.add_particle(bazpart, name='afoo')
+    p.add(particle=fooparticle)
+    p.add(bazpart, name='afoo')
     print p.count, p.particles
-    print p.names
+    print p._names
     print 'hiii\n'
     print p['circle_1']
-    print p.sortby('name', inplace=False).names
+    print p.sortby('name', inplace=False)._names
+    p[(1,2)]
