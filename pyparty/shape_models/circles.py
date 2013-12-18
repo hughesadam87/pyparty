@@ -5,20 +5,18 @@
 # This file is open source software distributed according to the terms in LICENSE.txt
 #
 
-
+import logging
 import math
+
 import skimage.draw
-
-
 from traits.has_traits import CHECK_INTERFACES
 from traits.api import HasTraits, Range, ListFloat, Property, \
-     implements, Bool, Int, Array, Tuple
-
-# Need to implement a logger if you want this set to 1
+     implements, Bool, Int, Array, Tuple, Str
 
 from abstract_shape import Particle, ParticleInterface
 
-CHECK_INTERFACES = 2
+logger = logging.getLogger(__name__) 
+CHECK_INTERFACES = 2 # 2-error, 1-warn, 0-pass
 
 class Circle(Particle):
     """ description
@@ -28,8 +26,8 @@ class Circle(Particle):
     """
     # INTERFACE IS NOT WORKING
     implements(ParticleInterface)        
-    #ptype=Str('circle')
-
+    
+    ptype=Str('circle')
     radius = Int(1) #in pixels
     	    
     #http://scikit-image.org/docs/dev/api/skimage.draw.html#circle
