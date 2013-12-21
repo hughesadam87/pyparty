@@ -54,7 +54,7 @@ def where_is_particle(rr_cc, shape):
     else:
         return 'edge'
     
-def rr_cc_box(self, rr_cc):
+def rr_cc_box(rr_cc):
     """ Center the rr_cc values in a binarized box."""
 
     rr, cc = rr_cc
@@ -63,11 +63,12 @@ def rr_cc_box(self, rr_cc):
     # Center rr, cc mins to 0 index
     rr_trans = rr - ymin
     cc_trans = cc - xmin
+    rr_cc_trans = (rr_trans, cc_trans)
     
     dx = xmax-xmin
     dy = ymax-ymin
     
-    rect=np.zeros((dy, dx), dtype='uint8') 
-    out[rr_cc_trans] = 1
-    return out
+    rect=np.zeros((dy+1, dx+1), dtype='uint8') 
+    rect[rr_cc_trans] = 1
+    return rect
     

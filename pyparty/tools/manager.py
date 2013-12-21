@@ -29,18 +29,34 @@ class KeyErrorManager(KeyError):
 # EVENTUALLY MAKE COLOR TRAIT
 
 class MetaParticle(HasTraits):
-    """ Stores a particle and metadata for use by ParticleManager """
+    """ Stores a particle and metadata for use by ParticleManager.
+    
+        Notes
+        -----
+        May be intelligent to store a default index for sorting and restoring
+        purposes, but that would cause issue with preserving order when
+        inserting (eg adding new particles.)"""
 
     # TO DO: Use color trait
     name = Str()
     color = Tuple( Float(0.0), Float(0.0), Float(1.0) )
     particle = Instance(Particle)
     
-    def as_tuple(self):
-        return (self.name, self.color, self.particle)
+    @property
+    def pclass(self):
+        return self.particle.__class__.__name__
     
-    def as_array(self):
-        return np.array(self.as_tuple)
+    def __repr__(self):
+        """ Puts name into return with memory address:
+              (my name) <__main__.Foo  at 0x3002f90>  """
+        
+        out = super(MetaParticle, self).__repr__() 
+        address = out.split()[-1].rstrip('>')
+        return '<%s at %s (%s : %s) >' % \
+           (self.pclass, address, self.name, self.particle.ptype)
+    
+    def __getattr__(self, attr):
+        return getattr(self.particle, attr)
     
 
 
@@ -56,56 +72,16 @@ class ParticleManager(HasTraits):
     plist = List(MetaParticle)
     
     # Cached properties (requires depends_on for caching)
-#    panel = Property(depends_on = 'plist')
-      # Private so canvas doesn't publicize them
-    _colors = Property(Tuple, depends_on = 'plist')
-    _names = Property(Tuple, depends_on = 'plist')
-    _namemap = Property(Tuple, depends_on = '_names')
-
-    def _ifilter(self, attr, fcn):
-        subset = self._attr_subset(attr)
-        raise NotImplementedError
-
-        
-    def _subset(self, attr):
-        """ Return numpy array subset of self.plist based on attr. """
-        
-        if attr == 'color':
-            out = self._colors
-
-        elif attr == 'name':
-            out = self._names
-
-        elif attr in CUSTOM_DESCRIPTORS:
-            userfcn = CUSTOM_DESCRIPTORS[attr]
-            out = tuple(userfcn(p.boxed()) for p in self.plist)
-
-        elif attr in SKIMAGE_DESCRIPTORS:
-            out = tuple(p.ski_descriptor(attr) for p in self.plist)
-
-        else:
-            try:
-                out = tuple(getattr(p, attr) for p in self.plist)
-            except Exception:
-                raise ManagerError('%s not understood, must "color", "name", or' 
-                               'valid descriptor' % attr)
-
-        return np.array(out)
-        
-    @cached_property
-    def _get__colors(self):
-        return tuple(p.color for p in self.plist)
-
-    @cached_property
-    def _get__names(self):
-        return tuple(p.name for p in self.plist)
-
+    _namemap = Property(Tuple, depends_on = 'plist')
+   
+    
     @cached_property
     def _get__namemap(self):
-        """ Store light map of name to index for faster name lookup """
-        return dict( (name, idx) for idx,name in enumerate(self._names))    
-        
-    
+        """ Store light map of name to index for faster name lookup.  I verified
+            that this updates when plist elemnts are updated as well as obj itself.
+            """
+        return dict( (pobj.name, idx) for idx,pobj in enumerate(self.plist))    
+            
     # ADD INDEX KEYWORD TO SUPPORT INSERTIONS
     def add(self, particle, name='', idx=None, color=None,
                       *traitargs, **traitkwargs):
@@ -129,8 +105,12 @@ class ParticleManager(HasTraits):
             raise ManagerError('particle %s is already named "%s"' % 
                                  (self._namemap[name], name) )
         
-        self.plist.insert(idx,  MetaParticle(name=name, color=color, 
-                                             particle=particle) )
+        meta = MetaParticle(name=name, color=color, particle=particle)
+
+        if idx == self.count:
+            self.plist.append(meta)
+        else:
+            self.plist.insert(idx, meta)
                 
     def _make_particle(self, ptype='', *traitargs, **traitkwargs):
         """ Instantiate a particle through string specifying class type
@@ -142,13 +122,10 @@ class ParticleManager(HasTraits):
                 ' from: [%s]' % (ptype, self.iterable_to_string(self.available())))
         return pclass(*traitargs, **traitkwargs)
     
-    def clear(self):
-        """ remove all particles in the dictionary. """
-        self.plist[:] = [] #Does not change memory address
-        
-    def apply(self, fcn, *args, **kwargs):
-        """ Apply a function to all particles. """
-        # Useful for scaling and so on
+    
+    def map(self, fcn, *args, **kwargs):
+        """ Apply a function to all particles.  Can also use functools.partial"""
+        self.plist[:] = [fcn(p, *args, **kwargs) for p in self.plist]
         
     def reverse(self):
         """ In place since list is inplace """
@@ -163,37 +140,67 @@ class ParticleManager(HasTraits):
         if len(out) == 1:
             out = out[0]
         return out
+    
+    def _unmask_index(self, idx):
+        """ Test if object is an integer, string, or isntance of 
+            MetaParticle.  Returns index in any case. """
+
+        if isinstance(idx, int) or isinstance(idx, slice):
+            return idx
+
+        if isinstance(idx, basestring):
+            return self._namemap[idx]
+
+        if isinstance(idx, MetaParticle):
+            return self._namemap[idx.name]
         
-    # Slicing Interface (HOW HARD WOULD IT BE TO RETURN PARTICLE MANAGER CLASS!)? 
+        raise ManagerError("Index must be of type int, str or MetaParticle"
+                           " received %s" % type(idx) )
+        
+    # Indexing / Iterating 
     # -----------
+
+    def __iter__(self):
+        return self.plist.__iter__()
+    
     def __getitem__(self, keyslice):
         """ Supports single name lookup; otherwise defers to list delitem"""
 
         if hasattr(keyslice, '__iter__'):
-            outlist = []
-            for idx in keyslice:
-                if isinstance(idx, basestring):
-                    idx = self._namemap[idx]
-                outlist.append(self.plist[idx])
-            return outlist
+            # Boolean indexing
+            if isinstance(keyslice, np.ndarray):
+                boolout = keyslice.astype('bool')
+                return [self.plist[idx] for idx, exists in enumerate(boolout) if exists]                
     
+            else:    
+                return [self.plist[self._unmask_index(idx)] for idx in keyslice]              
 
-        elif isinstance(keyslice, basestring):
-            idx = self._namemap[keyslice]
-            return self.plist[idx]
+        return self.plist[self._unmask_index(keyslice)]
 
-        else: # if slice or int
-            return self.plist[keyslice]
         
     def __delitem__(self, keyslice):
-        """ Supports single name deletion; otherwise defers to list delitem"""
+        """ Supports single name deletion; otherwise defers to list delitem.  
+            Deletes in place to congruance with list API.
+        
+        Notes
+        -----
+        When deleting iteratively, avoid calls to "del" which changes size 
+        during iteariton."""
 
-        if isinstance(keyslice, basestring):
-            idx = self._namemap[keyslice]
-            del self.plist[idx]
+        if hasattr(keyslice, '__iter__'):
+            # Boolean indexing
+            if isinstance(keyslice, np.ndarray):
+                boolout = keyslice.astype('bool')
+                self.plist[:] = [self.plist[idx] for idx, exists in
+                                 enumerate(boolout) if not exists]
+            else:    
+                to_remove = [self._make_particle(idx) for idx in keyslice]
+                self.plist[:] = [self.plist[idx] for idx in range(self.count)
+                                 if idx not in to_remove]
 
+        # Delete single entry
         else:
-            del self.plist[keyslice]
+            del self.plist[self._unmask_index[keyslice]]
         
 
     def __setitem__(self, keyorslice, particle):
@@ -203,6 +210,43 @@ class ParticleManager(HasTraits):
             many particles to the same value and hence the same name..."""
         raise ManagerError('"%s" object does not support item assigment.' % 
                            self.__class__.__name__)
+
+
+    def __getattr__(self, attr):
+        """ Return numpy array subset of self.plist based on attr. Attribute
+            can be name, color, descriptor or otherwise common attribute of
+            Particle class.  
+            
+            Notes
+            -----
+            Implemented similar pandas package to allow for attribute-based 
+            indexing.
+            
+            Examples
+            --------
+            big_particles = p[p.perims > 50] """
+        
+        if attr == 'color':
+            out = tuple(p.color for p in self.plist)
+
+        elif attr == 'name':
+            out = tuple(p.name for p in self.plist)
+
+        elif attr in CUSTOM_DESCRIPTORS:
+            userfcn = CUSTOM_DESCRIPTORS[attr]
+            out = tuple(userfcn(p.boxed()) for p in self.plist)
+
+        elif attr in SKIMAGE_DESCRIPTORS:
+            out = tuple(p.ski_descriptor(attr) for p in self.plist)
+
+        else:
+            try:
+                out = tuple(getattr(p, attr) for p in self.plist)
+            except Exception:
+                raise ManagerError('%s not understood, must "color", "name", or' 
+                               'valid descriptor' % attr)
+
+        return np.array(out)
 
     def in_region(self, *coords):
         """ Get all particles whose centers are within a rectangular region"""
@@ -238,6 +282,9 @@ class ParticleManager(HasTraits):
     def sortby(self, attr='name', inplace=False):
         """ Sort list INPLACE by descriptor: defaults to name"""
 
+
+        raise NotImplementedError("UPDATE")
+
         if attr in ['name', 'color']:
             plistout = sorted(self.plist, key=attrgetter(attr))
 
@@ -259,7 +306,7 @@ class ParticleManager(HasTraits):
         
     @property
     def ptype_count(self):
-        """ Unique particle types and _colors. """
+        """ Unique particle types in plist. """
         return ( (typ, self.ptypes.count(typ)) for typ in self.ptypes)
     
     def available(self):
@@ -297,18 +344,26 @@ class ParticleManager(HasTraits):
         
 if __name__ == '__main__':
     p=ParticleManager()
+    print p
     p.count
-    p.add(particle='circle', key='heythere')
-    print p.plist
+    for i in range(10,15):
+        p.add(particle='circle', radius=i)
+        
+    for x in p:
+        print x, 'hi'
     
-    fooparticle = PARTICLETYPES['circle'](radius=5)
-    bazpart = PARTICLETYPES['circle'](radius=5)
 
-    p.add(particle=fooparticle)
-    p.add(bazpart, name='afoo')
-    print p.count, p.particles
-    print p._names
-    print 'hiii\n'
-    print p['circle_1']
-    print p.sortby('name', inplace=False)._names
-    p[(1,2)]
+    print p.name, 'hi'
+    print p[p.area>500]
+    
+    # Deleting takes too long
+    del p[p.area > 500]
+
+    print p.name, 'hi again'
+
+    #print p.name
+    #print p.perimeter, type(p.perimeter), p.perimeter.dtype
+    #print p[p.perimeter > 50]
+    #print p.plist
+    #del p[p.perimeter > 50]
+    #print p.name

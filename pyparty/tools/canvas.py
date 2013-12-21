@@ -67,7 +67,7 @@ class Canvas(HasTraits):
     
     image = Array
     image_shape = Property(depends_on = 'image')
-    area = Property(Float, depends_on = 'image')
+    pixelarea = Property(Float, depends_on = 'image') #area already exists at particle level
     
     background = Property()
     _background = Array
@@ -111,7 +111,7 @@ class Canvas(HasTraits):
     def clear_particles(self):
         """ Clears all particles from image."""
 
-        self._particles.clear()
+        self._particles.plist[:] = []
             
     def pmap(self, fcn, *fcnargs, **fcnkwargs):
         """ Maps a function to each particle in ParticleManger; optionally
@@ -231,7 +231,7 @@ class Canvas(HasTraits):
     def _get_image_shape(self):
         return self.image.shape
     
-    def _get_area(self):
+    def _get_pixelarea(self):
         """ What's the best way to get this? """
         raise NotImplemented
     
@@ -286,22 +286,25 @@ class Canvas(HasTraits):
     # Delegate dictionary interface to ParticleManager
     # -----------
     def __getitem__(self, keyslice):
-        """ Employs particle manager interface; however, returns as_tuple, instead
-            of the actual MetaParticle"""
-        out =self._particles.__getitem__(keyslice)
+        """ Employs particle manager interface; however, returns single entry
+            as a list to allow slicing directly into get_item[]"""
+        out = self._particles.__getitem__(keyslice)
         if not hasattr(out, '__iter__'):
             out = [out]
-        return [p.as_tuple() for p in out]
+        return out
     
-    def __delitem__(self, key):
-        return self._particles.__delitem__(key)    
+    def __delitem__(self, keyslice):
+        return self._particles.__delitem__(keyslice)    
     
     def __setitem__(self, key, particle):
         return self._particles.__setitem__(key, particles)
     
-    def __getattr__(self, attr, *args, **kwargs):
-        return getattr(self._particles, attr, *args, **kwargs)
+    def __getattr__(self, attr):
+        """ Defaults to particle manager """
+        return getattr(self._particles, attr)
         
+    def __iter__(self):
+        return self._particles.__iter__
            
            
 class ScaledCanvas(Canvas):

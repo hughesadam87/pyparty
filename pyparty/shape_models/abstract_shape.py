@@ -18,6 +18,7 @@ from traits.has_traits import CHECK_INTERFACES
 from traits.api import Interface, implements, HasTraits, Tuple, Array, \
      Bool, Property, Str, Int, cached_property, Instance
 
+from skimage.measure import regionprops
 from skimage.measure._regionprops import _RegionProperties
 
 from pyparty.utils import rr_cc_box
@@ -104,11 +105,9 @@ class Particle(HasTraits):
     def ski_descriptor(self, attr):
         """ Return scikit image descriptor. """
         # Set RegionProps on first call
-        if not self.ski_descriptor:                     #TEST IF FASTER W/ TRUE
-            self.ski_descriptor = measure(regionprops(self.boxed(), cache=False))
-        return getattr(self.ski_descriptor, attr)
-    
-        
+        if not hasattr(self, '_ski_descriptor'):                     #TEST IF FASTER W/ TRUE
+            self._ski_descriptor = regionprops(self.boxed(), cache=True)[0]
+        return getattr(self._ski_descriptor, attr)
 
 if __name__ == '__main__':
     p=Particle()
