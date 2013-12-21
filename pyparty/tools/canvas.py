@@ -80,7 +80,8 @@ class Canvas(HasTraits):
     _particles = Instance(ParticleManager)
     
     def __init__(self, background=None, particles=None, *traitargs, **traitkwds):
-        """ """
+        """ Load with optionally a background image and instance of Particle
+            Manager"""
         
         if not particles:
             particles = ParticleManager()

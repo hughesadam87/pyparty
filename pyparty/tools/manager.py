@@ -249,7 +249,7 @@ class ParticleManager(HasTraits):
         return np.array(out)
 
     def in_region(self, *coords):
-        """ Get all particles whose centers are within a rectangular region"""
+        """ Get all particles whose CENTERS are within a rectangular region"""
         raise NotImplementedError
     
 
@@ -280,13 +280,9 @@ class ParticleManager(HasTraits):
     # Full attribute container sorted mappers        
     
     def sortby(self, attr='name', inplace=False):
-        """ Sort list INPLACE by descriptor: defaults to name"""
+        """ Sort list by attribute/descriptor"""
 
-
-        raise NotImplementedError("UPDATE")
-
-        if attr in ['name', 'color']:
-            plistout = sorted(self.plist, key=attrgetter(attr))
+        plistout = sorted(self.plist, key=attrgetter(attr))
 
         if inplace:
             self.plist[:] = plistout
@@ -348,18 +344,12 @@ if __name__ == '__main__':
     p.count
     for i in range(10,15):
         p.add(particle='circle', radius=i)
-        
-    for x in p:
-        print x, 'hi'
-    
 
-    print p.name, 'hi'
-    print p[p.area>500]
-    
-    # Deleting takes too long
-    del p[p.area > 500]
+    p.add(particle='circle',name='afoo', radius=11)
 
     print p.name, 'hi again'
+
+    print p.sortby('pclass').name
 
     #print p.name
     #print p.perimeter, type(p.perimeter), p.perimeter.dtype
