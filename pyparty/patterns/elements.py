@@ -41,7 +41,7 @@ def basic(cx, cy, d_pp, n=2, phi=0.0):
     elif n == 3:
         thetas = ( 90., 210., 330. ) 
     elif n == 4:
-        thetas = (45., 125., 225., 315. )
+        thetas = ( 45., 125., 225., 315. )
     else:
         raise PatternError('n must be 2,3,4; recieved %s' % n)
     
@@ -49,7 +49,7 @@ def basic(cx, cy, d_pp, n=2, phi=0.0):
     r_pp = 0.5 * d_pp    
 
     cx = cx * r_pp * np.cos(thetas)
-    cy = cy * r_pp * np.sin(theats)
+    cy = cy * r_pp * np.sin(thetas)
     
     return zip(cx, cy)
 
@@ -72,7 +72,7 @@ def hexagonal(cx, cy, d_pp, phi=0.0):
     
     Returns
     -------
-    coordinates : tuple
+    coordinates : tuple (n7)
         Center coordinate (cx, cy) followed by hexagon verticies drawn a distance
         d_pp away.  
         
