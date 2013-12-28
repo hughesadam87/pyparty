@@ -10,15 +10,14 @@ import math
 
 import skimage.draw as draw
 from traits.has_traits import CHECK_INTERFACES
-from traits.api import HasTraits, Range, ListFloat, Property, \
-     implements, Bool, Int, Array, Tuple, Str
+from traits.api import HasTraits, Property, implements, Bool, Int, Array, Str
 
-from abstract_shape import Particle, ParticleInterface
+from abstract_shape import Particle, CenteredParticle, ParticleInterface
 
 logger = logging.getLogger(__name__) 
 CHECK_INTERFACES = 2 # 2-error, 1-warn, 0-pass
 
-class Circle(Particle):
+class Circle(CenteredParticle):
     """ description
     
     Attributes
@@ -41,7 +40,7 @@ class Circle(Particle):
             return draw.circle_perimeter(self.center[0], 
                                     self.center[1], self.radius)
         
-class Ellipse(Particle):
+class Ellipse(CenteredParticle):
     """ """
 
     implements(ParticleInterface)        
@@ -50,11 +49,11 @@ class Ellipse(Particle):
     yradius = Int(2)
     xradius = Int(2)
 
-class LinearParticle(Particle):
+class Line(Particle):
     """ """
 
     implements(ParticleInterface)        
-    ptype=Str('abstract_linear')    
+    ptype=Str('line')    
     
     ystart = Int(0) #start position row
     xstart = Int(0)
@@ -64,24 +63,25 @@ class LinearParticle(Particle):
     def _get_rr_cc(self):
         return draw.line(self.ystart, self.xstart, self.yend, self.xend)
 
-class BezierCurve(Particle):
-    """ #Add reference form website """
+class BezierCurve(Line):
+    """
+    Notes
+    -----
+    Subclassing from line to share attributes (xstart, ystard) but the bezier
+    curve is not a subclass of a line per-se.
+    """
 
     implements(ParticleInterface)        
     ptype=Str('bezier')   
     
-    ystart
-    xstart 
-    yend
-    xend
-    ymid
-    xmid
+    ymid = Int(1)
+    xmid = Int(1)
     
     weight = Float(1.0) #Middle control point weight (sensible defualt value?)
     
     def _get_rr_cc(self):
         return scikit.draw.bezier_curve(self.ystart, self.xstart, self.ymid, 
-                    self.xmid, self.yend, self.xend, weight = self.weight)
+                    self.xmid, self.yend, self.xend, weight=self.weight)
     
 class Polygon(Particle):
     """ description
@@ -101,35 +101,5 @@ class Polygon(Particle):
     xcoords = Array( [1,2,8,1] )
     
     def _get_rr_cc(self):
-        return draw.polygon(self.ycoords, self.xcoords)
-                                                   
+        return draw.polygon(self.ycoords, self.xcoords)                                           
 
-class Dimer(Particle):
-    """ description
-    
-    Attributes
-    ----------
-    """
-    
-    ptype = 'dimer'
-
-    overlap = Range(0.0, 1.0)
-    orientation = Range(0.0, 2.0 * math.pi)
-    radii = ListFloat
-    
-    def _get_rr_cc(self):
-        raise NotImplemented
-    
-    
-if __name__ == '__main__':
-    c=Circle()
-    print c.radius
-        
-    d=Dimer()
-    print d.overlap, d.orientation, d.radii
-    
-    # Run pyclean
-    try:
-        subprocess.Popen('pyclean .', shell=True, stderr=open('/dev/null', 'w'))
-    except Exception:
-        pass 

@@ -55,17 +55,7 @@ class ParticleInterface(Interface):
     #http://scikit-image.org/docs/dev/api/skimage.draw.html#circle
     def _get_rr_cc(self):
         raise NotImplementedError
- 
-class CenteredParticle(Particle):
-    """ Base class for particles whose centers are set by user (circle,
-        elipse, etc...) as opposed to particles whose center is computed
-        after the object is drawn (eg line, beziercurve, polygon)
-    """
-    
-    implements(ParticleInterface)
-    pytpe = Str('abstract_centered')
-    
-    
+     
 class Particle(HasTraits):
 
     implements(ParticleInterface)
@@ -76,22 +66,40 @@ class Particle(HasTraits):
     aa = Bool(False) #Anti Aliasing
 
     # Remove with implementation
-    rr_cc = Property(Array)
-    center = Tuple(Int(0),Int(0)) # in pixels 
-    cx = Property(Int, depends_on = 'center')
-    cy = Property(Int, depends_on = 'center')
-    
+    rr_cc = Property(Array)    
     ski_descriptor = Instance(_RegionProperties)
        
     #http://scikit-image.org/docs/dev/api/skimage.draw.html#circle
     def _get_rr_cc(self):
         raise NotImplementedError
-    
-    def center_to_image(self, image):
-        ''' Set the center of particle to middle of image (2darray) '''
-        self.center = (image.shape[0] / 2, image.shape[1] / 2)
         
-    # Trait Property Interface
+    # May want this to return the translation coordinates
+    def boxed(self):
+        """ Returns a binary bounding box with object inside"""
+        return rr_cc_box(self.rr_cc)
+    
+    def ski_descriptor(self, attr):
+        """ Return scikit image descriptor. """
+        # Set RegionProps on first call
+        if not hasattr(self, '_ski_descriptor'):                     #TEST IF FASTER W/ TRUE
+            self._ski_descriptor = regionprops(self.boxed(), cache=True)[0]
+        return getattr(self._ski_descriptor, attr)
+
+
+class CenteredParticle(Particle):
+    """ Base class for particles whose centers are set by user (circle,
+        elipse, etc...) as opposed to particles whose center is computed
+        after the object is drawn (eg line, beziercurve, polygon)
+    """
+    
+    implements(ParticleInterface)
+    pytpe = Str('abstract_centered')
+    
+    center = Tuple(Int(0),Int(0)) # in pixels 
+    cx = Property(Int, depends_on = 'center')
+    cy = Property(Int, depends_on = 'center')    
+
+    # Center Property Interface
     # ----------------
     def _get_cx(self):
         return self.center[0]
@@ -105,19 +113,8 @@ class Particle(HasTraits):
         
     def _set_cy(self, value):
         cx, cy = self.center
-        self.center = (value, cx)
-        
-    # May want this to return the translation coordinates
-    def boxed(self):
-        """ Returns a binary bounding box with object inside"""
-        return rr_cc_box(self.rr_cc)
+        self.center = (value, cx)    
     
-    def ski_descriptor(self, attr):
-        """ Return scikit image descriptor. """
-        # Set RegionProps on first call
-        if not hasattr(self, '_ski_descriptor'):                     #TEST IF FASTER W/ TRUE
-            self._ski_descriptor = regionprops(self.boxed(), cache=True)[0]
-        return getattr(self._ski_descriptor, attr)
 
 if __name__ == '__main__':
     p=Particle()
