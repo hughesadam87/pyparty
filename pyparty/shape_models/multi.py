@@ -70,6 +70,8 @@ class Dimer(CenteredParticle):
         print 'hi'
         print r1
         print r2
+        print self.cx
+        print self.cy
         print cx_1
         print cy_1
         print rr_1

@@ -1,10 +1,9 @@
 import numpy as np
-from math import cos
 
 class PatternError(object):
     """ """
 
-def basic(cx, cy, d_pp, n=2, phi=0.0):
+def simple(cx, cy, d_pp, n=2, phi=0.0):
     """ Dimer, Trimer, Square grid 
     
     Attributes
@@ -43,13 +42,27 @@ def basic(cx, cy, d_pp, n=2, phi=0.0):
     elif n == 4:
         thetas = np.array( ( 45., 125., 225., 315. ) )
     else:
-        raise PatternError('n must be 2,3,4; recieved %s' % n)
-    
+        raise PatternError('n must be 2,3,4; recieved %s' % n)  
+
     thetas += phi
+    thetas = np.radians(thetas)
+    
     r_pp = 0.5 * d_pp    
+  
+    print 'cx cy first'
+    print cx
+    print cy
 
     cx = cx * r_pp * np.cos(thetas)
     cy = cy * r_pp * np.sin(thetas)
+    
+    print 'moo'
+    print thetas
+    print d_pp
+    print r_pp
+    print cx
+    print cy
+    print 'labl'
     
     return zip(cx, cy)
 
@@ -83,7 +96,7 @@ def hexagonal(cx, cy, d_pp, phi=0.0):
     
     """
     
-    thetas = np.linspace(0,360,7) + phi    
+    thetas = np.radians( np.linspace(0,360,7) + phi  )
     cxs = cx + d_pp * np.cos(thetas)
     cys = cy + d_pp * np.sin(thetas)
 
