@@ -37,11 +37,11 @@ def basic(cx, cy, d_pp, n=2, phi=0.0):
     """
      
     if n == 2:
-        thetas = ( 0., 180. )
+        thetas = np.array( ( 0., 180. ) )
     elif n == 3:
-        thetas = ( 90., 210., 330. ) 
+        thetas = np.array( ( 90., 210., 330. ) )
     elif n == 4:
-        thetas = ( 45., 125., 225., 315. )
+        thetas = np.array( ( 45., 125., 225., 315. ) )
     else:
         raise PatternError('n must be 2,3,4; recieved %s' % n)
     
