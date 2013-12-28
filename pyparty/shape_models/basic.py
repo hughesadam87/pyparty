@@ -10,7 +10,8 @@ import math
 
 import skimage.draw as draw
 from traits.has_traits import CHECK_INTERFACES
-from traits.api import HasTraits, Property, implements, Bool, Int, Array, Str
+from traits.api import HasTraits, Property, implements, Bool, Int, Array,\
+     Float, Str
 
 from abstract_shape import Particle, CenteredParticle, ParticleInterface
 
@@ -97,8 +98,8 @@ class Polygon(Particle):
     """
     ptype = Str('polygon')
     
-    ycoords = Array( [1,7,1,4] )
-    xcoords = Array( [1,2,8,1] )
+    ycoords = Array( (1,7,1,4) )
+    xcoords = Array( (1,2,8,1) )
     
     def _get_rr_cc(self):
         return draw.polygon(self.ycoords, self.xcoords)                                           
