@@ -274,7 +274,7 @@ class Canvas(HasTraits):
             instead"""
         
         # LATER CALL SOME METHOD LIKE PARTICLES.SHOW()
-        return self._particles._names
+        return self._particles.name
     
     def _set_particles(self, particleinstance):
         """ For now, only Instance(ParticleManager) is supported. """

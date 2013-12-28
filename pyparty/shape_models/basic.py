@@ -6,7 +6,7 @@
 #
 
 import logging
-import math
+import numpy as np
 
 import skimage.draw as draw
 from traits.has_traits import CHECK_INTERFACES
@@ -98,8 +98,14 @@ class Polygon(Particle):
     """
     ptype = Str('polygon')
     
-    ycoords = Array( (1,7,1,4) )
-    xcoords = Array( (1,2,8,1) )
+    ycoords = Array()
+    xcoords = Array()
+    
+    def _ycoords_default(self):
+        return np.array( (1,7,1,4) )
+    
+    def _xcoords_default(self):
+        return np.array( (1,2,8,1) )
     
     def _get_rr_cc(self):
         return draw.polygon(self.ycoords, self.xcoords)                                           
