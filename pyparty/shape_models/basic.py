@@ -29,17 +29,14 @@ class Circle(CenteredParticle):
     
     ptype=Str('circle')
     radius = Int(2) #in pixels (<2 causes errors w/ properties)
-    fill = Bool(True)
     	    
     #http://scikit-image.org/docs/dev/api/skimage.draw.html#circle
     def _get_rr_cc(self):
         
         if self.fill:
-            return draw.circle(self.center[0], self.center[1],
-                                   self.radius)
+            return draw.circle(self.cy, self.cx, self.radius)
         else:
-            return draw.circle_perimeter(self.center[0], 
-                                    self.center[1], self.radius)
+            return draw.circle_perimeter(self.cy, self.cx, self.radius)
         
 class Ellipse(CenteredParticle):
     """ """
@@ -49,6 +46,16 @@ class Ellipse(CenteredParticle):
 
     yradius = Int(2)
     xradius = Int(2)
+
+    def _get_rr_cc(self):
+    
+        if self.fill:
+            return draw.ellipse(self.cy, self.cx, self.yradius, 
+                                          self.xradius)        
+        else:
+            return draw.ellipse_perimeter(self.cy, self.cx, self.yradius, 
+                                          self.xradius)
+    
 
 class Line(Particle):
     """ """
@@ -63,6 +70,7 @@ class Line(Particle):
     
     def _get_rr_cc(self):
         return draw.line(self.ystart, self.xstart, self.yend, self.xend)
+
 
 class BezierCurve(Line):
     """
@@ -81,7 +89,7 @@ class BezierCurve(Line):
     weight = Float(1.0) #Middle control point weight (sensible defualt value?)
     
     def _get_rr_cc(self):
-        return scikit.draw.bezier_curve(self.ystart, self.xstart, self.ymid, 
+        return draw.bezier_curve(self.ystart, self.xstart, self.ymid, 
                     self.xmid, self.yend, self.xend, weight=self.weight)
     
 class Polygon(Particle):

@@ -325,6 +325,11 @@ if __name__ == '__main__':
 
     c.clear_background()
     
+    c.add('dimer', radius_1=50, center=(250, 250), color=(1,0,0),
+      overlap=0.0)
+    c._draw_particles()
+    
+    
 #    c.show()
     
     # Run pyclean

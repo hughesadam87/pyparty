@@ -95,6 +95,7 @@ class CenteredParticle(Particle):
     implements(ParticleInterface)
     pytpe = Str('abstract_centered')
     
+    # CENTER = (CX, CY)  not (CY, CX)
     center = Tuple(Int(0),Int(0)) # in pixels 
     cx = Property(Int, depends_on = 'center')
     cy = Property(Int, depends_on = 'center')    
@@ -108,12 +109,10 @@ class CenteredParticle(Particle):
         return self.center[1]
     
     def _set_cx(self, value):
-        cx, cy = self.center
-        self.center = (value, cy)
+        self.center = (value, self.cy)
         
     def _set_cy(self, value):
-        cx, cy = self.center
-        self.center = (value, cx)    
+        self.center = (self.cx, value)    
     
 
 if __name__ == '__main__':
