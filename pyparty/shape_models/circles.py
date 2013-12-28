@@ -8,7 +8,7 @@
 import logging
 import math
 
-import skimage.draw
+import skimage.draw as draw
 from traits.has_traits import CHECK_INTERFACES
 from traits.api import HasTraits, Range, ListFloat, Property, \
      implements, Bool, Int, Array, Tuple, Str
@@ -28,17 +28,80 @@ class Circle(Particle):
     implements(ParticleInterface)        
     
     ptype=Str('circle')
-    radius = Int(12) #in pixels (<2 causes errors w/ properties)
+    radius = Int(2) #in pixels (<2 causes errors w/ properties)
+    fill = Bool(True)
     	    
     #http://scikit-image.org/docs/dev/api/skimage.draw.html#circle
     def _get_rr_cc(self):
         
         if self.fill:
-            return skimage.draw.circle(self.center[0], self.center[1],
+            return draw.circle(self.center[0], self.center[1],
                                    self.radius)
         else:
-            return skimage.draw.circle_perimeter(self.center[0], 
+            return draw.circle_perimeter(self.center[0], 
                                     self.center[1], self.radius)
+        
+class Ellipse(Particle):
+    """ """
+
+    implements(ParticleInterface)        
+    ptype=Str('ellipse')    
+
+    yradius = Int(2)
+    xradius = Int(2)
+
+class LinearParticle(Particle):
+    """ """
+
+    implements(ParticleInterface)        
+    ptype=Str('abstract_linear')    
+    
+    ystart = Int(0) #start position row
+    xstart = Int(0)
+    yend = Int(2)
+    xend = Int(2)
+    
+    def _get_rr_cc(self):
+        return draw.line(self.ystart, self.xstart, self.yend, self.xend)
+
+class BezierCurve(Particle):
+    """ #Add reference form website """
+
+    implements(ParticleInterface)        
+    ptype=Str('bezier')   
+    
+    ystart
+    xstart 
+    yend
+    xend
+    ymid
+    xmid
+    
+    weight = Float(1.0) #Middle control point weight (sensible defualt value?)
+    
+    def _get_rr_cc(self):
+        return scikit.draw.bezier_curve(self.ystart, self.xstart, self.ymid, 
+                    self.xmid, self.yend, self.xend, weight = self.weight)
+    
+class Polygon(Particle):
+    """ description
+    
+    Attributes
+    ----------
+    
+    yccords : array
+        Y-coords of verticies of polygon
+        
+    xcoords : array
+        X-coords of verticies of polygon
+    """
+    ptype = Str('polygon')
+    
+    ycoords = Array( [1,7,1,4] )
+    xcoords = Array( [1,2,8,1] )
+    
+    def _get_rr_cc(self):
+        return draw.polygon(self.ycoords, self.xcoords)
                                                    
 
 class Dimer(Particle):

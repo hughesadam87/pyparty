@@ -56,14 +56,24 @@ class ParticleInterface(Interface):
     def _get_rr_cc(self):
         raise NotImplementedError
  
+class CenteredParticle(Particle):
+    """ Base class for particles whose centers are set by user (circle,
+        elipse, etc...) as opposed to particles whose center is computed
+        after the object is drawn (eg line, beziercurve, polygon)
+    """
+    
+    implements(ParticleInterface)
+    pytpe = Str('abstract_centered')
+    
     
 class Particle(HasTraits):
 
     implements(ParticleInterface)
     
     ptype = Str('abstract')    
-    psource = Str('unkown')
+    psource = Str('pyparty_builtin')
     fill = Bool(True)
+    aa = Bool(False) #Anti Aliasing
 
     # Remove with implementation
     rr_cc = Property(Array)
