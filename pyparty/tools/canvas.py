@@ -83,13 +83,16 @@ class Canvas(HasTraits):
         """ Load with optionally a background image and instance of Particle
             Manager"""
         
-        if not particles:
+        if particles is None:
             particles = ParticleManager()
-        self._particles = particles
+        self.particles = particles
 
         # This should distinguish (or in load_bg) between array vs. path
-        if background:
-            self.load_background(background)
+        if background is not None:
+            if isinstance(background, basestring):
+                self.load_background(background)
+            else:
+                self.background = background                
         else:
             self.clear_background()
             
@@ -112,18 +115,20 @@ class Canvas(HasTraits):
     def clear_particles(self):
         """ Clears all particles from image."""
 
-        self._particles.plist[:] = []
+        self.particles.plist[:] = []
             
     def pmap(self, fcn, *fcnargs, **fcnkwargs):
         """ Maps a function to each particle in ParticleManger; optionally
             can be done in place"""
-        
-        in_place = fcnkwargs.pop('in_place', False)
-        pout = self.particles.map(fcn, *fcnargs, **fcnkwargs)
-        if in_place:
-            self.particles = pout
+
+        inplace = fcnkwargs.pop('inplace', True)
+        if not inplace:
+            cout = Canvas(background=self.background, particles=self.particles)
+            cout._particles.map(fcn, *fcnargs, **fcnkwargs)
+            return cout
         else:
-            return Canvas(background=self.background, particles=pout) 
+            self.particles.map(fcn, *fcnargs, **fcnkwargs)
+
         
     def pwrap(self):
         """ Wrapper that passes self.particles to a function """
@@ -198,7 +203,7 @@ class Canvas(HasTraits):
     
         # Notice this procedure
         image = np.copy(self.background)
-        for p in self._particles:
+        for p in self.particles:
             rr_cc, color = p.particle.rr_cc, p.color 
             rr_cc = coords_in_image(rr_cc, self.image.shape)
             image[rr_cc] = color
@@ -274,7 +279,7 @@ class Canvas(HasTraits):
             instead"""
         
         # LATER CALL SOME METHOD LIKE PARTICLES.SHOW()
-        return self._particles.name
+        return self._particles
     
     def _set_particles(self, particleinstance):
         """ For now, only Instance(ParticleManager) is supported. """
@@ -289,23 +294,23 @@ class Canvas(HasTraits):
     def __getitem__(self, keyslice):
         """ Employs particle manager interface; however, returns single entry
             as a list to allow slicing directly into get_item[]"""
-        out = self._particles.__getitem__(keyslice)
+        out = self.particles.__getitem__(keyslice)
         if not hasattr(out, '__iter__'):
             out = [out]
         return out
     
     def __delitem__(self, keyslice):
-        return self._particles.__delitem__(keyslice)    
+        return self.particles.__delitem__(keyslice)    
     
     def __setitem__(self, key, particle):
-        return self._particles.__setitem__(key, particles)
+        return self.particles.__setitem__(key, particles)
     
     def __getattr__(self, attr):
         """ Defaults to particle manager """
-        return getattr(self._particles, attr)
+        return getattr(self.particles, attr)
         
     def __iter__(self):
-        return self._particles.__iter__
+        return self.particles.__iter__
            
            
 class ScaledCanvas(Canvas):
@@ -328,6 +333,11 @@ if __name__ == '__main__':
     c.add('dimer', radius_1=50, center=(250, 250), color=(1,0,0),
       overlap=0.0)
     c._draw_particles()
+    
+    c.add('trimer', radius_1=50, center=(250, 250), color=(1,0,0),
+      overlap=0.0)
+    c._draw_particles()    
+    
     
     
 #    c.show()

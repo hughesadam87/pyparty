@@ -1,82 +1,91 @@
 import numpy as np
-
-from traits.api import Str, Int, Any, Range, Float, Property, implements
 import skimage.draw as draw
+from traits.api import Str, Int, implements, Float
 
-from pyparty.patterns.elements import simple
-from pyparty.shape_models.abstract_shape import CenteredParticle, \
-     ParticleInterface, ParticleError
-
-class Dimer(CenteredParticle):
-    """ description
+from pyparty.shape_models.abstract_shape import SimplePattern, ParticleInterface
+        
+class Dimer(SimplePattern):
+    """ Two adjacent circles around center coordinate
     
     Attributes
     ----------
     """
 
     implements(ParticleInterface)            
-    ptype = Str('dimer')
+    ptype = Str('dimer')          
+    _offangle = Float(0.0)
+    _n = Int(2)
 
-    radius_1 = Int(2)
-    radius_2 = Any #Int or None
-
-    overlap = Range(0.0, 1.0)
-    orientation = Float(0.0) #In degrees
-
-    d_pp = Property(depends_on = 'radius_1, radius_2, overlap')
-    skeleton = Property(depends_on = 'cx, cy, d_pp, orientation')
-    
-    
-    def _get_d_pp(self):
-        """ Particle center-center distance """
-        if self.radius_2:
-            return self.radius_1 + self.radius_2
-        else:
-            return 2 * self.radius_1
-        
-    def _radius_2_changed(self, new):
-        try:
-            self.radius_2 = int(new)
-        except ValueError:
-            raise ParticleError('Could not cast radius_2 to int; received %s' %
-                                new)
-      
-          
-    def _get_skeleton(self):
-        return simple(self.cx, self.cy, self.d_pp, n=2, phi=self.orientation)
-
-    
     def _get_rr_cc(self):
         """ Draws two circles based on position of self.skeleton. """
         
-        r1 = self.radius_1
-        
-        if self.radius_2:
-            r2 = self.radius_2
-        else:
-            r2 = r1
-            
-        r1 = (1.0 - self.overlap) * r1
-        r2 = (1.0 - self.overlap) * r2	
-            
-        (cx_1, cy_1), (cx_2, cy_2) = self.skeleton
-            
-        rr_1, cc_1 = draw.circle(cy_1, cx_1, r1)
-        rr_2, cc_2 = draw.circle(cy_2, cx_2, r2)
+        r1, r2 = self.rs
+                        
+        (vx_1, vy_1), (vx_2, vy_2) = self.skeleton
+                        
+        rr_1, cc_1 = draw.circle(vy_1, vx_1, r1)
+        rr_2, cc_2 = draw.circle(vy_2, vx_2, r2)
     
         rr = np.concatenate( (rr_1, rr_2) ) 
         cc = np.concatenate( (cc_1, cc_2) )
-        
-        print 'hi'
-        print r1
-        print r2
-        print self.cx
-        print self.cy
-        print cx_1
-        print cy_1
-        print rr_1
-        
         return (rr, cc)
+    
+
+class Trimer(SimplePattern):
+    """ Three adjacent circles around center coordinate
+    
+    Notes
+    -----
+    """
+    
+    implements(ParticleInterface)            
+    ptype = Str('trimer')          
+    _offangle = Float(30.0)
+    _n = Int(3)    
+
+    def _get_rr_cc(self):
+        """ Draws two circles based on position of self.skeleton. """
+        
+        r1, r2, r3 = self.rs
+                        
+        (vx_1, vy_1), (vx_2, vy_2), (vx_3, vy_3) = self.skeleton
+            
+        rr_1, cc_1 = draw.circle(vy_1, vx_1, r1)
+        rr_2, cc_2 = draw.circle(vy_2, vx_2, r2)
+        rr_3, cc_3 = draw.circle(vy_3, vx_3, r3)
+        
+        rr = np.concatenate( (rr_1, rr_2, rr_3) ) 
+        cc = np.concatenate( (cc_1, cc_2, cc_3) )
+        return (rr, cc)
+
+
+class Square(SimplePattern):
+    """ Three adjacent circles around center coordinates
+    
+    Notes
+    -----
+    """
+    
+    implements(ParticleInterface)            
+    ptype = Str('square')          
+    _offangle = Float(45.0)    
+    _n = Int(4)
+    
+    def _get_rr_cc(self):
+        """ Draws two circles based on position of self.skeleton. """    
+        r1, r2, r3, r4 = self.rs
+                        
+        (vx_1, vy_1), (vx_2, vy_2), (vx_3, vy_3), (vx_4, vy_4) = self.skeleton
+            
+        rr_1, cc_1 = draw.circle(vy_1, vx_1, r1)
+        rr_2, cc_2 = draw.circle(vy_2, vx_2, r2)
+        rr_3, cc_3 = draw.circle(vy_3, vx_3, r3)
+        rr_4, cc_4 = draw.circle(vy_4, vx_4, r4)    
+    
+        rr = np.concatenate( (rr_1, rr_2, rr_3, rr_4) ) 
+        cc = np.concatenate( (cc_1, cc_2, cc_3, cc_4) )
+        return (rr, cc)
+    
     
 if __name__ == '__main__':
 
@@ -89,3 +98,4 @@ if __name__ == '__main__':
         subprocess.Popen('pyclean .', shell=True, stderr=open('/dev/null', 'w'))
     except Exception:
         pass 
+    

@@ -1,6 +1,6 @@
 from pyparty.shape_models.basic import Circle, BezierCurve, Ellipse, \
      Polygon, Line
-from pyparty.shape_models.multi import Dimer
+from pyparty.shape_models.multi import Dimer, Trimer, Square
 
 PARTICLETYPES= \
     {
@@ -9,7 +9,9 @@ PARTICLETYPES= \
      'ellipse' : Ellipse,
      'line' : Line, 
      'polygon' : Polygon,
-     'dimer' : Dimer
+     'dimer' : Dimer,
+     'trimer' : Trimer,
+     'square' : Square
      }
 
 # Eventually, break these up between basic, multi etc...

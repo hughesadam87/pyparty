@@ -13,15 +13,18 @@ This module specifies the ...
 
 """
 import logging
+import numpy as np
+from math import radians, cos
 
 from traits.has_traits import CHECK_INTERFACES
 from traits.api import Interface, implements, HasTraits, Tuple, Array, \
-     Bool, Property, Str, Int, cached_property, Instance
+     Bool, Property, Str, Int, Instance, Range, Float
 
 from skimage.measure import regionprops
 from skimage.measure._regionprops import _RegionProperties
 
-from pyparty.utils import rr_cc_box
+from pyparty.utils import IntOrNone, rr_cc_box
+from pyparty.patterns.elements import simple
 
 logger = logging.getLogger(__name__) 
 CHECK_INTERFACES = 2    
@@ -51,8 +54,6 @@ class ParticleInterface(Interface):
     ptype = Str('')
     psource = Str('')
 
-    # IS HTIS REDUNDANT TO PUT IN HERE, AS IT IS A PROPERTY AFTERALL
-    #http://scikit-image.org/docs/dev/api/skimage.draw.html#circle
     def _get_rr_cc(self):
         raise NotImplementedError
      
@@ -96,7 +97,7 @@ class CenteredParticle(Particle):
     pytpe = Str('abstract_centered')
     
     # CENTER = (CX, CY)  not (CY, CX)
-    center = Tuple(Int(0),Int(0)) # in pixels 
+    center = Tuple( Int(0), Int(0) ) # in pixels 
     cx = Property(Int, depends_on = 'center')
     cy = Property(Int, depends_on = 'center')    
 
@@ -113,7 +114,60 @@ class CenteredParticle(Particle):
         
     def _set_cy(self, value):
         self.center = (self.cx, value)    
+
+
+class SimplePattern(CenteredParticle):
+    """  
+         
+    Notes
+    -----
+    Base class to wrap patterns.elements.simple.  
+    Mainly implemented to reduce. boilderplate. """
     
+    implements(ParticleInterface)            
+    ptype = Str('abstract_simple_element')    
+        
+    radius_1 = Int(2)
+    radius_2 = IntOrNone #defaults to None
+    radius_3 = IntOrNone
+    radius_4 = IntOrNone
+    rs = Property(Array, depends_on = 'radius_1, radius_2, radius_3, radius_4')
+    _n = Int(4)
+    
+    overlap = Range(0.0, 1.0)
+    orientation = Float(0.0) #In degrees  
+    
+    _offangle = Float(0.0)
+    
+    skeleton = Property(depends_on = 'cx, cy, orientation')    
+    
+    def _get_skeleton(self, old, new):
+        rs = (1.0 - self.overlap) * (self.rs / cos(radians(self._offangle)))
+        return simple(self.cx, self.cy, rs,  phi=self.orientation)
+    
+    def draw_skeleton(self):
+        """ Would like to draw lines connecting verticies returned from skeleton.
+            From center.  So line(center, r1) line(center, r2)"""
+        raise NotImplementedError
+    
+
+    def _get_rs(self):
+        """ Returns current values of radius 1-4; if any of 2,3,4 is None,
+        returns the value of r1"""
+        
+        r1 = self.radius_1
+        r2, r3, r4 = r1, r1, r1
+        
+        if self.radius_2:
+            r2 = self.radius_2
+
+        if self.radius_3:
+            r3 = self.radius_3
+
+        if self.radius_4:
+            r4 = self.radius_4
+            
+        return np.array( (r1, r2, r3, r4) )[0:self._n]
 
 if __name__ == '__main__':
     p=Particle()

@@ -52,14 +52,22 @@ class MetaParticle(HasTraits):
         
         out = super(MetaParticle, self).__repr__() 
         address = out.split()[-1].rstrip('>')
-        return '<%s at %s (%s : %s) >' % \
-           (self.pclass, address, self.name, self.particle.ptype)
+        return '(%s : %s : %s at %s)' % \
+           (self.name, self.particle.ptype, self.pclass, address)
     
     def __getattr__(self, attr):
         return getattr(self.particle, attr)
     
-
-
+    def __setattr__(self, attr, value):
+        """ Defer attribute calls to to self.particle unless overwriting
+            name, color etc... """
+        
+        if attr not in self.__dict__:
+            setattr(self.particle, attr, value)
+        else:
+            self.__dict__[attr] = value
+        
+        
 class ParticleManager(HasTraits):
     """ Container class for creating, storing, managing particles;
         provides API used by higher-level objects.  Provides a property

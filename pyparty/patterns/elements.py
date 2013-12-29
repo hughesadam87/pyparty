@@ -1,9 +1,9 @@
 import numpy as np
 
-class PatternError(object):
+class PatternError(Exception):
     """ """
 
-def simple(cx, cy, d_pp, n=2, phi=0.0):
+def simple_old(cx, cy, d_pp, n=2, phi=0.0):
     """ Dimer, Trimer, Square grid 
     
     Attributes
@@ -40,7 +40,7 @@ def simple(cx, cy, d_pp, n=2, phi=0.0):
     elif n == 3:
         thetas = np.array( ( 90., 210., 330. ) )
     elif n == 4:
-        thetas = np.array( ( 45., 125., 225., 315. ) )
+        thetas = np.array( ( 45., 135., 225., 315. ) )
     else:
         raise PatternError('n must be 2,3,4; recieved %s' % n)  
 
@@ -49,20 +49,58 @@ def simple(cx, cy, d_pp, n=2, phi=0.0):
     
     r_pp = 0.5 * d_pp    
   
-    print 'cx cy first'
-    print cx
-    print cy
-
-    cx = cx * r_pp * np.cos(thetas)
-    cy = cy * r_pp * np.sin(thetas)
+    cx = cx + r_pp * np.cos(thetas)
+    cy = cy + r_pp * np.sin(thetas)
     
-    print 'moo'
-    print thetas
-    print d_pp
-    print r_pp
-    print cx
-    print cy
-    print 'labl'
+    return zip(cx, cy)
+
+def simple(cx, cy, ds, **kwargs):
+    """ Dimer, Trimer, Square grid 
+    
+    Attributes
+    ----------
+    cx, cy : int, int
+        Center coordinates in pixels
+        
+    ds : iterable
+        Particle distance from centers 
+            
+    phi : float
+        Phase angle in degrees for orientation.
+    
+    Examples
+    --------
+    x -- x     x      x-x
+             x - x    x-x
+    
+    Returns
+    -------
+    Verticies of dimer, trimer or square.
+    
+    Notes
+    -----
+    Center coordinate is not returned, unlike hexagonal element which does
+    return its center coordinate.
+    
+    """
+    
+    phi = kwargs.pop('phi', 0.0)
+    n = len(ds)
+     
+    if n == 2:
+        thetas = np.array( ( 0., 180. ) )
+    elif n == 3:
+        thetas = np.array( ( 90., 210., 330. ) )
+    elif n == 4:
+        thetas = np.array( ( 45., 135., 225., 315. ) )
+    else:
+        raise PatternError('n must be 2,3,4; recieved %s' % n)  
+
+    thetas += phi
+    thetas = np.radians(thetas)    
+  
+    cx = cx + ds * np.cos(thetas)
+    cy = cy + ds * np.sin(thetas)
     
     return zip(cx, cy)
 
