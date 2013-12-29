@@ -56,10 +56,10 @@ def add_descriptor(name, fcn):
         raise DescriptorError("Descriptor named %s already found!" % name)
     CUSTOM_DESCRIPTORS[name] = fcn
 
-all_desc = SKIMAGE_DESCRIPTORS + CUSTOM_DESCRIPTORS.keys()
+ALL_DESCRIPTORS = SKIMAGE_DESCRIPTORS + CUSTOM_DESCRIPTORS.keys()
 
 # Ensure unique names between SKIMAGE and USER descriptors
-if len( list(set(all_desc)) ) != len(all_desc):
+if len( list(set(ALL_DESCRIPTORS)) ) != len(ALL_DESCRIPTORS):
     duplicates = [i for i in SKIMAGE_DESCRIPTORS if i in CUSTOM_DESCRIPTORS.keys()]
     raise DescriptorError("Non-unique descriptors found: %s" % duplicates)
 

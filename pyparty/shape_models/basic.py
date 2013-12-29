@@ -28,7 +28,7 @@ class Circle(CenteredParticle):
     implements(ParticleInterface)        
     
     ptype=Str('circle')
-    radius = Int(2) #in pixels (<2 causes errors w/ properties)
+    radius = Int(20) #in pixels (<2 causes errors w/ properties)
     	    
     #http://scikit-image.org/docs/dev/api/skimage.draw.html#circle
     def _get_rr_cc(self):

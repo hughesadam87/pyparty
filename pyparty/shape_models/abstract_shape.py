@@ -6,7 +6,7 @@
 #
 
 """
-SHape Models API
+Shape Models API
 ================
 
 This module specifies the ...
@@ -18,8 +18,9 @@ from math import radians, cos
 
 from traits.has_traits import CHECK_INTERFACES
 from traits.api import Interface, implements, HasTraits, Tuple, Array, \
-     Bool, Property, Str, Int, Instance, Range, Float
+     Bool, Property, Str, Int, Instance, Range, Float, cached_property
 
+import skimage.draw as draw
 from skimage.measure import regionprops
 from skimage.measure._regionprops import _RegionProperties
 
@@ -97,7 +98,7 @@ class CenteredParticle(Particle):
     pytpe = Str('abstract_centered')
     
     # CENTER = (CX, CY)  not (CY, CX)
-    center = Tuple( Int(0), Int(0) ) # in pixels 
+    center = Tuple( Int(256), Int(256) ) # in pixels 
     cx = Property(Int, depends_on = 'center')
     cy = Property(Int, depends_on = 'center')    
 
@@ -121,8 +122,12 @@ class SimplePattern(CenteredParticle):
          
     Notes
     -----
-    Base class to wrap patterns.elements.simple.  
-    Mainly implemented to reduce. boilderplate. """
+    Base class to wrap patterns.elements.simple.  Mainly implemented to reduce
+    boilderplate.  _offangle is the angle between a line conncecting particle 
+    centers vs. a line connecting the center of a paritcle to the center of the 
+    object.  For a dimer, obviously, this is 0 (ie the same).  The cosine 
+    between them is important for ensuring the partciles are not touching unless
+    overlap is specificed."""
     
     implements(ParticleInterface)            
     ptype = Str('abstract_simple_element')    
@@ -132,14 +137,14 @@ class SimplePattern(CenteredParticle):
     radius_3 = IntOrNone
     radius_4 = IntOrNone
     rs = Property(Array, depends_on = 'radius_1, radius_2, radius_3, radius_4')
-    _n = Int(4)
     
     overlap = Range(0.0, 1.0)
     orientation = Float(0.0) #In degrees  
+    skeleton = Property()    
     
     _offangle = Float(0.0)
+    _n = Int(4)
     
-    skeleton = Property(depends_on = 'cx, cy, orientation')    
     
     def _get_skeleton(self, old, new):
         rs = (1.0 - self.overlap) * (self.rs / cos(radians(self._offangle)))
@@ -150,7 +155,7 @@ class SimplePattern(CenteredParticle):
             From center.  So line(center, r1) line(center, r2)"""
         raise NotImplementedError
     
-
+    @cached_property
     def _get_rs(self):
         """ Returns current values of radius 1-4; if any of 2,3,4 is None,
         returns the value of r1"""
@@ -168,6 +173,21 @@ class SimplePattern(CenteredParticle):
             r4 = self.radius_4
             
         return np.array( (r1, r2, r3, r4) )[0:self._n]
+
+    def _get_rr_cc(self):
+        """ Draws circle for each vertex pair returned by self.skeleton, then
+        concatenates them in a final (rr, cc) array. """
+
+        rr_all = []
+        cc_all = []
+        for idx, (vx, vy) in enumerate(self.skeleton):
+            rs, cs = draw.circle( vy, vx, self.rs[idx] )
+            rr_all.append(rs)
+            cc_all.append(cs)
+        
+        rr = np.concatenate( rr_all )
+        cc = np.concatenate( cc_all )
+        return (rr, cc)
 
 if __name__ == '__main__':
     p=Particle()

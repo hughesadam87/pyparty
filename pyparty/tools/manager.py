@@ -13,8 +13,8 @@ from traits.api import HasTraits, Instance, Str, Tuple, Float, \
     cached_property, Property, List
 
 # Package Imports
-from pyparty.shape_models.api import PARTICLETYPES
-from pyparty.shape_models.abstract_shape import Particle
+from pyparty.shape_models.api import GROUPEDNAMES, ALLTYPES
+from pyparty.shape_models.abstract_shape import Particle, ParticleError
 from pyparty.descriptors.api import CUSTOM_DESCRIPTORS, SKIMAGE_DESCRIPTORS
 from pyparty.config import NAMESEP
 
@@ -56,7 +56,18 @@ class MetaParticle(HasTraits):
            (self.name, self.particle.ptype, self.pclass, address)
     
     def __getattr__(self, attr):
-        return getattr(self.particle, attr)
+        
+        if attr in self.__dict__:
+            return getattr(self, attr)
+        
+        elif attr in CUSTOM_DESCRIPTORS:
+            return CUSTOM_DESCRIPTORS[attr](self.particle.boxed())
+                          
+        elif attr in SKIMAGE_DESCRIPTORS:
+            return self.particle.ski_descriptor(attr)        
+        
+        else:
+            raise ParticleError('%s could not be found on self')
     
     def __setattr__(self, attr, value):
         """ Defer attribute calls to to self.particle unless overwriting
@@ -124,7 +135,7 @@ class ParticleManager(HasTraits):
         """ Instantiate a particle through string specifying class type
             via PARTICLETYPES """
         try:
-            pclass = PARTICLETYPES[ptype]
+            pclass = ALLTYPES[ptype]
         except KeyError:
             raise KeyErrorManager('"%s" is not an understood Particle type.  Choose'
                 ' from: [%s]' % (ptype, self.iterable_to_string(self.available())))
@@ -234,27 +245,12 @@ class ParticleManager(HasTraits):
             --------
             big_particles = p[p.perims > 50] """
         
-        if attr == 'color':
-            out = tuple(p.color for p in self.plist)
-
-        elif attr == 'name':
-            out = tuple(p.name for p in self.plist)
-
-        elif attr in CUSTOM_DESCRIPTORS:
-            userfcn = CUSTOM_DESCRIPTORS[attr]
-            out = tuple(userfcn(p.boxed()) for p in self.plist)
-
-        elif attr in SKIMAGE_DESCRIPTORS:
-            out = tuple(p.ski_descriptor(attr) for p in self.plist)
-
-        else:
-            try:
-                out = tuple(getattr(p, attr) for p in self.plist)
-            except Exception:
-                raise ManagerError('%s not understood, must "color", "name", or' 
-                               'valid descriptor' % attr)
-
+        out = tuple(getattr(p, attr) for p in self.plist)
         return np.array(out)
+    
+    def __repr__(self):
+        return self.plist.__repr__()
+        #return super(ParticleManager, self).__repr__()
 
     def in_region(self, *coords):
         """ Get all particles whose CENTERS are within a rectangular region"""
@@ -267,6 +263,11 @@ class ParticleManager(HasTraits):
     @property
     def count(self):
         return len(self.plist)    
+    
+    @property
+    def names(self):
+        """ Particles names; so common, worth doing here"""
+        return tuple(p.name for p in self.plist)
 
     @property
     def idxs(self):
@@ -315,7 +316,7 @@ class ParticleManager(HasTraits):
     
     def available(self):
         """ Show all valid particle types."""
-        return tuple(sorted(PARTICLETYPES.keys()))    
+        return GROUPEDNAMES 
         
     # Not printing these since ipython does its own printing
     @property
