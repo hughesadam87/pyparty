@@ -17,9 +17,9 @@ Documentation
 =============
 
 The official documentation_ does not yet exist.  Please see **pyparty.examples.Notebooks**
-for example gallery.  Having trouble viewing notebooks?  Consider using `Enthought
-Canopy`_, which has an `iPython Notebook`_ kernel builtin.  Don't
-forget the iPython Notebook viewer for sharing with friends. 
+for example gallery.  Having trouble viewing/editing notebooks?  Consider using `Enthought
+Canopy`_, which has an `iPython Notebook`_ kernel builtin.  For simply viewing,
+paste the github url of each notebook into the iPython Notebook viewer_. 
  
    .. _documentation: http://hugadams.github.com/pyparty/
    .. _`iPython Notebook`: http://ipython.org/notebook.html?utm_content=buffer83c2c&utm_source=buffer&utm_medium=twitter&utm_campaign=Buffer
