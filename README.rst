@@ -72,4 +72,16 @@ In the ``pyparty`` directory (same one where you found this file), execute::
 The developmental version can be cloned from github:
 
     git clone https://github.com/hugadams/pyparty.git
+    
+Related Libraries
+=================
+Interested in the Python ecosystem?   Check out some of these related libraries:
+
+   - Pillow_ (Python Image Library)
+   - ilastik_ (Interactive Learning and Segmentation Tool)
+   - NumPy_ (If you don't know it by now, you need to learn it)
+   
+   
+   .. _Pillow: http://python-imaging.github.io/
+   .. _NumPy: http://www.numpy.org/
  

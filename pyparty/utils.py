@@ -90,3 +90,8 @@ def rr_cc_box(rr_cc):
     rect=np.zeros((dy+1, dx+1), dtype='uint8') 
     rect[rr_cc_trans] = 1
     return rect
+
+def rgb2binary(image):
+    """ Convert rgb image to binary """
+    raise NotImplementedError
+    #Best way to do this?  Should white background be null?
