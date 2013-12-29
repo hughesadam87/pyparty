@@ -84,16 +84,10 @@ class ParticleManager(HasTraits):
         provides API used by higher-level objects.  Provides a property
         interface for easy mapping and slicing.  
     """
-        
-    _default_color = Tuple(Float(0), Float(0), Float(1) )    
-    
-    # CONSIDER ADDING FUNCTIONS FOR DIFFERNT COLOR STYLES LATER
+            
     plist = List(MetaParticle)
-    
-    # Cached properties (requires depends_on for caching)
     _namemap = Property(Tuple, depends_on = 'plist')
    
-    
     @cached_property
     def _get__namemap(self):
         """ Store light map of name to index for faster name lookup.  I verified
@@ -113,8 +107,6 @@ class ParticleManager(HasTraits):
 
         if not idx:
             idx = self.count    
-        if not color:
-            color = self._default_color
        
         #Generate key if it does not yet exist
         if not name:
@@ -124,7 +116,11 @@ class ParticleManager(HasTraits):
             raise ManagerError('particle %s is already named "%s"' % 
                                  (self._namemap[name], name) )
         
-        meta = MetaParticle(name=name, color=color, particle=particle)
+        if color:
+            meta = MetaParticle(name=name, color=color, particle=particle)
+        else:
+            meta = MetaParticle(name=name, particle=particle)
+        
 
         if idx == self.count:
             self.plist.append(meta)
@@ -249,8 +245,8 @@ class ParticleManager(HasTraits):
         return np.array(out)
     
     def __repr__(self):
-        return self.plist.__repr__()
-        #return super(ParticleManager, self).__repr__()
+       # return self.plist.__repr__()
+        return super(ParticleManager, self).__repr__() + self.plist.__repr__()
 
     def in_region(self, *coords):
         """ Get all particles whose CENTERS are within a rectangular region"""
@@ -264,6 +260,8 @@ class ParticleManager(HasTraits):
     def count(self):
         return len(self.plist)    
     
+    # SHOULD REMOVE NAMES/PARTICLES/IDXS AFTER FIX SLICING TO RETURN PMANAGER INSTANCE
+    # THEN DOING P.NAME SHOULD ATOMATICALLY RETURN NAMES
     @property
     def names(self):
         """ Particles names; so common, worth doing here"""

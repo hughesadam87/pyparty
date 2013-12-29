@@ -2,9 +2,11 @@ import os.path as op
 import logging 
 
 import numpy as np
+import matplotlib.pyplot as plt
+
 import skimage.io
 import skimage.color as color
-import matplotlib.pyplot as plt
+import skimage.measure as measure
 
 from traits.api import HasTraits, Array, Instance, Property, Bool, Float
 from manager import ParticleManager
@@ -68,6 +70,7 @@ class Canvas(HasTraits):
     image = Array
     image_shape = Property(depends_on = 'image')
     pixelarea = Property(Float, depends_on = 'image') #area already exists at particle level
+    pixelperimeter =Property(Float, depends_on = 'image')
     
     background = Property()
     _background = Array
@@ -241,6 +244,12 @@ class Canvas(HasTraits):
         """ What's the best way to get this? """
         raise NotImplemented
     
+    def _get_pixelperimeter(self):
+        """ Wraps measure.perimeter to estimate total perimeter of 
+            particles in binary image."""
+        self._draw_particles()
+        return skimage.measure.perimeter(image, neighbourhood=4)
+    
     def _get_background(self):
         return self._background
     
@@ -311,6 +320,11 @@ class Canvas(HasTraits):
         
     def __iter__(self):
         return self.particles.__iter__
+    
+    @classmethod
+    def rgb2binary(self):
+        from skimage.color import rgb2gray
+        raise NotImplemented
            
            
 class ScaledCanvas(Canvas):
