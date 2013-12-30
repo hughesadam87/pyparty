@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import skimage.io
 import skimage.color as color
 import skimage.measure as measure
+import skimage.morphology as morphology
 
 from traits.api import HasTraits, Array, Instance, Property, Bool, Float
 from manager import ParticleManager
@@ -65,8 +66,6 @@ class Canvas(HasTraits):
     >>> plt.show()
 
     """
-
-    
     image = Array
     image_shape = Property(depends_on = 'image')
     pixelarea = Property(Float, depends_on = 'image') #area already exists at particle level
@@ -89,6 +88,7 @@ class Canvas(HasTraits):
         if particles is None:
             particles = ParticleManager()
         self.particles = particles
+
 
         # This should distinguish (or in load_bg) between array vs. path
         if background is not None:
@@ -170,29 +170,41 @@ class Canvas(HasTraits):
         self.background = background
         return background   
     
-            
-    def show(self, axes=None, centers=False, cr=3):
-        """ Wrapper to imshow.
-            If centers, red circle of radius csize in pixels is drawn showing
-            center of shapes."""
+    def from_labels(self, inplace=False, neighbors=4,
+                    background=None, **pmangerkwds):
+        """ """
         
         self._draw_particles()
-        if not axes:
-            axes = plt.imshow(self.image)
+        grayimage = color.rgb2gray(self.image) #MAKE PROPERTY?
+        
+        if background: # scikit api doesn't accept None
+            labels = morphology.label(grayimage, neighbors, background)
         else:
-            axes.imshow(self.image)
-        if centers:
-            if cr == 'auto':
-                raise NotImplemented
-            # Return all the centers, draw a box around them (how)
-            # Maybe just use "circle" functionality as we have it 
-            # to generate it on the fly
-               # - centers array
-               # - make into circles array of r (via paritcle manager or raw?)
-               #    - maybe have as a second particle manager object? need rr_cc codes
-               # - Don't use add(), as you don't want them in manager.
-                   # - use draw particles *extra particles 
-            raise NotImplementedError
+            labels = morphology.label(grayimage, neighbors)
+            
+        pout = ParticleManager.from_labels(labels, **pmangerkwds)
+        if inplace:
+            self.particle = pout
+        else:
+            return Canvas(background=self.background, particles=pout)
+        
+    #http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.imshow
+    def show(self, *imshowargs, **imshowkwds):
+        """ Wrapper to imshow.  Converts to gray to allow color maps."""
+        
+        axes = imshowkwds.pop('axes', None)        
+        self._draw_particles()
+
+        # cmap is the first argument in imshowargs
+        if imshowargs or 'cmap' in imshowkwds:
+            image = color.rgb2gray(self.image)
+        else:
+            image = self.image
+
+        if axes:
+            axes.imshow(image, *imshowargs, **imshowkwds)
+        else:
+            axes = plt.imshow(image, *imshowargs, **imshowkwds)            
         return axes
     
         
@@ -319,7 +331,10 @@ class Canvas(HasTraits):
         return getattr(self.particles, attr)
         
     def __iter__(self):
-        return self.particles.__iter__
+        return self.particles.__iter__()
+    
+    def __len__(self):
+        return self.particles.__len__()
     
     @classmethod
     def rgb2binary(self):

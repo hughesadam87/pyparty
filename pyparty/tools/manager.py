@@ -6,6 +6,7 @@
 from operator import attrgetter
 import itertools
 import logging
+import copy
 
 # 3rd Party Imports
 import numpy as np
@@ -13,7 +14,7 @@ from traits.api import HasTraits, Instance, Str, Tuple, Float, \
     cached_property, Property, List
 
 # Package Imports
-from pyparty.shape_models.api import GROUPEDNAMES, ALLTYPES
+from pyparty.shape_models.api import GROUPEDTYPES, ALLTYPES
 from pyparty.shape_models.abstract_shape import Particle, ParticleError
 from pyparty.descriptors.api import CUSTOM_DESCRIPTORS, SKIMAGE_DESCRIPTORS
 from pyparty.config import NAMESEP
@@ -26,7 +27,54 @@ class ManagerError(Exception):
 class KeyErrorManager(KeyError):
     """ Particle Manager dictionary interface Exception """
 
-# EVENTUALLY MAKE COLOR TRAIT
+def concat_particles(p1, p2, alternate=False, overwrite=False):
+    """ Joins two instances of particle manager.
+    
+    Attributes
+    ----------
+    p1, p2 : ParticleManager
+    
+    alternate : Bool 
+       Add particles in alternating order.  If False, all of p2 is added 
+       after p1, meaning p2 would paint "over" p1 for particles w/ overlapping
+       regions
+       
+    overwrite : Bool
+       If True, particles in p2 with same name as those in p1 will overwrite.
+       Otherwise, an error is raised if particles in p1 and p2 share names.
+    
+    Returns
+    -------
+    pout : ParticleManager
+       Merged particle manager containing all particles of p1 and p2.
+       
+    Notes
+    -----
+    When overwriting, the elements are deleted from p1
+    """
+    p1_temp = copy.copy(p1)
+    shared = [name for name in p1.names if name in p2.names]
+    if shared:
+        if overwrite:
+            p1_temp.plist[:] = [p for p in p1 if p.name not in shared]
+        else:
+            raise ManagerError("%s Duplicate particle names found." % len(shared))
+            
+    pout = p1_temp.plist + p2.plist
+
+    #http://stackoverflow.com/questions/7529376/pythonic-way-to-mix-two-lists    
+    if alternate:
+        pout = [p for pout in map(None, p1_temp, p2) for p in pout]
+        pout = [p for p in pout if p is not None]
+            
+    return ParticleManager(plist=pout)
+
+
+def subtract_particles(p1, p2):
+    p1_temp = copy.copy(p1)
+    shared = [name for name in p1.names if name in p2.names]    
+    p1_temp.plist[:] = [p for p in p1 if p.name not in shared]
+    return p1_temp               
 
 class MetaParticle(HasTraits):
     """ Stores a particle and metadata for use by ParticleManager.
@@ -67,7 +115,11 @@ class MetaParticle(HasTraits):
             return self.particle.ski_descriptor(attr)        
         
         else:
-            raise ParticleError('%s could not be found on self')
+            try:
+                return getattr(self.particle, attr)
+            except AttributeError:
+                raise ParticleError('%s attribute could not be found on %s'
+                                % (attr, self) )
     
     def __setattr__(self, attr, value):
         """ Defer attribute calls to to self.particle unless overwriting
@@ -93,7 +145,7 @@ class ParticleManager(HasTraits):
         """ Store light map of name to index for faster name lookup.  I verified
             that this updates when plist elemnts are updated as well as obj itself.
             """
-        return dict( (pobj.name, idx) for idx,pobj in enumerate(self.plist))    
+        return dict( (pobj.name, idx) for idx, pobj in enumerate(self.plist))    
             
     # ADD INDEX KEYWORD TO SUPPORT INSERTIONS
     def add(self, particle, name='', idx=None, color=None,
@@ -106,7 +158,7 @@ class ParticleManager(HasTraits):
             particle = self._make_particle(particle, *traitargs, **traitkwargs)
 
         if not idx:
-            idx = self.count    
+            idx = len(self)
        
         #Generate key if it does not yet exist
         if not name:
@@ -122,7 +174,7 @@ class ParticleManager(HasTraits):
             meta = MetaParticle(name=name, particle=particle)
         
 
-        if idx == self.count:
+        if idx == len(self):
             self.plist.append(meta)
         else:
             self.plist.insert(idx, meta)
@@ -133,8 +185,8 @@ class ParticleManager(HasTraits):
         try:
             pclass = ALLTYPES[ptype]
         except KeyError:
-            raise KeyErrorManager('"%s" is not an understood Particle type.  Choose'
-                ' from: [%s]' % (ptype, self.iterable_to_string(self.available())))
+            raise KeyErrorManager('"%s" is not an understood Particle type.  '
+                'Choose from: %s' % (ptype, self.available()))
         return pclass(*traitargs, **traitkwargs)
     
     
@@ -172,8 +224,15 @@ class ParticleManager(HasTraits):
         raise ManagerError("Index must be of type int, str or MetaParticle"
                            " received %s" % type(idx) )
         
-    # Indexing / Iterating 
-    # -----------
+    # Magic Methods
+    # -------------
+    def __add__(self, p2):
+        return concat_particles(self, p2, alternate=False, overwrite=False)
+    
+    def __sub__(self, p2):
+        """ Removes duplicates between p2, p1, but does not affect p1 particles
+            otherwise."""
+        return subtract_particles(self, p2)
 
     def __iter__(self):
         return self.plist.__iter__()
@@ -209,13 +268,13 @@ class ParticleManager(HasTraits):
                 self.plist[:] = [self.plist[idx] for idx, exists in
                                  enumerate(boolout) if not exists]
             else:    
-                to_remove = [self._make_particle(idx) for idx in keyslice]
-                self.plist[:] = [self.plist[idx] for idx in range(self.count)
+                to_remove = [self._unmask_index(idx) for idx in keyslice]
+                self.plist[:] = [self.plist[idx] for idx in range(len(self))
                                  if idx not in to_remove]
 
         # Delete single entry
         else:
-            del self.plist[self._unmask_index[keyslice]]
+            del self.plist[self._unmask_index(keyslice)]
         
 
     def __setitem__(self, keyorslice, particle):
@@ -244,9 +303,22 @@ class ParticleManager(HasTraits):
         out = tuple(getattr(p, attr) for p in self.plist)
         return np.array(out)
     
+    def __len__(self):
+        return self.plist.__len__()
+    
+    # MAKE MORE SUCCINT
     def __repr__(self):
-       # return self.plist.__repr__()
-        return super(ParticleManager, self).__repr__() + self.plist.__repr__()
+        """ <Particle at Address> [items]
+
+        Examples
+        --------
+        <ParticleManager at 0x2c6eb30> [(circle_0 : circle ...],
+        """
+        old = super(ParticleManager, self).__repr__() 
+        ctype = self.__class__.__name__   
+        address = old.split()[-1].strip('>')   
+        prefix = '<%s at %s>' % (ctype, address)
+        return ('%s %s' % (prefix, self.plist.__repr__()))
 
     def in_region(self, *coords):
         """ Get all particles whose CENTERS are within a rectangular region"""
@@ -256,10 +328,6 @@ class ParticleManager(HasTraits):
     # python properties
     # -------------
         
-    @property
-    def count(self):
-        return len(self.plist)    
-    
     # SHOULD REMOVE NAMES/PARTICLES/IDXS AFTER FIX SLICING TO RETURN PMANAGER INSTANCE
     # THEN DOING P.NAME SHOULD ATOMATICALLY RETURN NAMES
     @property
@@ -270,7 +338,7 @@ class ParticleManager(HasTraits):
     @property
     def idxs(self):
         """ Particle indicies"""
-        return range(self.count)
+        return range(len(self))
     
     @property
     def particles(self):
@@ -312,9 +380,14 @@ class ParticleManager(HasTraits):
         """ Unique particle types in plist. """
         return ( (typ, self.ptypes.count(typ)) for typ in self.ptypes)
     
-    def available(self):
-        """ Show all valid particle types."""
-        return GROUPEDNAMES 
+    def available(self, subtype=None):
+        """ Show all valid particle types.  Subtype is 'simple' 'multi' to
+            return groups of particles"""
+        if subtype:
+            return tuple( sorted(GROUPEDTYPES[subtype.lower()].keys()) )
+        else:
+            return tuple( (k+':', sorted(v.keys())) 
+                          for k, v in GROUPEDTYPES.items() ) 
         
     # Not printing these since ipython does its own printing
     @property
@@ -325,38 +398,59 @@ class ParticleManager(HasTraits):
     @property    
     def full_stats(self):
         """ """
-        return 
-    
-    @staticmethod
-    def iterable_to_string(iterable):
-        """ String formats an interable into a container string of form:
-            [1, 'a', 2] -->  ("1", "a", "2") """
- 
-        return '"%s"' % '", "'.join(iterable)
-    
+        return     
 
-    # Other representations
-    # -------------
-    
-    #@cached_property
-    #def _get_panel(self):
-        #""" For complex heirarchal slicing, use panel. """
-        #from pandas import Panel
         
+    # Class methods
+    # ------------
+    @classmethod
+    def from_labels(cls, labelarray, prefix='label', colorbynum=False):
+        """ Create ParticleManager from output of skimage.morphology.label
+        array.  Each item is written to a general Particle type."""
+
+        from pyparty.shape_models.io import LabeledParticle
+
+        num = np.unique(labelarray)
+        if num[0] == 0:
+            num = num[1:]  #Will this ever not be the case?
         
+        # Normalize color
+        if colorbynum:
+            color_norm = float(255)/max(num)       
+       
+        plist = []
+        for idx, label in enumerate(num):
+            name = '%s_%s' % (prefix, idx)
+            rr_cc = np.where(labelarray==label)
+            particle = LabeledParticle(rr_cc, label=label)
+            
+            if colorbynum:
+                cn = color_norm * label      
+                color = (0, 0, cn)
+                plist.append( MetaParticle(name=name, color=color, 
+                                           particle=particle) )
+            else:
+                plist.append( MetaParticle(name=name, particle=particle) )
+      
+        return cls(plist=plist)      
         
 if __name__ == '__main__':
     p=ParticleManager()
-    print p
-    p.count
-    for i in range(10,15):
+    for i in range(5):
         p.add(particle='circle', radius=i)
-
-    p.add(particle='circle',name='afoo', radius=11)
-
-    print p.name, 'hi again'
-
-    print p.sortby('pclass').name
+        
+    p2=ParticleManager()
+    for i in range(5):
+        p2.add(particle='circle', name='foo'+str(i), radius=i)
+    
+    
+    print len(p), p
+    print len(p2), p2
+    pout = concat_particles(p,p2, overwrite=False, alternate=False)    
+    print len(pout), pout
+    
+    pminus = p2-p2
+    print len(pminus), pminus
 
     #print p.name
     #print p.perimeter, type(p.perimeter), p.perimeter.dtype

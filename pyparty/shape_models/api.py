@@ -24,6 +24,4 @@ GROUPEDTYPES= \
 ALLTYPES = dict(GROUPEDTYPES['simple'].items() + 
                 GROUPEDTYPES['multi'].items() )
 
-GROUPEDNAMES = tuple( (k+':', sorted(v.keys())) for k, v in GROUPEDTYPES.items() )
-
 # Eventually, break these up between basic, multi etc...

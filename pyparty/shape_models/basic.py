@@ -14,6 +14,8 @@ from traits.api import HasTraits, Property, implements, Bool, Int, Array,\
      Float, Str
 
 from abstract_shape import Particle, CenteredParticle, ParticleInterface
+from pyparty.config import RADIUS_DEFAULT, CENTER_DEFAULT, XRADIUS, YRADIUS, \
+     XSTART, YSTART, XMID, YMID, XEND, YEND, BEZIERWEIGHT
 
 logger = logging.getLogger(__name__) 
 CHECK_INTERFACES = 2 # 2-error, 1-warn, 0-pass
@@ -28,7 +30,7 @@ class Circle(CenteredParticle):
     implements(ParticleInterface)        
     
     ptype=Str('circle')
-    radius = Int(20) #in pixels (<2 causes errors w/ properties)
+    radius = Int(RADIUS_DEFAULT) #in pixels (<2 causes errors w/ properties)
     	    
     #http://scikit-image.org/docs/dev/api/skimage.draw.html#circle
     def _get_rr_cc(self):
@@ -44,8 +46,8 @@ class Ellipse(CenteredParticle):
     implements(ParticleInterface)        
     ptype=Str('ellipse')    
 
-    yradius = Int(2)
-    xradius = Int(2)
+    yradius = Int(YRADIUS)
+    xradius = Int(XRADIUS)
 
     def _get_rr_cc(self):
     
@@ -63,10 +65,10 @@ class Line(Particle):
     implements(ParticleInterface)        
     ptype=Str('line')    
     
-    ystart = Int(0) #start position row
-    xstart = Int(0)
-    yend = Int(2)
-    xend = Int(2)
+    ystart = Int(YSTART) #start position row
+    xstart = Int(XSTART)
+    yend = Int(YEND)
+    xend = Int(XEND)
     
     def _get_rr_cc(self):
         return draw.line(self.ystart, self.xstart, self.yend, self.xend)
@@ -83,8 +85,8 @@ class BezierCurve(Line):
     implements(ParticleInterface)        
     ptype=Str('bezier')   
     
-    ymid = Int(1)
-    xmid = Int(1)
+    ymid = Int(YMID)
+    xmid = Int(XMID)
     
     weight = Float(1.0) #Middle control point weight (sensible defualt value?)
     

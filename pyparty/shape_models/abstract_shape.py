@@ -2,14 +2,14 @@
 # (C) Copyright 2013 George Washington University, D.C.
 # All right reserved.
 #
-# This file is open source software distributed according to the terms in LICENSE.txt
+# This file is open source software distributed according to LICENSE.txt
 #
 
 """
 Shape Models API
 ================
 
-This module specifies the ...
+This module stores abstract base classes for Particle models.
 
 """
 import logging
@@ -24,6 +24,7 @@ import skimage.draw as draw
 from skimage.measure import regionprops
 from skimage.measure._regionprops import _RegionProperties
 
+from pyparty.config import RADIUS_DEFAULT, CENTER_DEFAULT
 from pyparty.utils import IntOrNone, rr_cc_box
 from pyparty.patterns.elements import simple
 
@@ -61,8 +62,8 @@ class ParticleInterface(Interface):
 class Particle(HasTraits):
 
     implements(ParticleInterface)
-    
     ptype = Str('abstract')    
+
     psource = Str('pyparty_builtin')
     fill = Bool(True)
     aa = Bool(False) #Anti Aliasing
@@ -73,6 +74,9 @@ class Particle(HasTraits):
        
     #http://scikit-image.org/docs/dev/api/skimage.draw.html#circle
     def _get_rr_cc(self):
+        raise NotImplementedError
+
+    def _set_rr_cc(self):
         raise NotImplementedError
         
     # May want this to return the translation coordinates
@@ -98,7 +102,7 @@ class CenteredParticle(Particle):
     pytpe = Str('abstract_centered')
     
     # CENTER = (CX, CY)  not (CY, CX)
-    center = Tuple( Int(256), Int(256) ) # in pixels 
+    center = Tuple( CENTER_DEFAULT ) # in pixels 
     cx = Property(Int, depends_on = 'center')
     cy = Property(Int, depends_on = 'center')    
 
@@ -132,7 +136,7 @@ class SimplePattern(CenteredParticle):
     implements(ParticleInterface)            
     ptype = Str('abstract_simple_element')    
         
-    radius_1 = Int(2)
+    radius_1 = Int(RADIUS_DEFAULT)
     radius_2 = IntOrNone #defaults to None
     radius_3 = IntOrNone
     radius_4 = IntOrNone

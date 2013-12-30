@@ -87,9 +87,10 @@ def rr_cc_box(rr_cc):
     dx = xmax-xmin
     dy = ymax-ymin
     
-    rect=np.zeros((dy+1, dx+1), dtype='uint8') 
+    rect=np.zeros( (dy+1, dx+1), dtype='uint8' ) 
     rect[rr_cc_trans] = 1
-    return rect
+    return rect   
+
 
 def rgb2binary(image):
     """ Convert rgb image to binary """
