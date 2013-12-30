@@ -3,15 +3,18 @@
 # Particle Manager
 # ------------
 NAMESEP = '_' 
+PADDING = 3
+ALIGN = 'l'
+MAXOUT = 50 #How many rows to show before cutting off
 
 
 # Canvas
-# -----
-
+# ------
 BACKGROUND ={
     'bgcolor' : (1.0, 1.0, 1.0),
     'resolution' : (512, 512)
     }
+
 
 # Shape model defaults
 # --------------------

@@ -17,15 +17,9 @@ from traits.api import HasTraits, Instance, Str, Tuple, Float, \
 from pyparty.shape_models.api import GROUPEDTYPES, ALLTYPES
 from pyparty.shape_models.abstract_shape import Particle, ParticleError
 from pyparty.descriptors.api import CUSTOM_DESCRIPTORS, SKIMAGE_DESCRIPTORS
-from pyparty.config import NAMESEP
+from pyparty.config import NAMESEP, PADDING, ALIGN, MAXOUT
 
 logger = logging.getLogger(__name__) 
-
-class ManagerError(Exception):
-    """ Particle Manager general Exception """
-    
-class KeyErrorManager(KeyError):
-    """ Particle Manager dictionary interface Exception """
 
 def concat_particles(p1, p2, alternate=False, overwrite=False):
     """ Joins two instances of particle manager.
@@ -69,12 +63,71 @@ def concat_particles(p1, p2, alternate=False, overwrite=False):
             
     return ParticleManager(plist=pout)
 
-
 def subtract_particles(p1, p2):
     p1_temp = copy.copy(p1)
     shared = [name for name in p1.names if name in p2.names]    
     p1_temp.plist[:] = [p for p in p1 if p.name not in shared]
-    return p1_temp               
+    return p1_temp            
+
+def summarize_particles(obj):
+    """ Return a summarized """
+    if len(obj) == 0:
+        countstring = '0 particles'
+        ptypestring = ''
+        
+    elif len(obj) == 1:
+        countstring = '1 particle (%s)' % obj[0].name
+#        ptypestring = '%s type' % obj[0].ptype
+    else:
+        countstring = '%s particles (%s...%s)' % \
+            (len(obj), obj[0].name, obj[-1].name)
+ #       ptypestring = '%s ptypes' % len(obj.ptypes)
+ 
+    if len(obj) > 1:
+        if len(obj.ptypes) > 1:
+            ptypestring = '%s ptypes' % len(obj.ptypes)
+        ptypestring = ' ptype="%s"' % obj[0].ptype
+
+    address = super(ParticleManager, obj).__repr__() .split()[-1].strip('>')      
+    
+    return ('\n<< %s /%s at %s >>' % 
+            (countstring, ptypestring, address ) )    
+
+def format_particles(obj, align='l', padding=3):
+    """ Output column-delimted representation of a ParticleManager instance.
+
+    Attributes
+    ----------
+    obj : ParticleManager
+    
+    maxlines : number of lines to print before cutting off.
+    
+    align : str ('l', 'c', 'r')
+        Column alignment
+    
+    padding : int
+        Column padding (width column = padding + len(max_word) )
+    """
+    padding = ' ' * padding
+    just_fcn = {
+        'l': str.ljust,
+        'r': str.rjust,
+        'c': str.center}[align]
+
+    outlist = copy.copy(obj.plist)
+    
+    outrows = [('', 'NAME', 'PTYPE')] #header
+    outrows.extend( [(str(i), p.name, p.ptype) for i, p in enumerate(outlist) ])
+ 
+    widths = [max(map(len, col)) for col in zip(*outrows)]
+    return  '\n'.join( [ padding.join((just_fcn(val,width) for val, width 
+                    in zip(row, widths))) for row in outrows] )
+        
+class ManagerError(Exception):
+    """ Particle Manager general Exception """
+    
+class KeyErrorManager(KeyError):
+    """ Particle Manager dictionary interface Exception """   
 
 class MetaParticle(HasTraits):
     """ Stores a particle and metadata for use by ParticleManager.
@@ -94,10 +147,15 @@ class MetaParticle(HasTraits):
     def pclass(self):
         return self.particle.__class__.__name__
     
+    @property
+    def address(self):
+        """ Memory address """
+        return super(MetaParticle, self).__repr__() .split()[-1].strip('>')           
+    
     def __repr__(self):
         """ Puts name into return with memory address:
               (my name) <__main__.Foo  at 0x3002f90>  """
-        
+
         out = super(MetaParticle, self).__repr__() 
         address = out.split()[-1].rstrip('>')
         return '(%s : %s : %s at %s)' % \
@@ -140,6 +198,14 @@ class ParticleManager(HasTraits):
     plist = List(MetaParticle)
     _namemap = Property(Tuple, depends_on = 'plist')
    
+    def __init__(self, fastnames=False, *traits, **traitkwds):
+        """ fastnames:
+           (TRUE):  circle_1, dimer_2, circle_3, dimer_4
+           (FALSE): circle_1, dimer_1, circle_2, dimer_2
+        """
+        self.fastnames = fastnames
+        super(ParticleManager, self).__init__(*traits, **traitkwds)
+   
     @cached_property
     def _get__namemap(self):
         """ Store light map of name to index for faster name lookup.  I verified
@@ -162,12 +228,23 @@ class ParticleManager(HasTraits):
        
         #Generate key if it does not yet exist
         if not name:
-            name = particle.ptype + NAMESEP + str(idx)
+            ptype = particle.ptype
+            
+            if self.fastnames:
+                name = ptype + NAMESEP + str(idx)            
+            
+            else:
+                try:
+                    pcount = self.ptype_count[ptype]
+                except KeyError:
+                    pcount = 0
+    
+                name = ptype + NAMESEP + str(pcount)            
+
             
         if name in self._namemap:
             raise ManagerError('particle %s is already named "%s"' % 
-                                 (self._namemap[name], name) )
-        
+                                 (self._namemap[name], name) )        
         if color:
             meta = MetaParticle(name=name, color=color, particle=particle)
         else:
@@ -272,7 +349,7 @@ class ParticleManager(HasTraits):
                 self.plist[:] = [self.plist[idx] for idx in range(len(self))
                                  if idx not in to_remove]
 
-        # Delete single entry
+        # Delete single entry (can't del multiple as index changes inplace)
         else:
             del self.plist[self._unmask_index(keyslice)]
         
@@ -313,13 +390,12 @@ class ParticleManager(HasTraits):
         Examples
         --------
         <ParticleManager at 0x2c6eb30> [(circle_0 : circle ...],
-        """
-        old = super(ParticleManager, self).__repr__() 
-        ctype = self.__class__.__name__   
-        address = old.split()[-1].strip('>')   
-        prefix = '<%s at %s>' % (ctype, address)
-        return ('%s %s' % (prefix, self.plist.__repr__()))
-
+        """        
+        if len(self) >= MAXOUT or len(self) == 0:
+            return summarize_particles(self)
+        else:
+            return format_particles(self, align=ALIGN, padding=PADDING)  
+        
     def in_region(self, *coords):
         """ Get all particles whose CENTERS are within a rectangular region"""
         raise NotImplementedError
@@ -367,18 +443,19 @@ class ParticleManager(HasTraits):
     
     def _rr_cc_color(self):
         """ Returns rr_cc, color for each particle; useful to canvas """
-        return [(p[3].rr_cc, p[2]) for p in self.values]
+        return [(p[3].rr_cc, p[2]) for p in self.plist]
     
     
     @property
     def ptypes(self):
-        """ All unique particle types. """
-        return tuple(set( self._subset(ptype) ) )
+        """ All UNIQUE particle types. """
+        return tuple(set( p.ptype for p in self.plist ) )
         
     @property
     def ptype_count(self):
         """ Unique particle types in plist. """
-        return ( (typ, self.ptypes.count(typ)) for typ in self.ptypes)
+        ptypes = tuple( p.ptype for p in self.plist) 
+        return dict( (typ, ptypes.count(typ)) for typ in self.ptypes)
     
     def available(self, subtype=None):
         """ Show all valid particle types.  Subtype is 'simple' 'multi' to
@@ -389,17 +466,6 @@ class ParticleManager(HasTraits):
             return tuple( (k+':', sorted(v.keys())) 
                           for k, v in GROUPEDTYPES.items() ) 
         
-    # Not printing these since ipython does its own printing
-    @property
-    def stats(self):
-        """ Returns a string/TUPLE? of particles and stuff """
-        return 
-
-    @property    
-    def full_stats(self):
-        """ """
-        return     
-
         
     # Class methods
     # ------------
@@ -433,24 +499,34 @@ class ParticleManager(HasTraits):
                 plist.append( MetaParticle(name=name, particle=particle) )
       
         return cls(plist=plist)      
+    
+#http://stackoverflow.com/questions/9989334/create-nice-column-output-in-python               
         
 if __name__ == '__main__':
     p=ParticleManager()
     for i in range(5):
         p.add(particle='circle', radius=i)
+        p.add(particle='dimer')
         
+    print 'starting'
     p2=ParticleManager()
-    for i in range(5):
+    for i in range(5000):
         p2.add(particle='circle', name='foo'+str(i), radius=i)
+    print 'finished'
     
     
-    print len(p), p
-    print len(p2), p2
-    pout = concat_particles(p,p2, overwrite=False, alternate=False)    
-    print len(pout), pout
+    #print len(p), p
+    #print len(p2), p2
+    #pout = concat_particles(p,p2, overwrite=False, alternate=False)    
+    #print len(pout), pout
     
-    pminus = p2-p2
-    print len(pminus), pminus
+    #pminus = p2-p2
+    #print len(pminus), pminus
+    
+    #print p
+    #print ParticleManager()
+    #print 'hi'
+
 
     #print p.name
     #print p.perimeter, type(p.perimeter), p.perimeter.dtype
