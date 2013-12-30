@@ -13,7 +13,7 @@ from traits.api import HasTraits, Array, Instance, Property, Bool, Float
 from manager import ParticleManager
 
 # pyparty imports
-from pyparty.skiutils import coords_in_image, where_is_particle
+from pyparty.utils import coords_in_image, where_is_particle
 from pyparty.config import BACKGROUND
 
 logger = logging.getLogger(__name__) 
@@ -124,13 +124,13 @@ class Canvas(HasTraits):
         """ Maps a function to each particle in ParticleManger; optionally
             can be done in place"""
 
-        inplace = fcnkwargs.pop('inplace', True)
-        if not inplace:
+        inplace = fcnkwargs.pop('inplace', False)
+        if  inplace:
+            self.particles.map(fcn, *fcnargs, **fcnkwargs)
+        else:
             cout = Canvas(background=self.background, particles=self.particles)
             cout._particles.map(fcn, *fcnargs, **fcnkwargs)
             return cout
-        else:
-            self.particles.map(fcn, *fcnargs, **fcnkwargs)
 
         
     def pwrap(self):
@@ -315,10 +315,8 @@ class Canvas(HasTraits):
     def __getitem__(self, keyslice):
         """ Employs particle manager interface; however, returns single entry
             as a list to allow slicing directly into get_item[]"""
-        out = self.particles.__getitem__(keyslice)
-        if not hasattr(out, '__iter__'):
-            out = [out]
-        return out
+        return self.particles.__getitem__(keyslice)
+    
     
     def __delitem__(self, keyslice):
         return self.particles.__delitem__(keyslice)    

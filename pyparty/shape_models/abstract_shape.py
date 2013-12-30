@@ -25,7 +25,8 @@ from skimage.measure import regionprops
 from skimage.measure._regionprops import _RegionProperties
 
 from pyparty.config import RADIUS_DEFAULT, CENTER_DEFAULT
-from pyparty.utils import IntOrNone, rr_cc_box
+from pyparty.utils import rr_cc_box
+from pyparty.trait_types.intornone import IntOrNone
 from pyparty.patterns.elements import simple
 
 logger = logging.getLogger(__name__) 

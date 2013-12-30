@@ -10,14 +10,14 @@ import copy
 
 # 3rd Party Imports
 import numpy as np
-from traits.api import HasTraits, Instance, Str, Tuple, Float, \
-    cached_property, Property, List
+from enthought.traits.api import HasTraits, Instance, Property, Tuple,\
+     cached_property, List
 
 # Package Imports
 from pyparty.shape_models.api import GROUPEDTYPES, ALLTYPES
 from pyparty.shape_models.abstract_shape import Particle, ParticleError
-from pyparty.descriptors.api import CUSTOM_DESCRIPTORS, SKIMAGE_DESCRIPTORS
 from pyparty.config import NAMESEP, PADDING, ALIGN, MAXOUT
+from pyparty.trait_types.metaparticle import MetaParticle
 
 logger = logging.getLogger(__name__) 
 
@@ -93,7 +93,7 @@ def summarize_particles(obj):
     return ('\n<< %s /%s at %s >>' % 
             (countstring, ptypestring, address ) )    
 
-def format_particles(obj, align='l', padding=3):
+def format_particles(obj, align='l', padding=3, header=True):
     """ Output column-delimted representation of a ParticleManager instance.
 
     Attributes
@@ -116,7 +116,11 @@ def format_particles(obj, align='l', padding=3):
 
     outlist = copy.copy(obj.plist)
     
-    outrows = [('', 'NAME', 'PTYPE')] #header
+    if header:
+        outrows = [('', 'NAME', 'PTYPE')] 
+    else:
+        outrows = [('', '', '')]
+        
     outrows.extend( [(str(i), p.name, p.ptype) for i, p in enumerate(outlist) ])
  
     widths = [max(map(len, col)) for col in zip(*outrows)]
@@ -129,64 +133,6 @@ class ManagerError(Exception):
 class KeyErrorManager(KeyError):
     """ Particle Manager dictionary interface Exception """   
 
-class MetaParticle(HasTraits):
-    """ Stores a particle and metadata for use by ParticleManager.
-    
-        Notes
-        -----
-        May be intelligent to store a default index for sorting and restoring
-        purposes, but that would cause issue with preserving order when
-        inserting (eg adding new particles.)"""
-
-    # TO DO: Use color trait
-    name = Str()
-    color = Tuple( Float(0.0), Float(0.0), Float(1.0) )
-    particle = Instance(Particle)
-    
-    @property
-    def pclass(self):
-        return self.particle.__class__.__name__
-    
-    @property
-    def address(self):
-        """ Memory address """
-        return super(MetaParticle, self).__repr__() .split()[-1].strip('>')           
-    
-    def __repr__(self):
-        """ Puts name into return with memory address:
-              (my name) <__main__.Foo  at 0x3002f90>  """
-
-        out = super(MetaParticle, self).__repr__() 
-        address = out.split()[-1].rstrip('>')
-        return '(%s : %s : %s at %s)' % \
-           (self.name, self.particle.ptype, self.pclass, address)
-    
-    def __getattr__(self, attr):
-        
-        if attr in self.__dict__:
-            return getattr(self, attr)
-        
-        elif attr in CUSTOM_DESCRIPTORS:
-            return CUSTOM_DESCRIPTORS[attr](self.particle.boxed())
-                          
-        elif attr in SKIMAGE_DESCRIPTORS:
-            return self.particle.ski_descriptor(attr)        
-        
-        else:
-            try:
-                return getattr(self.particle, attr)
-            except AttributeError:
-                raise ParticleError('%s attribute could not be found on %s'
-                                % (attr, self) )
-    
-    def __setattr__(self, attr, value):
-        """ Defer attribute calls to to self.particle unless overwriting
-            name, color etc... """
-        
-        if attr not in self.__dict__:
-            setattr(self.particle, attr, value)
-        else:
-            self.__dict__[attr] = value
         
         
 class ParticleManager(HasTraits):
@@ -195,7 +141,7 @@ class ParticleManager(HasTraits):
         interface for easy mapping and slicing.  
     """
             
-    plist = List(MetaParticle)
+    plist = List(Instance(MetaParticle))
     _namemap = Property(Tuple, depends_on = 'plist')
    
     def __init__(self, fastnames=False, *traits, **traitkwds):
@@ -277,8 +223,8 @@ class ParticleManager(HasTraits):
     
     def pop(self, idx):
         self.plist.pop(idx)
-        
-    def index(self, *names):
+    
+    def idx(self, *names):
         """ Return index given names """
         out = tuple(self._namemap[name] for name in names)
         if len(out) == 1:
@@ -321,12 +267,20 @@ class ParticleManager(HasTraits):
             # Boolean indexing
             if isinstance(keyslice, np.ndarray):
                 boolout = keyslice.astype('bool')
-                return [self.plist[idx] for idx, exists in enumerate(boolout) if exists]                
+                plout = [self.plist[idx] for idx, exists in enumerate(boolout) if exists]                
     
             else:    
-                return [self.plist[self._unmask_index(idx)] for idx in keyslice]              
+                plout = [self.plist[self._unmask_index(idx)] for idx in keyslice]              
 
-        return self.plist[self._unmask_index(keyslice)]
+        else:
+            plout = self.plist[self._unmask_index(keyslice)]
+
+        # When slicing returns one value; still need to list-convert due to
+        # trait type!
+        if not hasattr(plout, '__iter__'):
+            plout = [plout]
+        
+        return ParticleManager(plist=plout, fastnames=self.fastnames)
 
         
     def __delitem__(self, keyslice):
@@ -356,9 +310,11 @@ class ParticleManager(HasTraits):
 
     def __setitem__(self, keyorslice, particle):
         """ Not sure how confident I am in implementing this.  Users can add, 
-            and remove particles through add()/remove() API.  Allowing them to
-            set through slicing could break the api.  For example, setting 
-            many particles to the same value and hence the same name..."""
+        and remove particles through add()/remove() (__get /__del) API.  
+        Allowing them to set through slicing could break the API.  
+        For example, setting many particles to the same value and hence the 
+        same name...
+        """
         raise ManagerError('"%s" object does not support item assigment.' % 
                            self.__class__.__name__)
 
@@ -403,18 +359,10 @@ class ParticleManager(HasTraits):
 
     # python properties
     # -------------
-        
-    # SHOULD REMOVE NAMES/PARTICLES/IDXS AFTER FIX SLICING TO RETURN PMANAGER INSTANCE
-    # THEN DOING P.NAME SHOULD ATOMATICALLY RETURN NAMES
     @property
     def names(self):
         """ Particles names; so common, worth doing here"""
         return tuple(p.name for p in self.plist)
-
-    @property
-    def idxs(self):
-        """ Particle indicies"""
-        return range(len(self))
     
     @property
     def particles(self):
@@ -424,8 +372,7 @@ class ParticleManager(HasTraits):
     @property
     def centers(self):
         """ Return center coordinates of all particles."""
-        return self._subset('center')
-    
+        return tuple(p.center for p in self.plist)
     
 
     # Full attribute container sorted mappers        
@@ -510,9 +457,12 @@ if __name__ == '__main__':
         
     print 'starting'
     p2=ParticleManager()
-    for i in range(5000):
+    for i in range(50):
         p2.add(particle='circle', name='foo'+str(i), radius=i)
     print 'finished'
+    
+    print p[0:5]
+    print p[0]
     
     
     #print len(p), p
