@@ -62,7 +62,7 @@ class ParticleInterface(Interface):
 class Particle(HasTraits):
 
     implements(ParticleInterface)
-    ptype = Str('abstract')    
+    ptype = Str('general')    
 
     psource = Str('pyparty_builtin')
     fill = Bool(True)
