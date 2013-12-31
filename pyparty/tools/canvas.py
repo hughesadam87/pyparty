@@ -10,7 +10,7 @@ import skimage.measure as measure
 import skimage.morphology as morphology
 
 from traits.api import HasTraits, Array, Instance, Property, Bool, Float
-from manager import ParticleManager
+from manager import ParticleManager, concat_particles
 
 # pyparty imports
 from pyparty.utils import coords_in_image, where_is_particle
@@ -18,8 +18,29 @@ from pyparty.config import BACKGROUND
 
 logger = logging.getLogger(__name__) 
 
+def concat_canvas(c1, c2, bg_resolve='c2', **particle_args):
+    """ """
+    bg_resolve = bg_resolve.lower()
+    
+    # Choose output background
+    if bg_resolve == 'merge':
+        raise NotImplementedError
+    elif bg_resolve == 'c1':
+        bgout = c1.background
+    elif bg_resolve == 'c2':
+        bgout = c2.background        
+    else:
+        raise CanvasAttributeError('"bg_resolve" invalid; must be %s' % bg_valid)
+    
+    pout = concat_particles(c1.particles, c2.particles, **particle_args)
+    return Canvas(background=bgout, particles=pout)
+        
+
 class CanvasError(Exception):
     """ Custom exception """ 
+    
+class CanvasAttributeError(CanvasError):
+    """ Custom exception """     
 
 class Canvas(HasTraits):
     """
@@ -78,17 +99,16 @@ class Canvas(HasTraits):
     # Maybe just make mesh a separate tool to draw over top? 
     
     #Particles Interface 
-    particles = Property()
+    particles = Property(Instance(ParticleManager))
     _particles = Instance(ParticleManager)
     
-    def __init__(self, background=None, particles=None, *traitargs, **traitkwds):
+    def __init__(self, background=None, particles=None): #No other traits to be set
         """ Load with optionally a background image and instance of Particle
             Manager"""
         
-        if particles is None:
+        if not particles:
             particles = ParticleManager()
         self.particles = particles
-
 
         # This should distinguish (or in load_bg) between array vs. path
         if background is not None:
@@ -98,9 +118,12 @@ class Canvas(HasTraits):
                 self.background = background                
         else:
             self.clear_background()
-            
+                        
     # Public Methods
     # -------------
+    
+    def _background_changed(self):
+        self._draw_particles() #To ensure image updated
               
     def clear_background(self):
         """ Restore default background image; redraws
@@ -184,7 +207,7 @@ class Canvas(HasTraits):
             
         pout = ParticleManager.from_labels(labels, **pmangerkwds)
         if inplace:
-            self.particle = pout
+            self.particles = pout
         else:
             return Canvas(background=self.background, particles=pout)
         
@@ -192,7 +215,9 @@ class Canvas(HasTraits):
     def show(self, *imshowargs, **imshowkwds):
         """ Wrapper to imshow.  Converts to gray to allow color maps."""
         
-        axes = imshowkwds.pop('axes', None)        
+        axes = imshowkwds.pop('axes', None)   
+        title = imshowkwds.pop('title', None)
+        
         self._draw_particles()
 
         # cmap is the first argument in imshowargs
@@ -203,8 +228,11 @@ class Canvas(HasTraits):
 
         if axes:
             axes.imshow(image, *imshowargs, **imshowkwds)
-        else:
-            axes = plt.imshow(image, *imshowargs, **imshowkwds)            
+        else:      # matplotlib API asymmetry
+            axes = plt.imshow(image, *imshowargs, **imshowkwds).axes           
+        
+        if title:
+            axes.set_title(title)
         return axes
     
         
@@ -283,8 +311,6 @@ class Canvas(HasTraits):
         else:
             raise CanvasError('Background must be 2 or 3 dimensional array!')
         
-        self._draw_particles()
-
     def _get_default_background(self):
         width, height = BACKGROUND['resolution']
         background = np.empty( (width, height, 3) )
@@ -334,6 +360,12 @@ class Canvas(HasTraits):
     def __len__(self):
         return self.particles.__len__()
     
+    # Arithmetic Operation
+    # --------------------
+    
+    def __add__(self, c2):
+        return concat_canvas(self, c2, bg_resolve='c2')
+    
     @classmethod
     def rgb2binary(self):
         from skimage.color import rgb2gray
@@ -363,9 +395,7 @@ if __name__ == '__main__':
     
     c.add('trimer', radius_1=50, center=(250, 250), color=(1,0,0),
       overlap=0.0)
-    c._draw_particles()    
-    
-    
+    c._draw_particles()        
     
 #    c.show()
     

@@ -20,6 +20,7 @@ from pyparty.config import RADIUS_DEFAULT, CENTER_DEFAULT, XRADIUS, YRADIUS, \
 logger = logging.getLogger(__name__) 
 CHECK_INTERFACES = 2 # 2-error, 1-warn, 0-pass
 
+# HOW TO ADD ORIENTATION TO THESE?
 class Circle(CenteredParticle):
     """ description
     

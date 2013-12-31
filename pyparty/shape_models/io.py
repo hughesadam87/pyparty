@@ -15,7 +15,7 @@ Stores Particle models from reading from external sources
 import numpy as np
 from traits.api import implements, Str
 
-from pyparty.utils import IntOrNone
+from pyparty.trait_types.intornone import IntOrNone
 from abstract_shape import Particle, ParticleInterface
 
 class LabeledParticle(Particle):

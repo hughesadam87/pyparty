@@ -13,7 +13,7 @@ GROUPEDTYPES= \
         'polygon' : Polygon
          },
 
-    'multi':
+    'circle_multi':
         {
         'dimer' : Dimer,
         'trimer' : Trimer,
@@ -22,6 +22,6 @@ GROUPEDTYPES= \
     }
 
 ALLTYPES = dict(GROUPEDTYPES['simple'].items() + 
-                GROUPEDTYPES['multi'].items() )
+                GROUPEDTYPES['circle_multi'].items() )
 
 # Eventually, break these up between basic, multi etc...
