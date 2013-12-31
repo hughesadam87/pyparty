@@ -120,11 +120,7 @@ class Canvas(HasTraits):
             self.clear_background()
                         
     # Public Methods
-    # -------------
-    
-    def _background_changed(self):
-        self._draw_particles() #To ensure image updated
-              
+    # -------------              
     def clear_background(self):
         """ Restore default background image; redraws
             particles over it."""
@@ -310,6 +306,9 @@ class Canvas(HasTraits):
             
         else:
             raise CanvasError('Background must be 2 or 3 dimensional array!')
+        
+        # To ensure image updates even if show() not called
+        self._draw_particles()
         
     def _get_default_background(self):
         width, height = BACKGROUND['resolution']
