@@ -11,9 +11,9 @@ image processing library, scikit-image_.
 License
 =======
 
-BSD (read it)_
+BSD `(read it)`_
 
-   .. _`(read it) : https://github.com/hugadams/pyparty/blob/master/LICENSE.txt
+   .. _`(read it)` : https://github.com/hugadams/pyparty/blob/master/LICENSE.txt
 
 Documentation
 =============
