@@ -11,7 +11,9 @@ image processing library, scikit-image_.
 License
 =======
 
-BSD
+BSD (read it)_
+
+   .. _`(read it) : https://github.com/hugadams/pyparty/blob/master/LICENSE.txt
 
 Documentation
 =============
@@ -79,7 +81,7 @@ Interested in the Python ecosystem?   Check out some of these related libraries:
 
    - Pillow_ (Python Image Library)
    - ilastik_ (Interactive Learning and Segmentation Tool)
-   - NumPy_ (If you don't know it by now, you need to learn it)
+   - NumPy_ (If you don't know it by now, leave immediately and study ``numpy`` instead)
    
    
    .. _Pillow: http://python-imaging.github.io/
