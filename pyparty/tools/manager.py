@@ -1,8 +1,3 @@
-#
-# (C) Copyright 2013 George Washington University, D.C.
-# All right reserved.
-#
-# This file is open source software distributed according to the terms in LICENSE.txt
 from operator import attrgetter
 import itertools
 import logging

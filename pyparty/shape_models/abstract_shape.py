@@ -1,10 +1,3 @@
-#
-# (C) Copyright 2013 George Washington University, D.C.
-# All right reserved.
-#
-# This file is open source software distributed according to LICENSE.txt
-#
-
 """
 Shape Models API
 ================
