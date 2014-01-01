@@ -8,18 +8,19 @@ import skimage.io
 import skimage.color as color
 import skimage.measure as measure
 import skimage.morphology as morphology
+from skimage import img_as_float
 
-from traits.api import HasTraits, Array, Instance, Property, Bool, Float
+from traits.api import HasTraits, Array, Instance, Property, Float
 from manager import ParticleManager, concat_particles
 
 # pyparty imports
 from pyparty.utils import coords_in_image, where_is_particle
-from pyparty.config import BACKGROUND
+from pyparty.config import BGCOLOR, BGRES
 
 logger = logging.getLogger(__name__) 
 
 def concat_canvas(c1, c2, bg_resolve='c2', **particle_args):
-    """ """
+    """ Adds two canvas objects under various conditions """
     bg_resolve = bg_resolve.lower()
     
     # Choose output background
@@ -43,64 +44,14 @@ class CanvasAttributeError(CanvasError):
     """ Custom exception """     
 
 class Canvas(HasTraits):
-    """
-    blah blah blah
-
-    Parameters
-    ----------
-    foo : int
-        The starting value of the sequence.
-
-    Returns
-    -------
-    bar : float
-        blah blah ...
-        blah blah ...
-
-    Raises
-    ------
-    MyException
-       If condition foo is met or not met...
-       blah blah ...
-
-    Notes
-    -----
-    blah blah blah
-    blah blah blah
-
-    See Also
-    --------
-    baz : description of baz
-    
-    Examples
-    --------
-    >>> np.linspace(2.0, 3.0, num=5)
-        array([ 2.  ,  2.25,  2.5 ,  2.75,  3.  ])
-    >>> np.linspace(...)
-        ...
-
-    Graphical illustration:
-
-    >>> import matplotlib.pyplot as plt
-    >>> N = 8
-    ...
-    >>> plt.show()
-
-    """
+    """  """
     image = Array
-    image_shape = Property(depends_on = 'image')
-    pixelarea = Property(Float, depends_on = 'image') #area already exists at particle level
-    pixelperimeter =Property(Float, depends_on = 'image')
+    particles = Instance(ParticleManager)
     
+    # Background is only a property because for _set validation...
     background = Property()
     _background = Array
     default_background = Property(Array)
-
-    # Maybe just make mesh a separate tool to draw over top? 
-    
-    #Particles Interface 
-    particles = Property(Instance(ParticleManager))
-    _particles = Instance(ParticleManager)
     
     def __init__(self, background=None, particles=None): #No other traits to be set
         """ Load with optionally a background image and instance of Particle
@@ -125,7 +76,6 @@ class Canvas(HasTraits):
         """ Restore default background image; redraws
             particles over it."""
 
-        # This will trigger a _draw_particles()
         self.background = self.default_background        
         
     def clear_canvas(self):
@@ -148,9 +98,8 @@ class Canvas(HasTraits):
             self.particles.map(fcn, *fcnargs, **fcnkwargs)
         else:
             cout = Canvas(background=self.background, particles=self.particles)
-            cout._particles.map(fcn, *fcnargs, **fcnkwargs)
-            return cout
-
+            cout.particles.map(fcn, *fcnargs, **fcnkwargs)
+            return cout    
         
     def pwrap(self):
         """ Wrapper that passes self.particles to a function """
@@ -194,12 +143,11 @@ class Canvas(HasTraits):
         """ """
         
         self._draw_particles()
-        grayimage = color.rgb2gray(self.image) #MAKE PROPERTY?
         
         if background: # scikit api doesn't accept None
-            labels = morphology.label(grayimage, neighbors, background)
+            labels = morphology.label(self.grayimage, neighbors, background)
         else:
-            labels = morphology.label(grayimage, neighbors)
+            labels = morphology.label(self.grayimage, neighbors)
             
         pout = ParticleManager.from_labels(labels, **pmangerkwds)
         if inplace:
@@ -218,7 +166,7 @@ class Canvas(HasTraits):
 
         # cmap is the first argument in imshowargs
         if imshowargs or 'cmap' in imshowkwds:
-            image = color.rgb2gray(self.image)
+            image = self.grayimage
         else:
             image = self.image
 
@@ -244,7 +192,7 @@ class Canvas(HasTraits):
         image = np.copy(self.background)
         for p in self.particles:
             rr_cc, color = p.particle.rr_cc, p.color 
-            rr_cc = coords_in_image(rr_cc, self.image.shape)
+            rr_cc = coords_in_image(rr_cc, image.shape)
             image[rr_cc] = color
         self.image = image 
     
@@ -262,29 +210,64 @@ class Canvas(HasTraits):
     @property
     def dtype(self):
         return self.image.dtype
-
-
-    # Trait Defaults
-    # ------------
-    def _image_default(self):
-        return np.copy(self._background)
-
-    # Properties
-    # ------------
     
-    # Image Properties
-    def _get_image_shape(self):
-        return self.image.shape
+    @property
+    def grayimage(self):
+        return skimage.color.rgb2gray(self.image)
     
-    def _get_pixelarea(self):
+    @property
+    def pbinary(self):
+        """ Returns boolean mask of all particles IN the image, with 
+            background removed."""      
+        # Faster to get all coords in image at once since going to paint white
+        rr_cc = coords_in_image( self.particles.rr_cc_all, self.image.shape)
+        out = np.zeros( self.background.shape[0:2], dtype=bool )
+        out[rr_cc] = True
+        return out  
+    
+    def _whereis(self, choice='in'):
+        """ Wraps utils.where_is_particles for all three possibilities """
+        return [p.name for p in self.particles 
+                if where_is_particle(p.rr_cc, self.image.shape) == choice]
+    
+    @property
+    def pin(self):
+        """ Returns all particles appearing FULLY in the image"""
+        return self.particles[self._whereis('in')]
+
+    @property
+    def pedge(self):
+        """ Returns all particles appearing PARTIALLY in the image"""
+        return self.particles[self._whereis('edge')]
+    
+    @property
+    def pout(self):
+        """ Returns all particles appearing FULLY outside the image"""
+        return self.particles[self._whereis('out')]    
+        
+
+    @property
+    def pixcount(self):
+        """ Counts # pixels in image """
+        l, w = self.image.shape[0:2]
+        return int(l * w)
+        
+    @property
+    def pixarea(self):
         """ What's the best way to get this? """
-        raise NotImplemented
+        return float(np.sum(self.pbinary)) / self.pixcount
     
-    def _get_pixelperimeter(self):
+    @property
+    def pixperim(self):
         """ Wraps measure.perimeter to estimate total perimeter of 
             particles in binary image."""
-        self._draw_particles()
-        return skimage.measure.perimeter(image, neighbourhood=4)
+        return skimage.measure.perimeter(self.pbinary, neighbourhood=4)     
+
+
+    # Trait Defaults / Trait Properties
+    # ---------------------------------
+    def _image_default(self):
+        return np.copy(self._background)
     
     def _get_background(self):
         return self._background
@@ -307,33 +290,28 @@ class Canvas(HasTraits):
         else:
             raise CanvasError('Background must be 2 or 3 dimensional array!')
         
+        # *****
+        # Note sure best way to check float dtype
+        dtold = self._background.dtype
+        self._background = img_as_float(self._background)
+        if self._background.dtype != dtold:
+            logger.warn("Background dtyp changed from %s to %s" %
+                              (dtold, self._background.dtype))
+        
         # To ensure image updates even if show() not called
         self._draw_particles()
         
     def _get_default_background(self):
-        width, height = BACKGROUND['resolution']
+        width, height = BGRES
         background = np.empty( (width, height, 3) )
 
-        if BACKGROUND['bgcolor'] != (0, 0, 0):
-            background[:,:,:] = BACKGROUND['bgcolor']
+        # Should update this a bit to be more consistent with color choosing
+        # Maybe an RGB_Mask utility to get RGB anywhere it's enforced (here and MetaP)
+        if BGCOLOR != (0, 0, 0):
+            background[:,:,:] = BGCOLOR
         return background
         
     
-    # Particle Properties
-    def _get_particles(self):
-        """ Want to hide the particles object, so returns a list of names
-            instead"""
-        
-        # LATER CALL SOME METHOD LIKE PARTICLES.SHOW()
-        return self._particles
-    
-    def _set_particles(self, particleinstance):
-        """ For now, only Instance(ParticleManager) is supported. """
-
-        # To add: (more explit type check/error)
-        #   - support for other types, like a list of tuples passed directly
-        #   - to add particles
-        self._particles = particleinstance
     
     # Delegate dictionary interface to ParticleManager
     # -----------
@@ -354,7 +332,9 @@ class Canvas(HasTraits):
         return getattr(self.particles, attr)
         
     def __iter__(self):
-        return self.particles.__iter__()
+        """ Iteration is blocked """
+        raise CanvasError("Iteration on canvas is ambiguous.  Iterate over "
+                          "canvas.image or canvas.particles")
     
     def __len__(self):
         return self.particles.__len__()
@@ -381,22 +361,18 @@ class ScaledCanvas(Canvas):
 if __name__ == '__main__':
 
     c=Canvas()
-    c.add('circle', radius=100, center=(0,0))
+    
+    c.add('circle', radius=100, center=(0,0), color=(1,2,3))
     c.add('circle', radius=20, center=(200,200))
     c.add('circle', radius=20, center=(20000,20000))
-    c._draw_particles()
-
-    c.clear_background()
-    
-    c.add('dimer', radius_1=50, center=(250, 250), color=(1,0,0),
-      overlap=0.0)
-    c._draw_particles()
-    
-    c.add('trimer', radius_1=50, center=(250, 250), color=(1,0,0),
-      overlap=0.0)
-    c._draw_particles()        
+   
     
 #    c.show()
+    
+    
+    c.particles    
+    print c.pin
+    
     
     # Run pyclean
     try:

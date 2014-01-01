@@ -1,13 +1,13 @@
 from enthought.traits.api import BaseInt
 
-class IntOrNone (BaseInt):
+class IntOrNone(BaseInt):
     """ Traits whose value is an integer or None"""
     default_value = None
 
     # Describe the trait type
     info_text = 'an integer or None'
 
-    def validate ( self, object, name, value ):
+    def validate(self, object, name, value):
         value = super(IntOrNone, self).validate(object, name, value)
         if value is None:
             return value        

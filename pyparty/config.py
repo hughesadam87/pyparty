@@ -8,20 +8,21 @@ ALIGN = 'l'
 MAXOUT = 50 #How many rows to show before cutting off
 
 
+# MetaParticle
+# ------------
+PCOLOR = (0.0, 0.0, 1.0)
+
 # Canvas
 # ------
-BACKGROUND ={
-    'bgcolor' : (1.0, 1.0, 1.0),
-    'resolution' : (512, 512)
-    }
-
+BGCOLOR = (1.0, 1.0, 1.0)
+BGRES = (512, 512)
 
 # Shape model defaults
 # --------------------
 
-# Center particles
+# Center particles (to middle of default image BACKGROUND size)
 RADIUS_DEFAULT = 20  
-CENTER_DEFAULT = (256, 256)
+CENTER_DEFAULT = tuple(map(lambda x: int(x/2.0), BGRES))
 
 #Ellipse 
 XRADIUS = 10

@@ -11,7 +11,7 @@ from enthought.traits.api import HasTraits, Instance, Property, Tuple,\
 # Package Imports
 from pyparty.shape_models.api import GROUPEDTYPES, ALLTYPES
 from pyparty.shape_models.abstract_shape import Particle, ParticleError
-from pyparty.config import NAMESEP, PADDING, ALIGN, MAXOUT
+from pyparty.config import NAMESEP, PADDING, ALIGN, MAXOUT, PCOLOR
 from pyparty.trait_types.metaparticle import MetaParticle
 
 logger = logging.getLogger(__name__) 
@@ -137,14 +137,16 @@ class ParticleManager(HasTraits):
     """
             
     plist = List(Instance(MetaParticle))
+    # Cached property
     _namemap = Property(Tuple, depends_on = 'plist')
+    
    
     def __init__(self, fastnames=False, *traits, **traitkwds):
         """ fastnames:
            (TRUE):  circle_1, dimer_2, circle_3, dimer_4
            (FALSE): circle_1, dimer_1, circle_2, dimer_2
         """
-        self.fastnames = fastnames
+        self.fastnames = fastnames        
         super(ParticleManager, self).__init__(*traits, **traitkwds)
    
     @cached_property
@@ -155,7 +157,7 @@ class ParticleManager(HasTraits):
         return dict( (pobj.name, idx) for idx, pobj in enumerate(self.plist))    
             
     # ADD INDEX KEYWORD TO SUPPORT INSERTIONS
-    def add(self, particle, name='', idx=None, color=None,
+    def add(self, particle, name='', color=None, idx=None,
                       *traitargs, **traitkwargs):
         """ If color not passed, default color is used
             If not idx, put in last entry  """
@@ -172,7 +174,7 @@ class ParticleManager(HasTraits):
             ptype = particle.ptype
             
             if self.fastnames:
-                name = ptype + NAMESEP + str(idx)            
+                name = '%s%s%s' % (ptype, NAMESEP, idx)            
             
             else:
                 try:
@@ -181,16 +183,12 @@ class ParticleManager(HasTraits):
                     pcount = 0
     
                 name = ptype + NAMESEP + str(pcount)            
-
             
         if name in self._namemap:
             raise ManagerError('particle %s is already named "%s"' % 
                                  (self._namemap[name], name) )        
-        if color:
-            meta = MetaParticle(name=name, color=color, particle=particle)
-        else:
-            meta = MetaParticle(name=name, particle=particle)
-        
+
+        meta = MetaParticle(name=name, color=color, particle=particle)
 
         if idx == len(self):
             self.plist.append(meta)
@@ -369,9 +367,14 @@ class ParticleManager(HasTraits):
         """ Return center coordinates of all particles."""
         return tuple(p.center for p in self.plist)
     
-
+    @property
+    def rr_cc_all(self):
+        """ Returns all rr_cc coord concatenated into one (rr, cc) """
+        rr, cc = zip(*(p.rr_cc for p in self.plist))
+        return ( np.concatenate(rr), np.concatenate(cc) )
+        
+        
     # Full attribute container sorted mappers        
-    
     def sortby(self, attr='name', inplace=False):
         """ Sort list by attribute/descriptor"""
 
@@ -437,8 +440,10 @@ class ParticleManager(HasTraits):
                 color = (0, 0, cn)
                 plist.append( MetaParticle(name=name, color=color, 
                                            particle=particle) )
+            # Use default color
             else:
-                plist.append( MetaParticle(name=name, particle=particle) )
+                plist.append( MetaParticle(name=name, particle=particle,
+                                           color=None) )
       
         return cls(plist=plist)      
     
@@ -458,7 +463,6 @@ if __name__ == '__main__':
     
     print p[0:5]
     print p[0]
-    
     
     #print len(p), p
     #print len(p2), p2

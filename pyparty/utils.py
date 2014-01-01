@@ -1,7 +1,7 @@
 import numpy as np
             
 def coords_in_image(rr_cc, shape):
-    ''' Taken almost directly from  skimage.draw().  Decided best not to
+    """ Taken almost directly from  skimage.draw().  Decided best not to
         do any formatting implicitly in the shape models.
         
         Attributes
@@ -16,14 +16,14 @@ def coords_in_image(rr_cc, shape):
         -------
         (rr, cc) : tuple(rr[mask], cc[mask])
 
-        '''
+        """
 
     rr, cc = rr_cc 
     mask = (rr >= 0) & (rr < shape[0]) & (cc >= 0) & (cc < shape[1])
     return (rr[mask], cc[mask])            
             
 def where_is_particle(rr_cc, shape):
-    ''' Quickly evaluates if particle rr, cc is fully within, partically in,
+    """ Quickly evaluates if particle rr, cc is fully within, partically in,
         or is outside and image.  Does this by comparin shapes, so is fast,
         but does not track which portions are outside, inside or on edge.
         
@@ -38,7 +38,7 @@ def where_is_particle(rr_cc, shape):
         Returns
         -------
         'in' / 'out' / 'edge' : str
-        '''
+        """
     
     
     rr_cc_in = coords_in_image(rr_cc, shape)
