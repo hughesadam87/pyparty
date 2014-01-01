@@ -1,5 +1,70 @@
+import logging
 import numpy as np
-            
+from pyparty.config import PCOLOR, COLORTYPE
+import matplotlib.colors as colors
+
+logger = logging.getLogger(__name__) 
+
+
+# COLOR RELATED ATTRIBUTES
+CTYPE, CBITS = COLORTYPE
+
+ERRORMESSAGE = 'Valid color arguments include color names ("aqua"), ' +  \
+   'rgb-tuples (.2, .4, 0.), ints/floats (0-%s) or (0.0-1.0) or' % CBITS + \
+   'hexcolorstrings (#00FFFF).' 
+
+#http://matplotlib.org/api/colors_api.html#matplotlib.colors.ColorConverter            
+_rgb_from_string = colors.ColorConverter().to_rgb
+
+class ColorError(Exception):
+    """ """
+
+def _pix_norm(value, imax=CBITS):
+    """ Normalize pixel intensity to colorbit """
+    if value > imax:
+        raise ColorError("Pixel intensity cannot exceed %s" % imax)
+    return float(value) / imax
+
+def to_normrgb(color):
+    """ Returns an rgb len(3) tuple on range 0.0-1.0 with several input styles; 
+        wraps matplotlib.color.ColorConvert """
+       
+    if color is None:
+        return PCOLOR
+
+    # If iterable, assume 3-channel RGB
+    if hasattr(color, '__iter__'):
+        if len(color) != 3:
+            raise ColorError("Multi-channel color must be 3-channel;"
+                                 " recieved %s" % len(color))
+        r, g, b = color
+        if r <= 1 and g <= 1 and b <= 1:
+            return (r, g, b)
+
+        elif r >= 1 and g >= 1 and b >= 1:
+            r, g, b = map(_pix_norm, (r, g, b) )        
+            return (r, g, b)
+
+        else:
+            raise ColorError("Multi-channel color style ambiguous. (r, g, b)"
+                " elements must all be < 1 or all > 1 (normalized to %s pixels)" 
+                % CBITS)
+    
+    if isinstance(color, str):
+        return _rgb_from_string(color)        
+    
+    # If single channel --> map accross channels EG 22 --> (22, 22, 22)
+    if isinstance(color, int):
+        color = float(color)
+        
+    if isinstance(color, float):
+        if color > 1:
+            color = _pix_norm(color)
+        return (color, color, color)
+
+    raise ColorError(ERRORMESSAGE)
+
+
 def coords_in_image(rr_cc, shape):
     """ Taken almost directly from  skimage.draw().  Decided best not to
         do any formatting implicitly in the shape models.
@@ -71,9 +136,3 @@ def rr_cc_box(rr_cc):
     rect=np.zeros( (dy+1, dx+1), dtype='uint8' ) 
     rect[rr_cc_trans] = 1
     return rect   
-
-
-def rgb2binary(image):
-    """ Convert rgb image to binary """
-    raise NotImplementedError
-    #Best way to do this?  Should white background be null?

@@ -45,7 +45,8 @@ class CanvasAttributeError(CanvasError):
 
 class Canvas(HasTraits):
     """  """
-    image = Array
+    image = Property(Array, depends_on='_image')
+    _image = Array
     particles = Instance(ParticleManager)
     
     # Background is only a property because for _set validation...
@@ -94,25 +95,15 @@ class Canvas(HasTraits):
             can be done in place"""
 
         inplace = fcnkwargs.pop('inplace', False)
-        if  inplace:
+        if inplace:
             self.particles.map(fcn, *fcnargs, **fcnkwargs)
         else:
             cout = Canvas(background=self.background, particles=self.particles)
             cout.particles.map(fcn, *fcnargs, **fcnkwargs)
             return cout    
         
-    def pwrap(self):
-        """ Wrapper that passes self.particles to a function """
-        raise NotImplementedError("Are there any functions explicitly built" 
-             "to run on ParticleManager that return an instance of it?")
-        
-    def iwrap(self, fcn, *fcnargs, **fcnkwargs):
-        """ Wrapper that passes self.image to function"""
-        
-        return fcn(self.image, *fcnargs, **fcnkwargs)
-
-        
-    def imap(self, fcn, axis, *fcnargs, **fcnkwargs):
+                
+    def pixelmap(self, fcn, axis=0, *fcnargs, **fcnkwargs):
         """ Image mapper (np.apply_along_axis)
 
             fcn must be 1d!
@@ -123,6 +114,7 @@ class Canvas(HasTraits):
             keyword arguments.
         """
         return np.apply_along_axis(fcn, axis, self.image, *fcnargs)
+
 
     def load_background(self, path):
         """ Load an image from harddrive; wraps skimage.io.imread. 
@@ -142,7 +134,7 @@ class Canvas(HasTraits):
                     background=None, **pmangerkwds):
         """ """
         
-        self._draw_particles()
+        self._cache_image()
         
         if background: # scikit api doesn't accept None
             labels = morphology.label(self.grayimage, neighbors, background)
@@ -162,7 +154,7 @@ class Canvas(HasTraits):
         axes = imshowkwds.pop('axes', None)   
         title = imshowkwds.pop('title', None)
         
-        self._draw_particles()
+        self._cache_image()
 
         # cmap is the first argument in imshowargs
         if imshowargs or 'cmap' in imshowkwds:
@@ -181,12 +173,10 @@ class Canvas(HasTraits):
     
         
     # Private methods
-    def _draw_particles(self):
-        """  Overwrites all particles on image.  Tis better to redraw whole
-        image rather than just draw pieces that change, since redrawing
-        will preserve order of overlapping segments.  For example, if I
-        make a circle blue, but it is below another circle, I need to redraw
-        the whole image to preserve this."""
+    def _cache_image(self):
+        """ Creates image array of particles.  Tried fitting to a property or
+        Traits events interface to control the caching, but manually choosing
+        cache points proved to be easier."""
     
         # Notice this procedure
         image = np.copy(self.background)
@@ -194,7 +184,7 @@ class Canvas(HasTraits):
             rr_cc, color = p.particle.rr_cc, p.color 
             rr_cc = coords_in_image(rr_cc, image.shape)
             image[rr_cc] = color
-        self.image = image 
+        self._image = image 
     
         
     # Image Attributes Promoted
@@ -266,8 +256,12 @@ class Canvas(HasTraits):
 
     # Trait Defaults / Trait Properties
     # ---------------------------------
-    def _image_default(self):
-        return np.copy(self._background)
+    def _get_image(self):
+        return self._image
+    
+    def _set_image(self):
+        raise CanvasError('Image cannot be set; please make changes to particles'
+            ' and/or background attributes.')
     
     def _get_background(self):
         return self._background
@@ -295,11 +289,11 @@ class Canvas(HasTraits):
         dtold = self._background.dtype
         self._background = img_as_float(self._background)
         if self._background.dtype != dtold:
-            logger.warn("Background dtyp changed from %s to %s" %
+            logger.warn("Background dtype changed from %s to %s" %
                               (dtold, self._background.dtype))
         
         # To ensure image updates even if show() not called
-        self._draw_particles()
+        self._cache_image()
         
     def _get_default_background(self):
         width, height = BGRES
@@ -354,8 +348,6 @@ class Canvas(HasTraits):
 class ScaledCanvas(Canvas):
     """ Canvas with a "scale" that maps system of coordinates from pixels
         to pre-set units."""
-
-
 
     
 if __name__ == '__main__':
