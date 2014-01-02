@@ -87,7 +87,7 @@ core functionality is stable.)
 Installation
 ============
 
-In the ``pyparty`` directory (same one where you found this file), execute::
+In the ``pyparty`` base directory run:
 
     python setup.py install
 
