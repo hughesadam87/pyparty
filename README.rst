@@ -2,7 +2,7 @@
 pyparty: Python (py) particle (party) manager
 =============================================
 
-``pyparty`` is an object-oriented library for creating, managing and measuring 
+``pyparty`` is a library for creating, managing and measuring 
 particles/inclusion in images.  This library was built mainly over the excellent
 image processing library, scikit-image_.
 
@@ -19,7 +19,12 @@ Documentation
 =============
 
 The official documentation_ does not yet exist.  Please see **pyparty.examples.Notebooks**
-for example gallery.  Having trouble viewing/editing notebooks?  Consider using `Enthought
+for example gallery.  For convienence, these have been linked below:
+
+   - nb1
+   - bn2
+
+Having trouble viewing/editing notebooks?  Consider using `Enthought
 Canopy`_, which has an `iPython Notebook`_ kernel builtin.  For simply viewing,
 paste the github url of each notebook into the iPython Notebook viewer_. 
  
@@ -31,8 +36,8 @@ paste the github url of each notebook into the iPython Notebook viewer_.
 Goals and Background
 ====================
 
-Goals
------
+History
+-------
 ``pyparty`` originally began at the George Washington University (2013) in an 
 effort to generate test data for SEM and AFM images of gold nanoparticles on the
 surface of optical fibers.  We really enjoyed the power of scikit-image_ and sought
@@ -40,8 +45,8 @@ to implement it in generating test data, as well as supplant the ``Analyze Parti
 feature in ImageJ_.  While all of this is possible in scikit-image_, we needed 
 better separation between *particles* and *image*.  
 
-Who would use this?
--------------------
+Who would want this?
+--------------------
 In short, you may consider using our package if you require any of the following:
  
    1. The ability to draw shapes/patterns on an arbitrary image.  This can be very
@@ -51,12 +56,22 @@ In short, you may consider using our package if you require any of the following
        - return all particles that have area > 50 pixels.
        - color ellipses in order of increasing eccentricity.
        - remove all particles appearing in bottom half of image
-   3. Manage and manipulated labeled particles from scipy.ndimage.label. (ImageJ_ / ilastik_ IO coming soon) and
-      perform subsequent analysis in Python.
+   3. Manage and manipulated labeled particles from scipy.ndimage.label, and
+      perform subsequent analysis in Python.  IO for ImageJ_ / ilastik_ particles
+      is forthcoming.
 
    .. _ImageJ: http://rsb.info.nih.gov/ij/
    .. _ilastik: http://www.ilastik.org/
-   
+
+
+History
+-------
+``pyparty`` originally began at the George Washington University (2013) in an 
+effort to generate test data for SEM and AFM images of gold nanoparticles on the
+surface of optical fibers.  We really enjoyed the power of scikit-image_ and sought
+to implement it in generating test data, as well as supplant the ``Analyze Particles``
+feature in ImageJ_.  While all of this is possible in scikit-image_, we needed 
+better separation between *particles* and *image*.    
 
 Dependencies
 ============
@@ -67,6 +82,9 @@ object-oriented classes. You will not need to understand or use **Traits**
 unless you develop for ``pyparty``; *it is not used in the public API*.  
 
    .. _Traits: http://code.enthought.com/projects/traits/
+   
+.. note:: The **Traits** dependency may be removed in future installments after the 
+   core functionality is stable.
 
 Installation
 ============
