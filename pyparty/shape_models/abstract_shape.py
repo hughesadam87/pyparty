@@ -10,17 +10,18 @@ import numpy as np
 from math import radians, cos
 
 from traits.has_traits import CHECK_INTERFACES
-from traits.api import Interface, implements, HasTraits, Tuple, Array, \
+from traits.api import Interface, provides, HasTraits, Tuple, Array, \
      Bool, Property, Str, Int, Instance, Range, Float, cached_property
 
 import skimage.draw as draw
 from skimage.measure import regionprops
 from skimage.measure._regionprops import _RegionProperties
 
-from pyparty.config import RADIUS_DEFAULT, CENTER_DEFAULT
 from pyparty.utils import rr_cc_box
 from pyparty.trait_types.intornone import IntOrNone
 from pyparty.patterns.elements import simple
+from pyparty.config import RADIUS_DEFAULT, CENTER_DEFAULT, XSTART, YSTART, \
+     XEND, YEND
 
 logger = logging.getLogger(__name__) 
 CHECK_INTERFACES = 2    
@@ -53,11 +54,10 @@ class ParticleInterface(Interface):
     def _get_rr_cc(self):
         raise NotImplementedError
      
+@provides(ParticleInterface)     
 class Particle(HasTraits):
 
-    implements(ParticleInterface)
     ptype = Str('general')    
-
     psource = Str('pyparty_builtin')
     fill = Bool(True)
     aa = Bool(False) #Anti Aliasing
@@ -65,6 +65,9 @@ class Particle(HasTraits):
     # Remove with implementation
     rr_cc = Property(Array)    
     ski_descriptor = Instance(_RegionProperties)
+    
+    # Orientation in degrees: Not all classes implement this
+    orientation = Float(0.0) 
        
     #http://scikit-image.org/docs/dev/api/skimage.draw.html#circle
     def _get_rr_cc(self):
@@ -85,14 +88,13 @@ class Particle(HasTraits):
             self._ski_descriptor = regionprops(self.boxed(), cache=True)[0]
         return getattr(self._ski_descriptor, attr)
 
-
+@provides(ParticleInterface)     
 class CenteredParticle(Particle):
     """ Base class for particles whose centers are set by user (circle,
         elipse, etc...) as opposed to particles whose center is computed
         after the object is drawn (eg line, beziercurve, polygon)
     """
     
-    implements(ParticleInterface)
     pytpe = Str('abstract_centered')
     
     # CENTER = (CX, CY)  not (CY, CX)
@@ -114,7 +116,21 @@ class CenteredParticle(Particle):
     def _set_cy(self, value):
         self.center = (self.cx, value)    
 
+@provides(ParticleInterface)     
+class Segment(Particle):
+    """ Base class to reduce boiler plate in BezierCurve and Line """
 
+    ptype = Str('segment')    
+    
+    ystart = Int(YSTART) #start position row
+    xstart = Int(XSTART)
+    yend = Int(YEND)
+    xend = Int(XEND)
+    
+    def _get_rr_cc(self):
+        return draw.line(self.ystart, self.xstart, self.yend, self.xend)
+
+@provides(ParticleInterface)     
 class SimplePattern(CenteredParticle):
     """  
          
@@ -127,7 +143,6 @@ class SimplePattern(CenteredParticle):
     between them is important for ensuring the partciles are not touching unless
     overlap is specificed."""
     
-    implements(ParticleInterface)            
     ptype = Str('abstract_simple_element')    
         
     radius_1 = Int(RADIUS_DEFAULT)
@@ -137,12 +152,10 @@ class SimplePattern(CenteredParticle):
     rs = Property(Array, depends_on = 'radius_1, radius_2, radius_3, radius_4')
     
     overlap = Range(0.0, 1.0)
-    orientation = Float(0.0) #In degrees  
     skeleton = Property()    
     
     _offangle = Float(0.0)
     _n = Int(4)
-    
     
     def _get_skeleton(self, old, new):
         rs = (1.0 - self.overlap) * (self.rs / cos(radians(self._offangle)))
@@ -186,8 +199,12 @@ class SimplePattern(CenteredParticle):
         rr = np.concatenate( rr_all )
         cc = np.concatenate( cc_all )
         return (rr, cc)
+    
+@provides(ParticleInterface)
+class Foo(HasTraits):
+    a=Str('sike')
 
 if __name__ == '__main__':
     p=Particle()
-
+    f=Foo()
     

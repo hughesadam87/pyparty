@@ -1,4 +1,5 @@
 import logging
+import math
 import numpy as np
 from pyparty.config import PCOLOR, COLORTYPE
 import matplotlib.colors as colors
@@ -136,3 +137,12 @@ def rr_cc_box(rr_cc):
     rect=np.zeros( (dy+1, dx+1), dtype='uint8' ) 
     rect[rr_cc_trans] = 1
     return rect   
+
+def rotate_vector(array, angle, style='degrees'):
+    if style == 'degrees':
+        angle = math.radians(angle)
+    
+    rotMatrix = array([[cos(angle), -sin(angle)],  
+                   [sin(angle),  cos(angle)]])
+    
+    return rotMatrix.dot(array)

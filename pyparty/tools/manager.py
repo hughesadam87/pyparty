@@ -473,9 +473,8 @@ if __name__ == '__main__':
         
     print 'starting'
     p2=ParticleManager()
-    for i in range(50):
+    for i in range(5000):
         p2.add(particle='circle', name='foo'+str(i), radius=i)
-    print 'finished'
     
     print p[0:5]
     

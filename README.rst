@@ -31,6 +31,8 @@ paste the github url of each notebook into the iPython Notebook viewer_.
 Goals and Background
 ====================
 
+Goals
+-----
 ``pyparty`` originally began at the George Washington University (2013) in an 
 effort to generate test data for SEM and AFM images of gold nanoparticles on the
 surface of optical fibers.  We really enjoyed the power of scikit-image_ and sought
@@ -38,19 +40,23 @@ to implement it in generating test data, as well as supplant the ``Analyze Parti
 feature in ImageJ_.  While all of this is possible in scikit-image_, we needed 
 better separation between *particles* and *image*.  
 
+Who would use this?
+-------------------
 In short, you may consider using our package if you require any of the following:
  
    1. The ability to draw shapes/patterns on an arbitrary image.  This can be very
-      helpful for creating test data.
+      helpful for creating *intricate* test data.  Some background generation tools
+      are also provided.
    2. Indexing/manipulating by particle attribute.  For example:
        - return all particles that have area > 50 pixels.
        - color ellipses in order of increasing eccentricity.
        - remove all particles appearing in bottom half of image
-   3. Import particle data from ImageJ_ or ilastik_ (other sources coming soon) and
-      perform subsequent image analysis in Python.
+   3. Manage and manipulated labeled particles from scipy.ndimage.label. (ImageJ_ / ilastik_ IO coming soon) and
+      perform subsequent analysis in Python.
 
    .. _ImageJ: http://rsb.info.nih.gov/ij/
    .. _ilastik: http://www.ilastik.org/
+   
 
 Dependencies
 ============
@@ -77,11 +83,14 @@ Related Libraries
 =================
 Interested in the Python ecosystem?   Check out some of these related libraries:
 
-   - Pillow_ (Python Image Library)
+   - SciPy_ (Collection of core scientific libraries)
+   - NumPy_ (Fundemental vectorized numerics package in Python)
+   - pandas_ (Data analysis library : inspired ``pyparty``` ParticleManager API)
    - ilastik_ (Interactive Learning and Segmentation Tool)
-   - NumPy_ (If you don't know it by now, leave immediately and study ``numpy`` instead)
-   - pandas_ (Data Analysis : inspired the ParticleManager API in ``pyparty``)
+   - Pillow_ (Python Image Library)
+
    
    .. _Pillow: http://python-imaging.github.io/
    .. _NumPy: http://www.numpy.org/
    .. _pandas: http://pandas.pydata.org/
+   .. _SciPy: http://scipy.org/

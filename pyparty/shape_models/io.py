@@ -11,18 +11,22 @@ Shape Models API
 
 Stores Particle models from reading from external sources
 """
-
+import logging
 import numpy as np
-from traits.api import implements, Str
+from traits.api import provides, Str
+from traits.has_traits import CHECK_INTERFACES
 
 from pyparty.trait_types.intornone import IntOrNone
 from abstract_shape import Particle, ParticleInterface
 
+logger = logging.getLogger(__name__) 
+CHECK_INTERFACES = 2    
+
+@provides(ParticleInterface)
 class LabeledParticle(Particle):
     """ Set rr_cc value from an array.  Merely changed property 
         interface of Particle to a basic attribute."""
 
-    implements(ParticleInterface)
     ptype = Str('gen_label')     #Generic Label
     label = IntOrNone
     

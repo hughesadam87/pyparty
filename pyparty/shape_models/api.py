@@ -1,6 +1,6 @@
 from pyparty.shape_models.basic import Circle, BezierCurve, Ellipse, \
-     Polygon, Line
-from pyparty.shape_models.multi import Dimer, Trimer, Square
+     Polygon, Line, Rectangle, Square
+from pyparty.shape_models.multi import Dimer, Trimer, Tetramer
 
 GROUPEDTYPES= \
     {
@@ -10,14 +10,16 @@ GROUPEDTYPES= \
         'bezier' : BezierCurve,
         'ellipse' : Ellipse,
         'line' : Line, 
-        'polygon' : Polygon
+        'polygon' : Polygon,
+        'rectangle' : Rectangle,
+        'square' : Square,
          },
 
     'circle_multi':
         {
         'dimer' : Dimer,
         'trimer' : Trimer,
-        'square' : Square            
+        'tetramer' : Tetramer            
         }
     }
 

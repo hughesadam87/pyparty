@@ -27,6 +27,9 @@ class MetaParticle(object):
             raise ParticleError('MetaParticle requires instance of Particle'
                                 ' recieved %s' % type(particle))
         self.particle = particle      
+
+        #TEXTURES LATER (
+        
     
     def __getattr__(self, attr):
         """ """

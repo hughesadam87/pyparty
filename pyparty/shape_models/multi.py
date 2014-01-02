@@ -29,15 +29,16 @@ class Trimer(SimplePattern):
     _n = Int(3)    
 
 
-class Square(SimplePattern):
-    """ Three adjacent circles around center coordinates
+class Tetramer(SimplePattern):
+    """ Four adjacent circles around center coordinates.  Default shape is
+    square-like (but can't name class "Square" due to conflicts)
     
     Notes
     -----
     """
     
     implements(ParticleInterface)            
-    ptype = Str('square')          
+    ptype = Str('Tetramer')          
     _offangle = Float(45.0)    
     _n = Int(4)
     
