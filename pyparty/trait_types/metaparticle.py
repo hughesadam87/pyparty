@@ -26,13 +26,7 @@ class MetaParticle(object):
         if not isinstance(particle, Particle):
             raise ParticleError('MetaParticle requires instance of Particle'
                                 ' recieved %s' % type(particle))
-        self.particle = particle
-    
-    # Worth storing?        
-    @property
-    def address(self):
-        """ Memory address """
-        return super(object, self).__repr__() .split()[-1].strip('>')           
+        self.particle = particle      
     
     def __getattr__(self, attr):
         """ """
@@ -54,11 +48,8 @@ class MetaParticle(object):
     
     def __setattr__(self, attr, value):
         """ Defer attribute calls to to self.particle unless overwriting
-            name, color etc... """
-        
-        # Some bug where color/name aren't showing up in __dict__ during
-        # initialization (this gets called before dict fully updated)
-
+        name, color etc... 
+        """
         if attr == 'color':
             MetaParticle.__dict__['color'].__set__(self, to_normrgb(value))
             
@@ -77,6 +68,6 @@ class MetaParticle(object):
            
 def copy_metaparticle(obj):
     """ Make a copy of MetaParticle.  Since MetaParticle uses __slots__,
-        copy.copy doesn't work. Deepcopy is required"""
-    
+    copy.copy doesn't work. Deepcopy is required
+    """
     return MetaParticle(obj.name, obj.color, copy.deepcopy(obj.particle) )

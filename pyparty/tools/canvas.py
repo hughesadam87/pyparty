@@ -33,7 +33,7 @@ def concat_canvas(c1, c2, bg_resolve='c2', **particle_args):
     else:
         raise CanvasAttributeError('"bg_resolve" invalid; must be %s' % bg_valid)
     
-    pout = concat_particles(c1.particles, c2.particles, **particle_args)
+    pout = concat_particles(c1._particles, c2._particles, **particle_args)
     return Canvas(background=bgout, particles=pout)
         
 
@@ -47,7 +47,10 @@ class Canvas(HasTraits):
     """  """
     image = Property(Array, depends_on='_image')
     _image = Array
-    particles = Instance(ParticleManager)
+
+    # ALL INTERNAL REFERENCES SHOULD GO TO _PARTICLES
+    particles = Property(Instance(ParticleManager, depends_on='_particles'))
+    _particles = Instance(ParticleManager)
     
     # Background is only a property because for _set validation...
     background = Property()
@@ -60,7 +63,7 @@ class Canvas(HasTraits):
         
         if not particles:
             particles = ParticleManager()
-        self.particles = particles
+        self._particles = particles
 
         # This should distinguish (or in load_bg) between array vs. path
         if background is not None:
@@ -88,7 +91,7 @@ class Canvas(HasTraits):
     def clear_particles(self):
         """ Clears all particles from image."""
 
-        self.particles.plist[:] = []
+        self._particles.plist[:] = []
             
     def pmap(self, fcn, *fcnargs, **fcnkwargs):
         """ Maps a function to each particle in ParticleManger; optionally
@@ -96,10 +99,10 @@ class Canvas(HasTraits):
 
         inplace = fcnkwargs.pop('inplace', False)
         if inplace:
-            self.particles.map(fcn, *fcnargs, **fcnkwargs)
+            self._particles.map(fcn, *fcnargs, **fcnkwargs)
         else:
-            cout = Canvas(background=self.background, particles=self.particles)
-            cout.particles.map(fcn, *fcnargs, **fcnkwargs)
+            cout = Canvas(background=self.background, particles=self._particles)
+            cout._particles.map(fcn, *fcnargs, **fcnkwargs)
             return cout    
         
                 
@@ -143,7 +146,7 @@ class Canvas(HasTraits):
             
         pout = ParticleManager.from_labels(labels, **pmangerkwds)
         if inplace:
-            self.particles = pout
+            self._particles = pout
         else:
             return Canvas(background=self.background, particles=pout)
         
@@ -180,7 +183,7 @@ class Canvas(HasTraits):
     
         # Notice this procedure
         image = np.copy(self.background)
-        for p in self.particles:
+        for p in self._particles:
             rr_cc, color = p.particle.rr_cc, p.color 
             rr_cc = coords_in_image(rr_cc, image.shape)
             image[rr_cc] = color
@@ -210,30 +213,30 @@ class Canvas(HasTraits):
         """ Returns boolean mask of all particles IN the image, with 
             background removed."""      
         # Faster to get all coords in image at once since going to paint white
-        rr_cc = coords_in_image( self.particles.rr_cc_all, self.image.shape)
+        rr_cc = coords_in_image( self._particles.rr_cc_all, self.image.shape)
         out = np.zeros( self.background.shape[0:2], dtype=bool )
         out[rr_cc] = True
         return out  
     
     def _whereis(self, choice='in'):
         """ Wraps utils.where_is_particles for all three possibilities """
-        return [p.name for p in self.particles 
+        return [p.name for p in self._particles 
                 if where_is_particle(p.rr_cc, self.image.shape) == choice]
     
     @property
     def pin(self):
         """ Returns all particles appearing FULLY in the image"""
-        return self.particles[self._whereis('in')]
+        return self._particles[self._whereis('in')]
 
     @property
     def pedge(self):
         """ Returns all particles appearing PARTIALLY in the image"""
-        return self.particles[self._whereis('edge')]
+        return self._particles[self._whereis('edge')]
     
     @property
     def pout(self):
         """ Returns all particles appearing FULLY outside the image"""
-        return self.particles[self._whereis('out')]    
+        return self._particles[self._whereis('out')]    
         
 
     @property
@@ -256,6 +259,16 @@ class Canvas(HasTraits):
 
     # Trait Defaults / Trait Properties
     # ---------------------------------
+    def _get_particles(self):
+        """ Return a NEW INSTANCE of particles manager (ie new particles instead
+        of in-memory references)"""
+        return ParticleManager(plist=self._particles.plist, 
+                               fastnames=self._particles.fastnames)
+
+    def _set_particles(self, particles):
+        self._particles = particles
+        self._cache_image()
+    
     def _get_image(self):
         return self._image
     
@@ -312,18 +325,18 @@ class Canvas(HasTraits):
     def __getitem__(self, keyslice):
         """ Employs particle manager interface; however, returns single entry
             as a list to allow slicing directly into get_item[]"""
-        return self.particles.__getitem__(keyslice)
+        return self._particles.__getitem__(keyslice)
     
     
     def __delitem__(self, keyslice):
-        return self.particles.__delitem__(keyslice)    
+        return self._particles.__delitem__(keyslice)    
     
     def __setitem__(self, key, particle):
-        return self.particles.__setitem__(key, particles)
+        return self._particles.__setitem__(key, particles)
     
     def __getattr__(self, attr):
         """ Defaults to particle manager """
-        return getattr(self.particles, attr)
+        return getattr(self._particles, attr)
         
     def __iter__(self):
         """ Iteration is blocked """
@@ -331,7 +344,7 @@ class Canvas(HasTraits):
                           "canvas.image or canvas.particles")
     
     def __len__(self):
-        return self.particles.__len__()
+        return self._particles.__len__()
     
     # Arithmetic Operation
     # --------------------
