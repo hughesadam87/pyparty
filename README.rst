@@ -21,9 +21,15 @@ Documentation
 The official documentation_ does not yet exist.  Please see **pyparty.examples.Notebooks**
 for example gallery.  For convienence, these have been linked below:
 
-   - nb1
-   - bn2
+   - `Basic Operations`_ (Tutorial)
+   - `Manage Particles on Image`_
+   - `pyparty shapes`_
+   
+   .. _`Basic Operations`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/Analyze_Particles.ipynb?create=1
+   .. _`Manage Particles on Image`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/basictests.ipynb?create=1
+   .. _`pyparty shapes`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/basictests.ipynb?create=1
 
+   
 Having trouble viewing/editing notebooks?  Consider using `Enthought
 Canopy`_, which has an `iPython Notebook`_ kernel builtin.  For simply viewing,
 paste the github url of each notebook into the iPython Notebook viewer_. 
@@ -32,6 +38,9 @@ paste the github url of each notebook into the iPython Notebook viewer_.
    .. _`iPython Notebook`: http://ipython.org/notebook.html?utm_content=buffer83c2c&utm_source=buffer&utm_medium=twitter&utm_campaign=Buffer
    .. _`Enthought Canopy`: https://www.enthought.com/products/canopy/
    .. _viewer: http://nbviewer.ipython.org/
+
+Please email me (hugadams@gwmail.gwu.edu) if the links are dead.  I will update them periodically.   
+   
 
 Goals and Background
 ====================
