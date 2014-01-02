@@ -11,9 +11,9 @@ image processing library, scikit-image_.
 License
 =======
 
-BSD `(read it)`_
+BSD_
 
-   .. _`(read it)` : https://github.com/hugadams/pyparty/blob/master/LICENSE.txt
+   .. _BSD : https://github.com/hugadams/pyparty/blob/master/LICENSE.txt
 
 Documentation
 =============
@@ -54,7 +54,7 @@ In short, you may consider using our package if you require any of the following
 
 Dependencies
 ============
-``pyparty`` requires **scikit-image** and **Traits** and their dependencies.  
+`pyparty` requires **scikit-image** and **Traits** and their dependencies.  
 
 I developed in Traits_ because it is very suitable for writing clean, type-checked
 object-oriented classes.  For example, I didn't want to muck around ensuring that 
