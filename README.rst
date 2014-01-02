@@ -2,7 +2,7 @@
 pyparty: Python (py) particle (party) manager
 =============================================
 
-``pyparty`` is an object-oriented library for creating, managing and measuring 
+`pyparty` is an object-oriented library for creating, managing and measuring 
 particles/inclusion in images.  This library was built mainly over the excellent
 image processing library, scikit-image_.
 
@@ -31,10 +31,10 @@ paste the github url of each notebook into the iPython Notebook viewer_.
 Goals and Background
 ====================
 
-``pyparty`` originally began at the George Washington University (2013) in an 
+`pyparty` originally began at the George Washington University (2013) in an 
 effort to generate test data for SEM and AFM images of gold nanoparticles on the
 surface of optical fibers.  We really enjoyed the power of scikit-image_ and sought
-to implement it in generating test data, as well as supplant the ``Analyze Particles``
+to implement it in generating test data, as well as supplant the `Analyze Particles`
 feature in ImageJ_.  While all of this is possible in scikit-image_, we needed 
 better separation between *particles* and *image*.  
 
@@ -60,14 +60,14 @@ I developed in Traits_ because it is very suitable for writing clean, type-check
 object-oriented classes.  For example, I didn't want to muck around ensuring that 
 particle dimensions were entered as ints (pixels) instead of floats, and Traits_
 validation takes care of this nicely.  You will not need to understand or use **Traits**
-unless you develop for ``pyparty``; *it is not used in the public API*.  
+unless you develop for `pyparty`; *it is not used in the public API*.  
 
    .. _Traits: http://code.enthought.com/projects/traits/
 
 Installation
 ============
 
-In the ``pyparty`` directory (same one where you found this file), execute::
+In the `pyparty` directory (same one where you found this file), execute::
 
     python setup.py install
 
@@ -81,7 +81,7 @@ Interested in the Python ecosystem?   Check out some of these related libraries:
 
    - Pillow_ (Python Image Library)
    - ilastik_ (Interactive Learning and Segmentation Tool)
-   - NumPy_ (If you don't know it by now, leave immediately and study ``numpy`` instead)
+   - NumPy_ (If you don't know it by now, leave immediately and study `numpy` instead)
    
    
    .. _Pillow: http://python-imaging.github.io/
