@@ -1,49 +1,42 @@
-from enthought.traits.api import HasTraits, Str, Tuple, Instance, Float
-from matplotlib.colors import ColorConverter
+import copy
 
 from pyparty.shape_models.abstract_shape import Particle, ParticleError
 from pyparty.descriptors.api import CUSTOM_DESCRIPTORS, SKIMAGE_DESCRIPTORS
 from pyparty.utils import to_normrgb
 from pyparty.config import PCOLOR
-
-class ColorError(Exception):
-    """ Error raised when color is incorrect; mimics HasTraits error"""
     
-class MetaParticle(HasTraits):
+class MetaParticle(object):
     """ Stores a particle and metadata for use by ParticleManager.
     
-        Notes
-        -----
-        May be intelligent to store a default index for sorting and restoring
-        purposes, but that would cause issue with preserving order when
-        inserting (eg adding new particles.)"""
+    Notes
+    -----
+    This enforces initialization/validation of types without 
+    using Traits (to be light in memory).  __slots__ prevents users
+    from adding attributes accidentally.  Using __slots__ and 
+    __setattr__ leads to some funky syntax as described:        
+        http://stackoverflow.com/questions/19566419/can-
+        setattr-can-be-defined-in-a-class-with-slots
+    """       
+    __slots__ = ('name', 'color', 'particle')
 
-    # TO DO: Use color trait
-    name = Str()
-    color = Tuple(PCOLOR)
-    particle = Instance(Particle)
-    
-    #Static variable (can't be invoked directly from matplotlib as such)
-    converter = ColorConverter()
-    
-    def __init__(self, *args, **kwargs):
-        color = kwargs.pop('color', None)
-        super(MetaParticle, self).__init__(*args, **kwargs)
+    def __init__(self, name='', color='', particle=''):
         
+        self.name = str(name)
         self.color = to_normrgb(color)        
+        if not isinstance(particle, Particle):
+            raise ParticleError('MetaParticle requires instance of Particle'
+                                ' recieved %s' % type(particle))
+        self.particle = particle
     
-    def _color_changed(self, new):
-        self.color = to_normrgb(color)
-
     # Worth storing?        
     @property
     def address(self):
         """ Memory address """
-        return super(MetaParticle, self).__repr__() .split()[-1].strip('>')           
+        return super(object, self).__repr__() .split()[-1].strip('>')           
     
     def __getattr__(self, attr):
         """ """
-        if attr in self.__dict__:
+        if attr in self.__slots__:
             return getattr(self, attr)
         
         elif attr in CUSTOM_DESCRIPTORS:
@@ -65,7 +58,25 @@ class MetaParticle(HasTraits):
         
         # Some bug where color/name aren't showing up in __dict__ during
         # initialization (this gets called before dict fully updated)
-        if attr not in ['name', 'color', 'particle']:
-            setattr(self.particle, attr, value)
+
+        if attr == 'color':
+            MetaParticle.__dict__['color'].__set__(self, to_normrgb(value))
+            
+        elif attr =='name':
+            MetaParticle.__dict__['name'].__set__(self, str(value))
+            
+        elif attr == 'particle':
+            if not isinstance(value, Particle):
+                raise ParticleError('MetaParticle requires instance of Particle'
+                                    ' recieved %s' % type(value))
+
+            MetaParticle.__dict__['particle'].__set__(self, value)
+        
         else:
-            self.__dict__[attr] = value
+            setattr(self.particle, attr, value)
+           
+def copy_metaparticle(obj):
+    """ Make a copy of MetaParticle.  Since MetaParticle uses __slots__,
+        copy.copy doesn't work. Deepcopy is required"""
+    
+    return MetaParticle(obj.name, obj.color, copy.deepcopy(obj.particle) )

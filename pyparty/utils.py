@@ -51,7 +51,7 @@ def to_normrgb(color):
                 % CBITS)
     
     if isinstance(color, str):
-        return _rgb_from_string(color)        
+        return _rgb_from_string(color)
     
     # If single channel --> map accross channels EG 22 --> (22, 22, 22)
     if isinstance(color, int):

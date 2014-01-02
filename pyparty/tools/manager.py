@@ -1,5 +1,4 @@
 from operator import attrgetter
-import itertools
 import logging
 import copy
 
@@ -8,11 +7,12 @@ import numpy as np
 from enthought.traits.api import HasTraits, Instance, Property, Tuple,\
      cached_property, List
 
-# Package Imports
+# pyparty Imports
 from pyparty.shape_models.api import GROUPEDTYPES, ALLTYPES
 from pyparty.shape_models.abstract_shape import Particle, ParticleError
-from pyparty.config import NAMESEP, PADDING, ALIGN, MAXOUT, PCOLOR
-from pyparty.trait_types.metaparticle import MetaParticle
+from pyparty.trait_types.metaparticle import MetaParticle, copy_metaparticle
+from pyparty.config import NAMESEP, PADDING, ALIGN, MAXOUT, PCOLOR, \
+     _COPYPARTICLES
 
 logger = logging.getLogger(__name__) 
 
@@ -65,7 +65,12 @@ def subtract_particles(p1, p2):
     return p1_temp            
 
 def summarize_particles(obj):
-    """ Return a summarized """
+    """ Return a summarized printout for Paticle Manager object.
+    
+    Attributes
+    ----------
+    obj : ParticleManager
+    """
     if len(obj) == 0:
         countstring = '0 particles'
         ptypestring = ''
@@ -82,11 +87,9 @@ def summarize_particles(obj):
         if len(obj.ptypes) > 1:
             ptypestring = '%s ptypes' % len(obj.ptypes)
         ptypestring = ' ptype="%s"' % obj[0].ptype
-
-    address = super(ParticleManager, obj).__repr__() .split()[-1].strip('>')      
-    
+        
     return ('\n<< %s /%s at %s >>' % 
-            (countstring, ptypestring, address ) )    
+            (countstring, ptypestring, obj.mem_address ) )    
 
 def format_particles(obj, align='l', padding=3, header=True):
     """ Output column-delimted representation of a ParticleManager instance.
@@ -140,14 +143,23 @@ class ParticleManager(HasTraits):
     # Cached property
     _namemap = Property(Tuple, depends_on = 'plist')
     
-   
-    def __init__(self, fastnames=False, *traits, **traitkwds):
+    def __init__(self, plist=None, fastnames=False, copy=_COPYPARTICLES):
         """ fastnames:
            (TRUE):  circle_1, dimer_2, circle_3, dimer_4
            (FALSE): circle_1, dimer_1, circle_2, dimer_2
         """
-        self.fastnames = fastnames        
-        super(ParticleManager, self).__init__(*traits, **traitkwds)
+        self.fastnames = fastnames      
+        
+        if not plist:
+            self.plist = []
+        else:
+            if copy:
+                self.plist = [copy_metaparticle(p) for p in plist]
+            else:
+                self.plist = plist
+            
+        # To get properties loaded
+        super(ParticleManager, self).__init__()
    
     @cached_property
     def _get__namemap(self):
@@ -156,7 +168,6 @@ class ParticleManager(HasTraits):
             """
         return dict( (pobj.name, idx) for idx, pobj in enumerate(self.plist))    
             
-    # ADD INDEX KEYWORD TO SUPPORT INSERTIONS
     def add(self, particle, name='', color=None, idx=None,
                       *traitargs, **traitkwargs):
         """ If color not passed, default color is used
@@ -173,6 +184,7 @@ class ParticleManager(HasTraits):
         if not name:
             ptype = particle.ptype
             
+            # ISSUE WITH INDEX IF USER CAN SPECIFY IDX AND NAME INVOLVES IT??
             if self.fastnames:
                 name = '%s%s%s' % (ptype, NAMESEP, idx)            
             
@@ -373,6 +385,10 @@ class ParticleManager(HasTraits):
         rr, cc = zip(*(p.rr_cc for p in self.plist))
         return ( np.concatenate(rr), np.concatenate(cc) )
         
+    @property
+    def mem_address(self):
+        """ Return address in memory """
+        return super(ParticleManager, self).__repr__() .split()[-1].strip('>')   
         
     # Full attribute container sorted mappers        
     def sortby(self, attr='name', inplace=False):
@@ -462,7 +478,10 @@ if __name__ == '__main__':
     print 'finished'
     
     print p[0:5]
-    print p[0]
+    
+    print p[0].plist[0].color
+    p[0].plist[0].color='red'
+    print p[0].plist[0].color
     
     #print len(p), p
     #print len(p2), p2

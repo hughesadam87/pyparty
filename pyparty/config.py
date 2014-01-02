@@ -2,24 +2,27 @@
 
 # Particle Manager
 # ------------
+
 NAMESEP = '_' 
 PADDING = 3
 ALIGN = 'l'
 MAXOUT = 50 #How many rows to show before cutting off
 
+_COPYPARTICLES = True #Should new ParticleManager make new Particles?
 
-# Color Constants
-# ---------------
+
+# Color-related
+# -------------
 _8_bit = ('uint8', 255)
 #_16_bit = ('uint16', 65536) UNTESTED
 
-PCOLOR = (0.0, 0.0, 1.0)
 COLORTYPE = _8_bit
+PCOLOR = (0.0, 0.0, 1.0) # default particle color
+BGCOLOR = (1.0, 1.0, 1.0) # default background color
 
 # Canvas
 # ------
-BGCOLOR = (1.0, 1.0, 1.0)
-BGRES = (512, 512)
+BGRES = (512, 512) # Default canvas background resolution
 
 # Shape model defaults
 # --------------------
