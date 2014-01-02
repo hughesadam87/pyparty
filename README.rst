@@ -56,10 +56,8 @@ Dependencies
 ============
 ``pyparty`` requires **scikit-image** and **Traits** and their dependencies.  
 
-I developed in Traits_ because it is very suitable for writing clean, type-checked
-object-oriented classes.  For example, I didn't want to muck around ensuring that 
-particle dimensions were entered as ints (pixels) instead of floats, and Traits_
-validation takes care of this nicely.  You will not need to understand or use **Traits**
+``pyparty`` uses Traits_ because it is well-suited for writing clean, type-checked
+object-oriented classes. You will not need to understand or use **Traits**
 unless you develop for ``pyparty``; *it is not used in the public API*.  
 
    .. _Traits: http://code.enthought.com/projects/traits/
@@ -82,8 +80,8 @@ Interested in the Python ecosystem?   Check out some of these related libraries:
    - Pillow_ (Python Image Library)
    - ilastik_ (Interactive Learning and Segmentation Tool)
    - NumPy_ (If you don't know it by now, leave immediately and study ``numpy`` instead)
-   
+   - pandas_ (Data Analysis : inspired the ParticleManager API in ``pyparty``)
    
    .. _Pillow: http://python-imaging.github.io/
    .. _NumPy: http://www.numpy.org/
- 
+   .. _pandas: http://pandas.pydata.org/
