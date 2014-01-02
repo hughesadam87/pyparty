@@ -79,13 +79,11 @@ Dependencies
 
 ``pyparty`` uses Traits_ because it is well-suited for writing clean, type-checked
 object-oriented classes. You will not need to understand or use **Traits**
-unless you develop for ``pyparty``; *it is not used in the public API*.  
+unless you develop for ``pyparty``; *it is not used in the public API*.  (The **Traits** dependency may be removed in future installments after the 
+core functionality is stable.)
 
    .. _Traits: http://code.enthought.com/projects/traits/
    
-.. note:: The **Traits** dependency may be removed in future installments after the 
-   core functionality is stable.
-
 Installation
 ============
 
