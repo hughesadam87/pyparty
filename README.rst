@@ -2,7 +2,7 @@
 pyparty: Python (py) particle (party) manager
 =============================================
 
-.. image:: /home/hugadams/Desktop/3d.png
+.. image:: 3d.png
 
 
 ``pyparty`` is a library for creating, managing and measuring 
