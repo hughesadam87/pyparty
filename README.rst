@@ -1,7 +1,7 @@
 .. image:: /data/gwu.jpg
-   :scale: 20 %
+   :scale: 50 %
+   :alt: alternate text
    :align: right
-
 =============================================
 pyparty: Python (py) particle (party) manager
 =============================================
