@@ -9,7 +9,7 @@ ALIGN = 'l'
 MAXOUT = 50 #How many rows to show before cutting off
 
 # Attributes to show when particles printed
-PRINTDISPLAY = ('name', 'ptype')
+PRINTDISPLAY = ('name', 'ptype') #, 'color') COLOR NEEDS ROUNDED
 
 #Should new ParticleManager make new Particles?
 _COPYPARTICLES = True 

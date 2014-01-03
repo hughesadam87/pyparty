@@ -441,23 +441,18 @@ class ParticleManager(HasTraits):
 
         from pyparty.shape_models.io import LabeledParticle
 
-        num = np.unique(labelarray)
-        if num[0] == 0:
-            num = num[1:]  #Will this ever not be the case?
-        
-        # Normalize color
-        if colorbynum:
-            color_norm = 255 / max(num)       
+        #Background label is 0
+        num = np.unique(labelarray)[1:]     
        
         plist = []
         for idx, label in enumerate(num):
             name = '%s%s%s' % (prefix, NAMESEP, idx)
             rr_cc = np.where(labelarray==label)
             particle = LabeledParticle(rr_cc, label=label, ptype='nd_image')
-            
+                        
             if colorbynum:
-                cn = color_norm * label      
-                color = (0, 0, cn)
+                cn = label / max(num)     #Normalize to max value  
+                color = (cn, cn, 0)
                 plist.append( MetaParticle(name=name, color=color, 
                                            particle=particle) )
             # Use default color

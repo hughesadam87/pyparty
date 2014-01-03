@@ -8,13 +8,13 @@ import skimage.io
 import skimage.color as color
 import skimage.measure as measure
 import skimage.morphology as morphology
-from skimage import img_as_float
+from skimage import img_as_float, img_as_bool, img_as_ubyte
 
 from traits.api import HasTraits, Array, Instance, Property, Float
 from manager import ParticleManager, concat_particles
 
 # pyparty imports
-from pyparty.utils import coords_in_image, where_is_particle
+from pyparty.utils import coords_in_image, where_is_particle, to_normrgb
 from pyparty.config import BGCOLOR, BGRES
 
 logger = logging.getLogger(__name__) 
@@ -133,6 +133,7 @@ class Canvas(HasTraits):
         self.background = background
         return background   
     
+#http://scikit-image.org/docs/dev/api/skimage.morphology.html#skimage.morphology.label
     def from_labels(self, inplace=False, neighbors=4,
                     background=None, **pmangerkwds):
         """ """
@@ -140,6 +141,7 @@ class Canvas(HasTraits):
         self._cache_image()
         
         if background: # scikit api doesn't accept None
+            background = int(background) 
             labels = morphology.label(self.grayimage, neighbors, background)
         else:
             labels = morphology.label(self.grayimage, neighbors)
@@ -206,7 +208,20 @@ class Canvas(HasTraits):
     
     @property
     def grayimage(self):
-        return skimage.color.rgb2gray(self.image)
+        """ Collapse multi-channel, scale to 255 (via ubyte) """
+        return img_as_ubyte( color.rgb2gray(self.image) )
+    
+    @property
+    def binaryimage(self):
+        return img_as_bool(self.grayimage) # 3--1 channel reduction required
+    
+    @property
+    def graybackground(self):
+        return color.rgb2gray(self.background)
+    
+    @property
+    def binarybackground(self):
+        return img_as_bool(self.graybackground)
     
     @property
     def pbinary(self):
@@ -266,7 +281,10 @@ class Canvas(HasTraits):
                                fastnames=self._particles.fastnames)
 
     def _set_particles(self, particles):
-        self._particles = particles
+        """ Make a copy of the particles to avoid passing by reference. 
+        Note this is implictly controlled by _COPYPARTICLES in config.
+        """
+        self._particles = ParticleManager(particles.plist, particles.fastnames)
         self._cache_image()
     
     def _get_image(self):
@@ -279,7 +297,14 @@ class Canvas(HasTraits):
     def _get_background(self):
         return self._background
     
+    # REDO THIS WITH COLOR NORM AND STUFF!  Also, dtype warning?
     def _set_background(self, background):
+    
+        if not isinstance(background, np.ndarray):
+            bg_color = to_normrgb(background)
+            bg = np.zeros( (self.image.shape[0], self.image.shape[1], 3) )
+            self._background[:] = bg_color
+            return
     
         try:
             self._background = background
@@ -298,7 +323,7 @@ class Canvas(HasTraits):
             raise CanvasError('Background must be 2 or 3 dimensional array!')
         
         # *****
-        # Note sure best way to check float dtype
+        # Note sure best way to check float dtype (worth doing?)
         dtold = self._background.dtype
         self._background = img_as_float(self._background)
         if self._background.dtype != dtold:
@@ -351,12 +376,7 @@ class Canvas(HasTraits):
     
     def __add__(self, c2):
         return concat_canvas(self, c2, bg_resolve='c2')
-    
-    @classmethod
-    def rgb2binary(self):
-        from skimage.color import rgb2gray
-        raise NotImplemented
-           
+
            
 class ScaledCanvas(Canvas):
     """ Canvas with a "scale" that maps system of coordinates from pixels
@@ -370,6 +390,11 @@ if __name__ == '__main__':
     c.add('circle', radius=100, center=(0,0), color=(1,2,3))
     c.add('circle', radius=20, center=(200,200))
     c.add('circle', radius=20, center=(20000,20000))
+    
+    clab = c.from_labels()
+    
+    c.background=30
+    
    
     
 #    c.show()
