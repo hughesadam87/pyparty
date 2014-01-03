@@ -28,6 +28,8 @@ CHECK_INTERFACES = 2
 
 class ParticleError(Exception):
     """ """
+class ShapeError(ParticleError):
+    """ Specific to when drawing of a shape fails """
 
 class ParticleInterface(Interface):
     """ Abstract class for storing particles as light objects which return
@@ -87,6 +89,7 @@ class Particle(HasTraits):
         if not hasattr(self, '_ski_descriptor'):                     #TEST IF FASTER W/ TRUE
             self._ski_descriptor = regionprops(self.boxed(), cache=True)[0]
         return getattr(self._ski_descriptor, attr)
+    
 
 @provides(ParticleInterface)     
 class CenteredParticle(Particle):

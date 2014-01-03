@@ -65,6 +65,8 @@ def to_normrgb(color):
 
     raise ColorError(ERRORMESSAGE)
 
+class UtilsError(Exception):
+    """ General utilities error """
 
 def coords_in_image(rr_cc, shape):
     """ Taken almost directly from  skimage.draw().  Decided best not to
@@ -138,11 +140,25 @@ def rr_cc_box(rr_cc):
     rect[rr_cc_trans] = 1
     return rect   
 
-def rotate_vector(array, angle, style='degrees'):
+def rotate_vector(array, theta, style='degrees', rint=False):
+    """ Rotate an array of len(2) pairs [(x1,y1), (x2,y2)] counter-clockwise 
+        through theta.  rint rounds output to integer."""
     if style == 'degrees':
-        angle = math.radians(angle)
+        theta = math.radians(theta)
+        cos, sin = math.cos, math.sin        
     
-    rotMatrix = array([[cos(angle), -sin(angle)],  
-                   [sin(angle),  cos(angle)]])
+    rotMatrix = np.array([
+        [cos(theta), -sin(theta)],  
+        [sin(theta),  cos(theta)]
+                     ])
     
-    return rotMatrix.dot(array)
+    r_array = np.dot(array, rotMatrix)
+    if rint:
+        r_array = np.rint(r_array)
+    return r_array
+
+def unzip_array(pairs):
+    """ Rerturn unzipped array of pairs:
+    (1,2), (25,5) --> array(1,25), array(25,25)"""
+    return np.array( zip(*(pairs) ) )
+        
