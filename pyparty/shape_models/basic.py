@@ -23,11 +23,15 @@ class Circle(CenteredParticle):
     """    
     ptype = Str('circle')
     radius = Int(RADIUS_DEFAULT) #in pixels (<2 causes errors w/ properties)
-    rr_cc = Property(Array, depends_on='orientation, center, radius')    
+    base_rr_cc = Property(Array, depends_on='center, radius')    
     
     #http://scikit-image.org/docs/dev/api/skimage.draw.html#circle
-    def _get_rr_cc(self):
+    def _get_base_rr_cc(self):
         return draw.circle(self.cy, self.cx, self.radius)
+    
+    def _get_rr_cc(self):
+        """ Overload to prevent rotating a symmetric circle """
+        return self.base_rr_cc
         
 
 class Ellipse(CenteredParticle):
@@ -38,9 +42,9 @@ class Ellipse(CenteredParticle):
     yradius = Int(YRADIUS)
     xradius = Int(XRADIUS)
     
-    rr_cc = Property(Array, depends_on='orientation, center, xradius, yradius')    
+    base_rr_cc = Property(Array, depends_on='center, xradius, yradius')    
 
-    def _get_rr_cc(self):
+    def _get_base_rr_cc(self):
         return draw.ellipse(self.cy, self.cx, self.yradius, self.xradius)        
 
 
@@ -67,7 +71,7 @@ class Line(Segment):
             return slope + 90.0
         return slope - 90
     
-    def _get_rr_cc(self):
+    def _get_base_rr_cc(self):
 #        return draw.line(self.ystart, self.xstart, self.yend, self.xend)
         lines = []
         theta = math.radians(self.theta_perp_slope)
@@ -91,9 +95,9 @@ class BezierCurve(Segment):
     xmid = Int(XMID)
     weight = Float(1.0) #Middle control point weight (sensible default value?)    
     
-    rr_cc = Property(Array,
-        depends_on='orientation, ystart, xstart, yend, xend, ymid, xmid, weight') 
+    base_rr_cc = Property(Array,
+        depends_on='ystart, xstart, yend, xend, ymid, xmid, weight') 
         
-    def _get_rr_cc(self):
+    def _get_base_rr_cc(self):
         return draw.bezier_curve(self.ystart, self.xstart, self.ymid, 
                     self.xmid, self.yend, self.xend, weight=self.weight)

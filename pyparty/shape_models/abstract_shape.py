@@ -16,7 +16,7 @@ import skimage.draw as draw
 from skimage.measure import regionprops
 from skimage.measure._regionprops import _RegionProperties
 
-from pyparty.utils import rr_cc_box
+from pyparty.utils import rr_cc_box, rotate_vector, unzip_array
 from pyparty.trait_types.intornone import IntOrNone
 from pyparty.patterns.elements import simple
 from pyparty.config import RADIUS_DEFAULT, CENTER_DEFAULT, XSTART, YSTART, \
@@ -57,23 +57,39 @@ class Particle(HasTraits):
 
     orientation = Float(0.0) 
     
-    center = Property(Tuple, depends_on = 'rr_cc')    
+    center = Property(Tuple, depends_on = 'base_rr_cc')    
     cx = Property(Int, depends_on = 'center')
     cy = Property(Int, depends_on = 'center')    
     
+    # Arrays of INT
     rr_cc = Property(Array, depends_on='orientation')     
+    base_rr_cc = Property(Array)
+    
+    def _get_rr_cc(self):
+        """ Rotate base_rr_cc through theta """
+        theta = self.orientation
+        center = self.center[::-1] #Necessary 
+        
+        if theta % 360.0 == 0.0:
+            return self.base_rr_cc
+
+        # CENTER
+        # Rotate transposed rr_cc
+        centered = np.array(self.base_rr_cc).T - center
+        rr_cc_rot = rotate_vector(centered, theta, rint=True)
+        return  (rr_cc_rot + center).T
     
     #http://scikit-image.org/docs/dev/api/skimage.draw.html#circle
-    def _get_rr_cc(self):
+    def _get_base_rr_cc(self):
         raise NotImplementedError
 
-    def _set_rr_cc(self):
+    def _set_base_rr_cc(self):
         raise NotImplementedError
     
     def _get_center(self):
         """ Center of mass of rr, cc"""
         rmean = lambda x: rint(np.mean(x))
-        return map(rmean, self.rr_cc)
+        return tuple(map(rmean, self.base_rr_cc))
     
     # Center Property Interface
     # ----------------
@@ -93,7 +109,7 @@ class Particle(HasTraits):
     # May want this to return the translation coordinates
     def boxed(self):
         """ Returns a minimal bounding box with object inside"""
-        return rr_cc_box(self.rr_cc)
+        return rr_cc_box(self.base_rr_cc)
     
     def ski_descriptor(self, attr):
         """ Return scikit image descriptor. """
@@ -103,21 +119,26 @@ class Particle(HasTraits):
         return getattr(self._ski_descriptor, attr)
     
 
+# For now this works, but is there a more intelligent way to design Particle
+# to use this case adn remove CenteredParticle altogether?
 class CenteredParticle(Particle):
     """ Base class for particles whose center values are set by user (circle,
-    ellipse, etc...); thus rr_cc depends on cx, cy rather than other way round.
+    ellipse, etc...); thus base_rr_cc depends on cx, cy rather than other way round.
     Cx, Cy translations also become trivial.
     """
     
     pytpe = Str('abstract_centered')        
     center = Tuple( CENTER_DEFAULT ) 
-    rr_cc = Property(Array, depends_on='orientation, center')    
+    base_rr_cc = Property(Array, depends_on='center')    
     
-    def _set_cx(self, value):
-        self.center = (value, self.cy)
+    def _get_base_rr_cc(self):
+        raise NotImplementedError
+    
+    def _set_cx(self, cx):
+        self.center = (cx, self.cy)
         
-    def _set_cy(self, value):
-        self.center = (self.cx, value)           
+    def _set_cy(self, cy):
+        self.center = (self.cx, cy)           
 
 
 class Segment(Particle):
@@ -130,9 +151,9 @@ class Segment(Particle):
     yend = Int(YEND)
     xend = Int(XEND)
     
-    rr_cc = Property(Array, depends_on='orientation, ystart, xstart, yend, xend') 
+    base_rr_cc = Property(Array, depends_on='ystart, xstart, yend, xend') 
     
-    def _get_rr_cc(self):
+    def _get_base_rr_cc(self):
         return draw.line(self.ystart, self.xstart, self.yend, self.xend)
 
 class SimplePattern(CenteredParticle):
@@ -190,7 +211,7 @@ class SimplePattern(CenteredParticle):
         return np.array( (r1, r2, r3, r4) )[0:self._n]
 
     # NOT GOING TO CACHE THIS UNTIL IM SURE EVERYTHING ELSE IS OK
-    def _get_rr_cc(self):
+    def _get_base_rr_cc(self):
         """ Draws circle for each vertex pair returned by self.skeleton, then
         concatenates them in a final (rr, cc) array. """
 
@@ -205,8 +226,6 @@ class SimplePattern(CenteredParticle):
         cc = np.concatenate( cc_all )
         return (rr, cc)
     
-    
-if __name__ == '__main__':
-    p=Particle()
-    f=Foo()
-    
+    def _get_rr_cc(self):
+        """ Orientation already builtin to base_rr_cc """
+        return self.base_rr_cc

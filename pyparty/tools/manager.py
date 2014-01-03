@@ -89,7 +89,7 @@ def summarize_particles(obj):
             ptypestring = '%s ptypes' % len(obj.ptypes)
         ptypestring = ' ptype="%s"' % obj[0].ptype
         
-    return ('\n<< %s /%s at %s >>' % 
+    return ('<< %s /%s at %s >>' % 
             (countstring, ptypestring, obj.mem_address ) )    
 
 def format_particles(obj, align='l', padding=3, attrs=('name')):

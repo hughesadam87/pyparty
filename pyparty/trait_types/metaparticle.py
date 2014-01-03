@@ -28,9 +28,8 @@ class MetaParticle(object):
                                 ' recieved %s' % type(particle))
         self.particle = particle      
 
-        #TEXTURES LATER (
+        #TEXTURES LATER 
         
-    
     def __getattr__(self, attr):
         """ """
         if attr in self.__slots__:
@@ -68,6 +67,7 @@ class MetaParticle(object):
         
         else:
             setattr(self.particle, attr, value)
+           
            
 def copy_metaparticle(obj):
     """ Make a copy of MetaParticle.  Since MetaParticle uses __slots__,

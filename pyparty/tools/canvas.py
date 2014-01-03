@@ -137,7 +137,7 @@ class Canvas(HasTraits):
     def from_labels(self, inplace=False, neighbors=4,
                     background=None, **pmangerkwds):
         """ """
-        
+        	
         self._cache_image()
         
         if background: # scikit api doesn't accept None
@@ -379,7 +379,8 @@ class Canvas(HasTraits):
 
            
 class ScaledCanvas(Canvas):
-    """ Canvas with a "scale" that maps system of coordinates from pixels
+    """ Canvas with a "scale" that maps system of coordinates from p
+    ixels
         to pre-set units."""
 
     
@@ -387,15 +388,16 @@ if __name__ == '__main__':
 
     c=Canvas()
     
-    c.add('circle', radius=100, center=(0,0), color=(1,2,3))
+    c.add('ellipse', orientation=32.0)
     c.add('circle', radius=20, center=(200,200))
     c.add('circle', radius=20, center=(20000,20000))
     
     clab = c.from_labels()
     
     c.background=30
-    
-   
+    print c.rr_cc
+#    c2 = c.from_labels(me_sobel)
+    c2.show()   
     
 #    c.show()
     
