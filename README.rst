@@ -1,9 +1,10 @@
+.. image:: /data/gwu.jpg
+   :scale: 50 %
+   :align: right
+
 =============================================
 pyparty: Python (py) particle (party) manager
 =============================================
-
-.. image:: /data/gwu.jpg
-
 
 ``pyparty`` is a library for creating, managing and measuring 
 particles/inclusion in images.  This library was built mainly over the excellent
