@@ -1,5 +1,5 @@
 .. image:: /data/gwu.jpg
-   :scale: 50 %
+   :scale: 20 %
    :align: right
 
 =============================================
