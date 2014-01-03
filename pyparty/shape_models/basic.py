@@ -6,8 +6,8 @@ import numpy as np
 
 import skimage.draw as draw
 from traits.has_traits import CHECK_INTERFACES
-from traits.api import HasTraits, Property, provides, Bool, Int, Array,\
-     Float, Str
+from traits.api import HasTraits, Property, provides, Int, Array,\
+     Float, Str, cached_property
 
 from abstract_shape import Particle, CenteredParticle, ParticleInterface, Segment
 from pyparty.utils import rotate_vector
@@ -24,16 +24,13 @@ class Circle(CenteredParticle):
     Attributes
     ----------
     """    
-    ptype=Str('circle')
+    ptype = Str('circle')
     radius = Int(RADIUS_DEFAULT) #in pixels (<2 causes errors w/ properties)
-    	    
+    rr_cc = Property(Array, depends_on='orientation, center, radius')    
+    
     #http://scikit-image.org/docs/dev/api/skimage.draw.html#circle
     def _get_rr_cc(self):
-        
-        if self.fill:
-            return draw.circle(self.cy, self.cx, self.radius)
-        else:
-            return draw.circle_perimeter(self.cy, self.cx, self.radius)
+        return draw.circle(self.cy, self.cx, self.radius)
         
 
 @provides(ParticleInterface)             
@@ -44,14 +41,11 @@ class Ellipse(CenteredParticle):
 
     yradius = Int(YRADIUS)
     xradius = Int(XRADIUS)
+    
+    rr_cc = Property(Array, depends_on='orientation, center, xradius, yradius')    
 
     def _get_rr_cc(self):
-    
-        if self.fill:
-            return draw.ellipse(self.cy, self.cx, self.yradius, self.xradius)        
-        else:
-            return draw.ellipse_perimeter(self.cy, self.cx, self.yradius, 
-                                          self.xradius)
+        return draw.ellipse(self.cy, self.cx, self.yradius, self.xradius)        
 
 @provides(ParticleInterface)        
 class Line(Segment):
@@ -90,6 +84,7 @@ class Line(Segment):
             lines.append(draw.line(xs, ys, xe, ye))
         rr, cc = zip(*(l for l in lines))
         return (np.concatenate(rr), np.concatenate(cc))    
+    
 
 @provides(ParticleInterface)
 class BezierCurve(Segment):
@@ -99,9 +94,11 @@ class BezierCurve(Segment):
     
     ymid = Int(YMID)
     xmid = Int(XMID)
+    weight = Float(1.0) #Middle control point weight (sensible default value?)    
     
-    weight = Float(1.0) #Middle control point weight (sensible defualt value?)
-    
+    rr_cc = Property(Array,
+        depends_on='orientation, ystart, xstart, yend, xend, ymid, xmid, weight') 
+        
     def _get_rr_cc(self):
         return draw.bezier_curve(self.ystart, self.xstart, self.ymid, 
                     self.xmid, self.yend, self.xend, weight=self.weight)

@@ -63,17 +63,16 @@ class Particle(HasTraits):
 
     ptype = Str('general')    
     psource = Str('pyparty_builtin')
-    fill = Bool(True)
-    aa = Bool(False) #Anti Aliasing
-    
-    # Remove with implementation
-    rr_cc = Property(Array)    
     ski_descriptor = Instance(_RegionProperties)    
+
+    orientation = Float(0.0) 
+    
     center = Property(Tuple, depends_on = 'rr_cc')    
     cx = Property(Int, depends_on = 'center')
     cy = Property(Int, depends_on = 'center')    
-    orientation = Float(0.0) 
-       
+    
+    rr_cc = Property(Array, depends_on='orientation')     
+    
     #http://scikit-image.org/docs/dev/api/skimage.draw.html#circle
     def _get_rr_cc(self):
         raise NotImplementedError
@@ -123,6 +122,7 @@ class CenteredParticle(Particle):
     
     pytpe = Str('abstract_centered')        
     center = Tuple( CENTER_DEFAULT ) 
+    rr_cc = Property(Array, depends_on='orientation, center')    
     
     def _set_cx(self, value):
         self.center = (value, self.cy)
@@ -141,6 +141,8 @@ class Segment(Particle):
     xstart = Int(XSTART)
     yend = Int(YEND)
     xend = Int(XEND)
+    
+    rr_cc = Property(Array, depends_on='orientation, ystart, xstart, yend, xend') 
     
     def _get_rr_cc(self):
         return draw.line(self.ystart, self.xstart, self.yend, self.xend)
@@ -200,6 +202,7 @@ class SimplePattern(CenteredParticle):
             
         return np.array( (r1, r2, r3, r4) )[0:self._n]
 
+    # NOT GOING TO CACHE THIS UNTIL IM SURE EVERYTHING ELSE IS OK
     def _get_rr_cc(self):
         """ Draws circle for each vertex pair returned by self.skeleton, then
         concatenates them in a final (rr, cc) array. """

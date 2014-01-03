@@ -447,9 +447,9 @@ class ParticleManager(HasTraits):
        
         plist = []
         for idx, label in enumerate(num):
-            name = '%s_%s' % (prefix, idx)
+            name = '%s%s%s' % (prefix, NAMESEP, idx)
             rr_cc = np.where(labelarray==label)
-            particle = LabeledParticle(rr_cc, label=label)
+            particle = LabeledParticle(rr_cc, label=label, ptype='nd_image')
             
             if colorbynum:
                 cn = color_norm * label      

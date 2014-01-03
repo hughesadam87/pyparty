@@ -13,19 +13,17 @@ Stores Particle models from reading from external sources
 """
 import logging
 import numpy as np
-from traits.api import provides, Str
+from traits.api import  Str
 from traits.has_traits import CHECK_INTERFACES
 
 from pyparty.trait_types.intornone import IntOrNone
-from abstract_shape import Particle, ParticleInterface
+from abstract_shape import Particle
 
 logger = logging.getLogger(__name__) 
 CHECK_INTERFACES = 2    
 
-@provides(ParticleInterface)
 class LabeledParticle(Particle):
-    """ Set rr_cc value from an array.  Merely changed property 
-        interface of Particle to a basic attribute."""
+    """ Any particles whose rr_cc is directly passed in at __init__"""
 
     ptype = Str('gen_label')     #Generic Label
     label = IntOrNone
@@ -39,6 +37,5 @@ class LabeledParticle(Particle):
     
     def _set_rr_cc(self, value):
         self._rr_cc = value
-            
-    
+        
     
