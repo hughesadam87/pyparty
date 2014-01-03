@@ -2,6 +2,9 @@
 pyparty: Python (py) particle (party) manager
 =============================================
 
+.. image:: /home/hugadams/Desktop/3d.png
+
+
 ``pyparty`` is a library for creating, managing and measuring 
 particles/inclusion in images.  This library was built mainly over the excellent
 image processing library, scikit-image_.
