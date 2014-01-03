@@ -1,3 +1,4 @@
+from __future__ import division
 from operator import attrgetter
 import logging
 import copy
@@ -12,7 +13,7 @@ from pyparty.shape_models.api import GROUPEDTYPES, ALLTYPES
 from pyparty.shape_models.abstract_shape import Particle, ParticleError
 from pyparty.trait_types.metaparticle import MetaParticle, copy_metaparticle
 from pyparty.config import NAMESEP, PADDING, ALIGN, MAXOUT, PCOLOR, \
-     _COPYPARTICLES
+     _COPYPARTICLES, PRINTDISPLAY
 
 logger = logging.getLogger(__name__) 
 
@@ -91,20 +92,22 @@ def summarize_particles(obj):
     return ('\n<< %s /%s at %s >>' % 
             (countstring, ptypestring, obj.mem_address ) )    
 
-def format_particles(obj, align='l', padding=3, header=True):
+def format_particles(obj, align='l', padding=3, attrs=('name')):
     """ Output column-delimted representation of a ParticleManager instance.
 
     Attributes
     ----------
     obj : ParticleManager
-    
-    maxlines : number of lines to print before cutting off.
-    
+        
     align : str ('l', 'c', 'r')
         Column alignment
     
     padding : int
         Column padding (width column = padding + len(max_word) )
+        
+    attrs : List(str)
+        Names of attributes to display in printout.  Must be valid attributes
+        of obj.
     """
     padding = ' ' * padding
     just_fcn = {
@@ -114,13 +117,13 @@ def format_particles(obj, align='l', padding=3, header=True):
 
     outlist = copy.copy(obj.plist)
     
-    if header:
-        outrows = [('', 'NAME', 'PTYPE')] 
-    else:
-        outrows = [('', '', '')]
-        
-    outrows.extend( [(str(i), p.name, p.ptype) for i, p in enumerate(outlist) ])
- 
+    # Header [( ''   NAME   PTYPE)]
+    outrows = [ [''] + [a.upper() for a in attrs] ]
+    
+    for i, p in enumerate(outlist):
+        att_row = [str(i)] + [str(getattr(p, a)) for a in attrs]
+        outrows.append(tuple(att_row))
+         
     widths = [max(map(len, col)) for col in zip(*outrows)]
     return  '\n'.join( [ padding.join((just_fcn(val,width) for val, width 
                     in zip(row, widths))) for row in outrows] )
@@ -355,7 +358,8 @@ class ParticleManager(HasTraits):
         if len(self) >= MAXOUT or len(self) == 0:
             return summarize_particles(self)
         else:
-            return format_particles(self, align=ALIGN, padding=PADDING)  
+            return format_particles(self, align=ALIGN, padding=PADDING, 
+                                    attrs=PRINTDISPLAY)  
         
     def in_region(self, *coords):
         """ Get all particles whose CENTERS are within a rectangular region"""
@@ -443,7 +447,7 @@ class ParticleManager(HasTraits):
         
         # Normalize color
         if colorbynum:
-            color_norm = float(255)/max(num)       
+            color_norm = 255 / max(num)       
        
         plist = []
         for idx, label in enumerate(num):
@@ -473,7 +477,7 @@ if __name__ == '__main__':
         
     print 'starting'
     p2=ParticleManager()
-    for i in range(5000):
+    for i in range(50):
         p2.add(particle='circle', name='foo'+str(i), radius=i)
     
     print p[0:5]

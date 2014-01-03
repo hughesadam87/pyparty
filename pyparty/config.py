@@ -8,7 +8,11 @@ PADDING = 3
 ALIGN = 'l'
 MAXOUT = 50 #How many rows to show before cutting off
 
-_COPYPARTICLES = True #Should new ParticleManager make new Particles?
+# Attributes to show when particles printed
+PRINTDISPLAY = ('name', 'ptype')
+
+#Should new ParticleManager make new Particles?
+_COPYPARTICLES = True 
 
 
 # Color-related

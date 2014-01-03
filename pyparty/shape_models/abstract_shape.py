@@ -9,8 +9,7 @@ import logging
 import numpy as np
 from math import radians, cos
 
-from traits.has_traits import CHECK_INTERFACES
-from traits.api import Interface, provides, HasTraits, Tuple, Array, \
+from traits.api import Interface, HasTraits, Tuple, Array, \
      Bool, Property, Str, Int, Instance, Range, Float, cached_property
 
 import skimage.draw as draw
@@ -24,7 +23,6 @@ from pyparty.config import RADIUS_DEFAULT, CENTER_DEFAULT, XSTART, YSTART, \
      XEND, YEND
 
 logger = logging.getLogger(__name__) 
-CHECK_INTERFACES = 2    
 
 def rint(x): return int(round(x,0))
 
@@ -33,7 +31,8 @@ class ParticleError(Exception):
 class ShapeError(ParticleError):
     """ Specific to when drawing of a shape fails """
 
-class ParticleInterface(Interface):
+     
+class Particle(HasTraits):
     """ Abstract class for storing particles as light objects which return
         rr and cc indicies for ndarray indexing (see skimage.draw) 
     
@@ -50,16 +49,7 @@ class ParticleInterface(Interface):
     and public methods (eg foo() vs. _foo()) will be recognized when 
     implementation is enforced.
        
-    """
-
-    ptype = Str('')
-    psource = Str('')
-
-    def _get_rr_cc(self):
-        raise NotImplementedError
-     
-@provides(ParticleInterface)     
-class Particle(HasTraits):
+    """    
 
     ptype = Str('general')    
     psource = Str('pyparty_builtin')
@@ -102,18 +92,17 @@ class Particle(HasTraits):
       
     # May want this to return the translation coordinates
     def boxed(self):
-        """ Returns a binary bounding box with object inside"""
+        """ Returns a minimal bounding box with object inside"""
         return rr_cc_box(self.rr_cc)
     
     def ski_descriptor(self, attr):
         """ Return scikit image descriptor. """
         # Set RegionProps on first call
-        if not hasattr(self, '_ski_descriptor'):                     #TEST IF FASTER W/ TRUE
+        if not hasattr(self, '_ski_descriptor'):        #TEST IF FASTER W/ TRUE
             self._ski_descriptor = regionprops(self.boxed(), cache=True)[0]
         return getattr(self._ski_descriptor, attr)
     
 
-@provides(ParticleInterface)     
 class CenteredParticle(Particle):
     """ Base class for particles whose center values are set by user (circle,
     ellipse, etc...); thus rr_cc depends on cx, cy rather than other way round.
@@ -131,7 +120,6 @@ class CenteredParticle(Particle):
         self.center = (self.cx, value)           
 
 
-@provides(ParticleInterface)     
 class Segment(Particle):
     """ Base class to reduce boiler plate in BezierCurve and Line """
 
@@ -147,7 +135,6 @@ class Segment(Particle):
     def _get_rr_cc(self):
         return draw.line(self.ystart, self.xstart, self.yend, self.xend)
 
-@provides(ParticleInterface)     
 class SimplePattern(CenteredParticle):
     """  
          

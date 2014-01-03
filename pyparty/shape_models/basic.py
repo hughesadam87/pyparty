@@ -5,19 +5,16 @@ import math
 import numpy as np
 
 import skimage.draw as draw
-from traits.has_traits import CHECK_INTERFACES
 from traits.api import HasTraits, Property, provides, Int, Array,\
      Float, Str, cached_property
 
-from abstract_shape import Particle, CenteredParticle, ParticleInterface, Segment
+from abstract_shape import Particle, CenteredParticle, Segment
 from pyparty.utils import rotate_vector
 from pyparty.config import RADIUS_DEFAULT, CENTER_DEFAULT, XRADIUS, YRADIUS, \
      XMID, YMID, BEZIERWEIGHT
 
 logger = logging.getLogger(__name__) 
-CHECK_INTERFACES = 2 # 2-error, 1-warn, 0-pass
 
-@provides(ParticleInterface)     
 class Circle(CenteredParticle):
     """ description
     
@@ -33,7 +30,6 @@ class Circle(CenteredParticle):
         return draw.circle(self.cy, self.cx, self.radius)
         
 
-@provides(ParticleInterface)             
 class Ellipse(CenteredParticle):
     """ Orientation supported only for perimeter in scikit """
 
@@ -47,7 +43,7 @@ class Ellipse(CenteredParticle):
     def _get_rr_cc(self):
         return draw.ellipse(self.cy, self.cx, self.yradius, self.xradius)        
 
-@provides(ParticleInterface)        
+
 class Line(Segment):
     """ Line with width """
  
@@ -86,7 +82,6 @@ class Line(Segment):
         return (np.concatenate(rr), np.concatenate(cc))    
     
 
-@provides(ParticleInterface)
 class BezierCurve(Segment):
     """  """
 
