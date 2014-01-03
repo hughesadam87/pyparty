@@ -26,6 +26,8 @@ from pyparty.config import RADIUS_DEFAULT, CENTER_DEFAULT, XSTART, YSTART, \
 logger = logging.getLogger(__name__) 
 CHECK_INTERFACES = 2    
 
+def rint(x): return int(round(x,0))
+
 class ParticleError(Exception):
     """ """
 class ShapeError(ParticleError):
@@ -63,12 +65,13 @@ class Particle(HasTraits):
     psource = Str('pyparty_builtin')
     fill = Bool(True)
     aa = Bool(False) #Anti Aliasing
-
+    
     # Remove with implementation
     rr_cc = Property(Array)    
-    ski_descriptor = Instance(_RegionProperties)
-    
-    # Orientation in degrees: Not all classes implement this
+    ski_descriptor = Instance(_RegionProperties)    
+    center = Property(Tuple, depends_on = 'rr_cc')    
+    cx = Property(Int, depends_on = 'center')
+    cy = Property(Int, depends_on = 'center')    
     orientation = Float(0.0) 
        
     #http://scikit-image.org/docs/dev/api/skimage.draw.html#circle
@@ -77,7 +80,27 @@ class Particle(HasTraits):
 
     def _set_rr_cc(self):
         raise NotImplementedError
+    
+    def _get_center(self):
+        """ Center of mass of rr, cc"""
+        rmean = lambda x: rint(np.mean(x))
+        return map(rmean, self.rr_cc)
+    
+    # Center Property Interface
+    # ----------------
+    def _get_cx(self):
+        return self.center[0]
+    
+    def _get_cy(self):
+        return self.center[1]
+    
+    def _set_cx(self, cx):
+        raise NotImplementedError #(later replace with translate)
         
+    def _set_cy(self, cy):
+        raise NotImplementedError #(later replace with translate)        
+          
+      
     # May want this to return the translation coordinates
     def boxed(self):
         """ Returns a binary bounding box with object inside"""
@@ -93,31 +116,20 @@ class Particle(HasTraits):
 
 @provides(ParticleInterface)     
 class CenteredParticle(Particle):
-    """ Base class for particles whose centers are set by user (circle,
-        elipse, etc...) as opposed to particles whose center is computed
-        after the object is drawn (eg line, beziercurve, polygon)
+    """ Base class for particles whose center values are set by user (circle,
+    ellipse, etc...); thus rr_cc depends on cx, cy rather than other way round.
+    Cx, Cy translations also become trivial.
     """
     
-    pytpe = Str('abstract_centered')
-    
-    # CENTER = (CX, CY)  not (CY, CX)
-    center = Tuple( CENTER_DEFAULT ) # in pixels 
-    cx = Property(Int, depends_on = 'center')
-    cy = Property(Int, depends_on = 'center')    
-
-    # Center Property Interface
-    # ----------------
-    def _get_cx(self):
-        return self.center[0]
-    
-    def _get_cy(self):
-        return self.center[1]
+    pytpe = Str('abstract_centered')        
+    center = Tuple( CENTER_DEFAULT ) 
     
     def _set_cx(self, value):
         self.center = (value, self.cy)
         
     def _set_cy(self, value):
-        self.center = (self.cx, value)    
+        self.center = (self.cx, value)           
+
 
 @provides(ParticleInterface)     
 class Segment(Particle):
@@ -203,10 +215,7 @@ class SimplePattern(CenteredParticle):
         cc = np.concatenate( cc_all )
         return (rr, cc)
     
-@provides(ParticleInterface)
-class Foo(HasTraits):
-    a=Str('sike')
-
+    
 if __name__ == '__main__':
     p=Particle()
     f=Foo()

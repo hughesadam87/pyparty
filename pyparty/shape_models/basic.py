@@ -34,6 +34,7 @@ class Circle(CenteredParticle):
             return draw.circle(self.cy, self.cx, self.radius)
         else:
             return draw.circle_perimeter(self.cy, self.cx, self.radius)
+        
 
 @provides(ParticleInterface)             
 class Ellipse(CenteredParticle):
@@ -47,11 +48,11 @@ class Ellipse(CenteredParticle):
     def _get_rr_cc(self):
     
         if self.fill:
-            return draw.ellipse(self.cy, self.cx, self.yradius, 
-                                          self.xradius)        
+            return draw.ellipse(self.cy, self.cx, self.yradius, self.xradius)        
         else:
             return draw.ellipse_perimeter(self.cy, self.cx, self.yradius, 
                                           self.xradius)
+
 @provides(ParticleInterface)        
 class Line(Segment):
     """ Line with width """
