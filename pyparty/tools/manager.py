@@ -431,6 +431,14 @@ class ParticleManager(HasTraits):
             return tuple( (k+':', sorted(v.keys())) 
                           for k, v in GROUPEDTYPES.items() ) 
         
+    # Later put this all in color stuff (changes colors) [NOTE USED]
+    def hsv_colors(self):
+        def _invert(p):
+            r, g, b = p.color
+            p.color = (1.-r, 1.-g, 1.-b)
+            return p
+        self.map(_invert)
+        
         
     # Class methods
     # ------------

@@ -140,7 +140,7 @@ def rr_cc_box(rr_cc):
     rect[rr_cc_trans] = 1
     return rect   
 
-def rotate_vector(array, theta, offset=(0,0), style='degrees', rint=False):
+def rotate_vector(array, theta, offset=(0,0), style='degrees', rint='up'):
     """ Rotate an array of len(2) pairs [(x1,y1), (x2,y2)] counter-clockwise 
         through theta.  rint rounds output to integer."""
 
@@ -156,8 +156,11 @@ def rotate_vector(array, theta, offset=(0,0), style='degrees', rint=False):
     r_array = np.dot(array, rotMatrix)
     
     if rint:
-        r_array = np.rint(r_array)
-    return r_array.astype('int')
+        if rint =='up':
+            r_array = np.rint(r_array)
+        r_array = r_array.astype('int', copy=False) #save memory
+    return r_array
+    
 
 def unzip_array(pairs):
     """ Inverse of np.array(zip(x,y)). Rerturn unzipped array of pairs:

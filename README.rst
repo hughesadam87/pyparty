@@ -4,6 +4,7 @@
    :scale: 50 %
    :alt: alternate text
    :align: right
+   
 =============================================
 pyparty: Python (py) particle (party) manager
 =============================================
@@ -49,19 +50,10 @@ Please email me (hugadams@gwmail.gwu.edu) if the links are dead.  I will update 
    
 
 Goals and Background
-====================
+==================== 
 
-History
--------
-``pyparty`` originally began at the George Washington University (2013) in an 
-effort to generate test data for SEM and AFM images of gold nanoparticles on the
-surface of optical fibers.  We really enjoyed the power of scikit-image_ and sought
-to implement it in generating test data, as well as supplant the ``Analyze Particles``
-feature in ImageJ_.  While all of this is possible in scikit-image_, we needed 
-better separation between *particles* and *image*.  
-
-Who would want this?
---------------------
+Who does this benefit this?
+---------------------------
 In short, you may consider using our package if you require any of the following:
  
    1. The ability to draw shapes/patterns on an arbitrary image.  This can be very
@@ -79,8 +71,8 @@ In short, you may consider using our package if you require any of the following
    .. _ilastik: http://www.ilastik.org/
 
 
-History
--------
+Motivation
+----------
 ``pyparty`` originally began at the George Washington University (2013) in an 
 effort to generate test data for SEM and AFM images of gold nanoparticles on the
 surface of optical fibers.  We really enjoyed the power of scikit-image_ and sought

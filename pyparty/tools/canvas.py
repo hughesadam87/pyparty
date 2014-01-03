@@ -232,6 +232,7 @@ class Canvas(HasTraits):
         out = np.zeros( self.background.shape[0:2], dtype=bool )
         out[rr_cc] = True
         return out  
+
     
     def _whereis(self, choice='in'):
         """ Wraps utils.where_is_particles for all three possibilities """

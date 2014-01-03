@@ -73,10 +73,15 @@ class Particle(HasTraits):
         if theta % 360.0 == 0.0:
             return self.base_rr_cc
 
-        # CENTER
         # Rotate transposed rr_cc
         centered = np.array(self.base_rr_cc).T - center
-        rr_cc_rot = rotate_vector(centered, theta, rint=True)
+        # Why negative theta?
+        rr_cc_rot = rotate_vector(centered, theta, rint='up')
+        
+        # Do something like merge unique rr,cc pairs
+#        rr_cc_rot_up = rotate_vector(centered, theta, rint='up')
+#        rr_cc_rot_down = rotate_vector(centered, theta, rint='down')
+        
         return  (rr_cc_rot + center).T
     
     #http://scikit-image.org/docs/dev/api/skimage.draw.html#circle
