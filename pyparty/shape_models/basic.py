@@ -56,12 +56,12 @@ class Line(Segment):
     
     @property
     def slope(self):
-        """ Return the slope in math.degrees """
+        """ The slope in degrees """
         return math.degrees(math.atan( (self.yend - self.ystart) / 
                              (self.xend - self.xstart) ) )  
     @property
     def theta_perp_slope(self):
-        """ Return the angle of a line perpendicular to the slope"""
+        """ Angle of a line perpendicular to the slope"""
         try:
             slope = self.slope
         except ZeroDivisionError:
@@ -72,7 +72,7 @@ class Line(Segment):
         return slope - 90
     
     def _get_unrotated_rr_cc(self):
-#        return draw.line(self.ystart, self.xstart, self.yend, self.xend)
+        #return draw.line(self.ystart, self.xstart, self.yend, self.xend)
         lines = []
         theta = math.radians(self.theta_perp_slope)
         for i in range(1,self.width):
@@ -87,7 +87,7 @@ class Line(Segment):
     
 
 class BezierCurve(Segment):
-    """  """
+    """ skimage.draw bezier curves """
 
     ptype=Str('bezier')   
     
