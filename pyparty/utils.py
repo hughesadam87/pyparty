@@ -140,9 +140,12 @@ def rr_cc_box(rr_cc):
     rect[rr_cc_trans] = 1
     return rect   
 
-def rotate_vector(array, theta, offset=(0,0), style='degrees', rint='up'):
-    """ Rotate an array of len(2) pairs [(x1,y1), (x2,y2)] counter-clockwise 
-        through theta.  rint rounds output to integer."""
+def rotate_vector(array, theta, style='degrees', rint='up'):
+    """ Rotate an array ocounter-clockwise through theta.  rint rounds output 
+    to integer; up rounds normally, down does int rounding (ie rounds down).  
+    ARRAY MUST BE MEAN-CENTERED if rotating in place.
+    
+    array may be xy pairs [(x1,y1),(x2,y2)] or N,2 matrix."""
 
     if style == 'degrees':
         theta = math.radians(theta)
@@ -158,7 +161,7 @@ def rotate_vector(array, theta, offset=(0,0), style='degrees', rint='up'):
     if rint:
         if rint =='up':
             r_array = np.rint(r_array)
-        r_array = r_array.astype('int', copy=False) #save memory
+        r_array = r_array.astype('int', copy=False) #saves memory
     return r_array
     
 

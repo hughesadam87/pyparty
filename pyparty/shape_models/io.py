@@ -21,21 +21,21 @@ from abstract_shape import Particle
 logger = logging.getLogger(__name__) 
 
 class LabeledParticle(Particle):
-    """ Any particles whose base_rr_cc is directly passed in at __init__"""
+    """ Any particles whose unrotated_rr_cc is directly passed in at __init__"""
 
     ptype = Str('gen_label')     #Generic Label
     label = IntOrNone
     
-    # DOES THIS CHANGE/SIMPLIFY UNDER NEW _base_rr_cc IMPLEMENTATION?
-    def __init__(self, base_rr_cc, *args, **kwargs):
+    # DOES THIS CHANGE/SIMPLIFY UNDER NEW _unrotated_rr_cc IMPLEMENTATION?
+    def __init__(self, unrotated_rr_cc, *args, **kwargs):
         super(LabeledParticle, self).__init__(*args, **kwargs)
-        self._base_rr_cc = base_rr_cc
+        self._unrotated_rr_cc = unrotated_rr_cc
         
-    def _get_base_rr_cc(self):
-        return self._base_rr_cc
+    def _get_unrotated_rr_cc(self):
+        return self._unrotated_rr_cc
     
-    def _set_base_rr_cc(self, value):
-        self._base_rr_cc = value
+    def _set_unrotated_rr_cc(self, value):
+        self._unrotated_rr_cc = value
         
         
 #class FromPath(LabeledParticle):
@@ -44,7 +44,7 @@ class LabeledParticle(Particle):
     #path = File('')
     
 #    __init__ 
-       # Get file path, read file, do stuff, somehow get_base_rr_cc, then call super
+       # Get file path, read file, do stuff, somehow get_unrotated_rr_cc, then call super
        # init
         
     

@@ -25,6 +25,7 @@ from pyparty.config import RADIUS_DEFAULT, CENTER_DEFAULT, XSTART, YSTART, \
 logger = logging.getLogger(__name__) 
 
 def rint(x): return int(round(x,0))
+def rmeanint(x): return rint(np.mean(x))
 
 class ParticleError(Exception):
     """ """
@@ -57,26 +58,26 @@ class Particle(HasTraits):
 
     orientation = Float(0.0) 
     
-    center = Property(Tuple, depends_on = 'base_rr_cc')    
+    center = Property(Tuple, depends_on = 'unrotated_rr_cc')    
     cx = Property(Int, depends_on = 'center')
     cy = Property(Int, depends_on = 'center')    
     
     # Arrays of INT
     rr_cc = Property(Array, depends_on='orientation')     
-    base_rr_cc = Property(Array)
+    unrotated_rr_cc = Property(Array)
     
     def _get_rr_cc(self):
-        """ Rotate base_rr_cc through theta """
+        """ Rotate unrotated_rr_cc through theta """
         theta = self.orientation
         center = self.center[::-1] #Necessary 
         
         if theta % 360.0 == 0.0:
-            return self.base_rr_cc
+            return self.unrotated_rr_cc
 
         # Rotate transposed rr_cc
-        centered = np.array(self.base_rr_cc).T - center
+        centered = np.array(self.unrotated_rr_cc).T - center
         # Why negative theta?
-        rr_cc_rot = rotate_vector(centered, theta, rint='up')
+        rr_cc_rot = rotate_vector(centered, -theta, rint='up')
         
         # Do something like merge unique rr,cc pairs
 #        rr_cc_rot_up = rotate_vector(centered, theta, rint='up')
@@ -85,16 +86,16 @@ class Particle(HasTraits):
         return  (rr_cc_rot + center).T
     
     #http://scikit-image.org/docs/dev/api/skimage.draw.html#circle
-    def _get_base_rr_cc(self):
+    def _get_unrotated_rr_cc(self):
+        """ Subclasses must overwrite """        
         raise NotImplementedError
 
-    def _set_base_rr_cc(self):
+    def _set_unrotated_rr_cc(self):
         raise NotImplementedError
     
     def _get_center(self):
         """ Center of mass of rr, cc"""
-        rmean = lambda x: rint(np.mean(x))
-        return tuple(map(rmean, self.base_rr_cc))
+        return tuple(map(rmeanint, self.unrotated_rr_cc))
     
     # Center Property Interface
     # ----------------
@@ -114,7 +115,8 @@ class Particle(HasTraits):
     # May want this to return the translation coordinates
     def boxed(self):
         """ Returns a minimal bounding box with object inside"""
-        return rr_cc_box(self.base_rr_cc)
+        # Could work on unrotated, but probably would lead to issues with FastOriented
+        return rr_cc_box(self.rr_cc)
     
     def ski_descriptor(self, attr):
         """ Return scikit image descriptor. """
@@ -128,22 +130,33 @@ class Particle(HasTraits):
 # to use this case adn remove CenteredParticle altogether?
 class CenteredParticle(Particle):
     """ Base class for particles whose center values are set by user (circle,
-    ellipse, etc...); thus base_rr_cc depends on cx, cy rather than other way round.
+    ellipse, etc...); thus unrotated_rr_cc depends on cx, cy rather than other way round.
     Cx, Cy translations also become trivial.
     """
     
     pytpe = Str('abstract_centered')        
     center = Tuple( CENTER_DEFAULT ) 
-    base_rr_cc = Property(Array, depends_on='center')    
-    
-    def _get_base_rr_cc(self):
-        raise NotImplementedError
+    unrotated_rr_cc = Property(Array, depends_on='center')    
     
     def _set_cx(self, cx):
         self.center = (cx, self.cy)
         
     def _set_cy(self, cy):
         self.center = (self.cx, cy)           
+        
+        
+class FastOriented(Particle):
+    """ Base calss for particles that can modify orientiaion before drawing.
+    For example, a square can be drawn first by rotating the corner verticies,
+    rather than the slower operation of drawning the full array and rotating it.
+    """
+    
+    def _get_unrotated_rr_cc(self):
+        raise ParticleError("FastOriented does not store unrotated rr_cc")
+    
+    def _get_rr_cc(self):
+        """ Subclasses must overwrite """
+        raise NotImplementedError
 
 
 class Segment(Particle):
@@ -156,13 +169,14 @@ class Segment(Particle):
     yend = Int(YEND)
     xend = Int(XEND)
     
-    base_rr_cc = Property(Array, depends_on='ystart, xstart, yend, xend') 
+    unrotated_rr_cc = Property(Array, depends_on='ystart, xstart, yend, xend') 
     
-    def _get_base_rr_cc(self):
+    def _get_unrotated_rr_cc(self):
         return draw.line(self.ystart, self.xstart, self.yend, self.xend)
 
-class SimplePattern(CenteredParticle):
-    """  
+class SimplePattern(CenteredParticle): #FAST ORIENT
+    """  This should also derive from FastOrient, but due to multiple inheritance
+    headaches, just copy-pased the _get_unrotated method
          
     Notes
     -----
@@ -186,6 +200,9 @@ class SimplePattern(CenteredParticle):
     
     _offangle = Float(0.0)
     _n = Int(4)
+    
+    def _get_unrotated_rr_cc(self):
+        raise ParticleError("FastOriented does not store unrotated rr_cc")
     
     def _get_skeleton(self, old, new):
         rs = (1.0 - self.overlap) * (self.rs / cos(radians(self._offangle)))
@@ -216,7 +233,7 @@ class SimplePattern(CenteredParticle):
         return np.array( (r1, r2, r3, r4) )[0:self._n]
 
     # NOT GOING TO CACHE THIS UNTIL IM SURE EVERYTHING ELSE IS OK
-    def _get_base_rr_cc(self):
+    def _get_rr_cc(self):
         """ Draws circle for each vertex pair returned by self.skeleton, then
         concatenates them in a final (rr, cc) array. """
 
@@ -230,7 +247,3 @@ class SimplePattern(CenteredParticle):
         rr = np.concatenate( rr_all )
         cc = np.concatenate( cc_all )
         return (rr, cc)
-    
-    def _get_rr_cc(self):
-        """ Orientation already builtin to base_rr_cc """
-        return self.base_rr_cc

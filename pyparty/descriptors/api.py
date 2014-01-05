@@ -17,7 +17,7 @@ class DescriptorError(Exception):
 SKIMAGE_DESCRIPTORS = [
     'area',
 #    'bbox',
-#    'centroid',
+    'centroid',
     'convex_area',
     'convex_image',
 #    'coords',      #

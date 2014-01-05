@@ -9,6 +9,7 @@ import skimage.color as color
 import skimage.measure as measure
 import skimage.morphology as morphology
 from skimage import img_as_float, img_as_bool, img_as_ubyte
+import pyparty.background.bg_utils as bgu
 
 from traits.api import HasTraits, Array, Instance, Property, Float
 from manager import ParticleManager, concat_particles
@@ -64,15 +65,9 @@ class Canvas(HasTraits):
         if not particles:
             particles = ParticleManager()
         self._particles = particles
-
-        # This should distinguish (or in load_bg) between array vs. path
-        if background is not None:
-            if isinstance(background, basestring):
-                self.load_background(background)
-            else:
-                self.background = background                
-        else:
-            self.clear_background()
+        
+        # This does a bunch of parsing for various bg inputs
+        self.background = background
                         
     # Public Methods
     # -------------              
@@ -118,20 +113,6 @@ class Canvas(HasTraits):
         """
         return np.apply_along_axis(fcn, axis, self.image, *fcnargs)
 
-
-    def load_background(self, path):
-        """ Load an image from harddrive; wraps skimage.io.imread. 
-            os.path.expanduser is called to allow ~/foo/path calls."""
-        
-        try:
-            background = skimage.io.imread(op.expanduser( path) )
-        except Exception as EXC:
-            raise CanvasError('Background must be an array or a valid file '
-                'path: %s' % EXC.message)
-   
-        # Array will undergo further typechecking in _set property
-        self.background = background
-        return background   
     
 #http://scikit-image.org/docs/dev/api/skimage.morphology.html#skimage.morphology.label
     def from_labels(self, inplace=False, neighbors=4,
@@ -229,7 +210,7 @@ class Canvas(HasTraits):
             background removed."""      
         # Faster to get all coords in image at once since going to paint white
         rr_cc = coords_in_image( self._particles.rr_cc_all, self.image.shape)
-        out = np.zeros( self.background.shape[0:2], dtype=bool )
+        out = np.zeros( self.imres, dtype=bool )
         out[rr_cc] = True
         return out  
 
@@ -238,6 +219,11 @@ class Canvas(HasTraits):
         """ Wraps utils.where_is_particles for all three possibilities """
         return [p.name for p in self._particles 
                 if where_is_particle(p.rr_cc, self.image.shape) == choice]
+    
+    @property
+    def imres(self):
+        """ _background shape first 2 dimensions; color-independent """
+        return self._background.shape[0:2]
     
     @property
     def pin(self):
@@ -258,7 +244,7 @@ class Canvas(HasTraits):
     @property
     def pixcount(self):
         """ Counts # pixels in image """
-        l, w = self.image.shape[0:2]
+        l, w = self.imres
         return int(l * w)
         
     @property
@@ -271,6 +257,10 @@ class Canvas(HasTraits):
         """ Wraps measure.perimeter to estimate total perimeter of 
             particles in binary image."""
         return skimage.measure.perimeter(self.pbinary, neighbourhood=4)     
+    
+    @property
+    def mem_address(self):
+        return super(Canvas, self).__repr__() .split()[-1].strip('>')
 
 
     # Trait Defaults / Trait Properties
@@ -300,19 +290,28 @@ class Canvas(HasTraits):
     
     # REDO THIS WITH COLOR NORM AND STUFF!  Also, dtype warning?
     def _set_background(self, background):
-    
-        if not isinstance(background, np.ndarray):
-            bg_color = to_normrgb(background)
-            bg = np.zeros( (self.image.shape[0], self.image.shape[1], 3) )
-            self._background[:] = bg_color
-            return
-    
-        try:
+        """ Parses several valid inputs including: None, Path, Color (of any 
+        valid to_normRGB() type, ndarray, (Color, Resolution)."""
+        if background is None:
+            self._background = self.default_background   
+            
+        elif isinstance(background, np.ndarray):
             self._background = background
-        except Exception as EXC:
-            raise CanvasError('Background must castible to ndarray:' 
-               ' To load from file, see load_background()')
+            
+        elif isinstance(background, basestring):
+            # String or colorstring        
+            self._background = bgu.from_string(background, BGRES[0], BGRES[1])
+            
+        # color will be normalized by from_color_res
+        elif isinstance(background, int) or isinstance(background, float):
+            self._background = bgu.from_color_res(background, BGRES[0], BGRES[1])
+
+        elif hasattr(background, '__iter__'):
+            try:
+                
+    
         
+        # TYPE CAST THE ARRAY        
         if self._background.ndim == 3:
             logger.debug("self._background is ndim 3; color adjustment not required")
         
@@ -335,15 +334,7 @@ class Canvas(HasTraits):
         self._cache_image()
         
     def _get_default_background(self):
-        width, height = BGRES
-        background = np.empty( (width, height, 3) )
-
-        # Should update this a bit to be more consistent with color choosing
-        # Maybe an RGB_Mask utility to get RGB anywhere it's enforced (here and MetaP)
-        if BGCOLOR != (0, 0, 0):
-            background[:,:,:] = BGCOLOR
-        return background
-        
+        return bgu.from_color_res(BGCOLOR, BGRES[0])       
     
     
     # Delegate dictionary interface to ParticleManager
@@ -369,6 +360,20 @@ class Canvas(HasTraits):
         raise CanvasError("Iteration on canvas is ambiguous.  Iterate over "
                           "canvas.image or canvas.particles")
     
+    def __repr__(self):
+        _bgstyle = 'user-array' #REPLACE
+        res = '(%s X %s)' % (self.imres[0], self.imres[1] ) 
+        _PAD = ' ' * 3
+        
+        outstring = "Canvas as %s:\n" % self.mem_address
+
+        outstring += "%sbackground -->  %s : %s\n" % (_PAD, res, _bgstyle) 
+
+        outstring += "%sparticles  -->  %s particles : %s types\n" % (_PAD, \
+            len(self._particles), len(self._particles.ptype_count))
+
+        return outstring
+    
     def __len__(self):
         return self._particles.__len__()
     
@@ -389,26 +394,30 @@ if __name__ == '__main__':
 
     c=Canvas()
     
+    c.add('polygon', orientation=20.)
     c.add('ellipse', orientation=32.0)
     c.add('circle', radius=20, center=(200,200))
     c.add('circle', radius=20, center=(20000,20000))
     
-    clab = c.from_labels()
-    
-    c.background=30
-    print c.rr_cc
-#    c2 = c.from_labels(me_sobel)
-    c2.show()   
-    
-#    c.show()
+    print c
     
     
-    c.particles    
-    print c.pin
+    #clab = c.from_labels()
+    
+    #c.background=30
+    #print c.rr_cc
+##    c2 = c.from_labels(me_sobel)
+    #c2.show()   
+    
+##    c.show()
     
     
-    # Run pyclean
-    try:
-        subprocess.Popen('pyclean .', shell=True, stderr=open('/dev/null', 'w'))
-    except Exception:
-        pass 
+    #c.particles    
+    #print c.pin
+    
+    
+    ## Run pyclean
+    #try:
+        #subprocess.Popen('pyclean .', shell=True, stderr=open('/dev/null', 'w'))
+    #except Exception:
+        #pass 

@@ -127,6 +127,12 @@ def format_particles(obj, align='l', padding=3, attrs=('name')):
     widths = [max(map(len, col)) for col in zip(*outrows)]
     return  '\n'.join( [ padding.join((just_fcn(val,width) for val, width 
                     in zip(row, widths))) for row in outrows] )
+
+def overlapping_particles(p1, p2):
+    """ Return all of the particles in p1, who are touching 1 or more particles
+    in p2.  Returns name such as:
+    
+    (p1 [circle0] : p2 [dimer3, dimer5] : (rr_cc03, rr_cc05)) """
         
 class ManagerError(Exception):
     """ Particle Manager general Exception """
@@ -171,17 +177,22 @@ class ParticleManager(HasTraits):
             """
         return dict( (pobj.name, idx) for idx, pobj in enumerate(self.plist))    
             
-    def add(self, particle, name='', color=None, idx=None,
-                      *traitargs, **traitkwargs):
+    def add(self, particle, name='', color=None, force=False,  *pargs, **pkwargs):
         """ If color not passed, default color is used
-            If not idx, put in last entry  """
+            If not idx, put in last entry 
+
+            Attributes
+            ----------
+            
+            *pargs : valid Particle constructor positionals
+            """
+     
     
         # Make particle from name and arguments
         if isinstance(particle, basestring):
-            particle = self._make_particle(particle, *traitargs, **traitkwargs)
+            particle = self._make_particle(particle, *pargs, **pkwargs)
 
-        if not idx:
-            idx = len(self)
+        idx = len(self)
        
         #Generate key if it does not yet exist
         if not name:
@@ -199,16 +210,19 @@ class ParticleManager(HasTraits):
     
                 name = ptype + NAMESEP + str(pcount)            
             
+        idx_old = None #For deleting at end
         if name in self._namemap:
-            raise ManagerError('particle %s is already named "%s"' % 
-                                 (self._namemap[name], name) )        
+            if force:
+                idx_old = self._namemap[name]
+            else:
+                raise ManagerError('particle at index %s is already named "%s"'\
+                    ' (force=True to overwrite)' % (self._namemap[name], name) )        
 
         meta = MetaParticle(name=name, color=color, particle=particle)
+        self.plist.append(meta)
+        if idx_old is not None:
+            del self.plist[idx_old]
 
-        if idx == len(self):
-            self.plist.append(meta)
-        else:
-            self.plist.insert(idx, meta)
                 
     def _make_particle(self, ptype='', *traitargs, **traitkwargs):
         """ Instantiate a particle through string specifying class type
@@ -488,6 +502,13 @@ if __name__ == '__main__':
     print p[0].plist[0].color
     p[0].plist[0].color='red'
     print p[0].plist[0].color
+    
+    p.add('circle', name='circle_2', force=True)
+    p.add('circle', name='circle_2', force=True)
+    p.add('circle', name='circle_0')
+    
+    
+    print p
     
     #print len(p), p
     #print len(p2), p2
