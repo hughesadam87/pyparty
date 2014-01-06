@@ -16,7 +16,7 @@ from pyparty.config import RADIUS_DEFAULT, CENTER_DEFAULT, XRADIUS, YRADIUS, \
 logger = logging.getLogger(__name__) 
 
 class Circle(CenteredParticle):
-    """ description
+    """ skimage.draw.circle wrapper
     
     Attributes
     ----------
@@ -35,7 +35,7 @@ class Circle(CenteredParticle):
         
 
 class Ellipse(CenteredParticle):
-    """ Orientation supported only for perimeter in scikit """
+    """ skimage.draw.ellipse wrapper """
 
     ptype=Str('ellipse')    
 

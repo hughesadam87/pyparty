@@ -206,7 +206,7 @@ class SimplePattern(CenteredParticle): #FAST ORIENT
     
     def _get_skeleton(self, old, new):
         rs = (1.0 - self.overlap) * (self.rs / cos(radians(self._offangle)))
-        return simple(self.cx, self.cy, rs,  phi=self.orientation)
+        return simple(self.cx, self.cy, rs,  phi=-self.orientation)
     
     def draw_skeleton(self):
         """ Would like to draw lines connecting verticies returned from skeleton.

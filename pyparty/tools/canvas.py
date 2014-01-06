@@ -1,8 +1,8 @@
 import os.path as op
 import logging 
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 import skimage.io
 import skimage.color as color
@@ -16,7 +16,7 @@ from manager import ParticleManager, concat_particles
 
 # pyparty imports
 from pyparty.utils import coords_in_image, where_is_particle, to_normrgb, \
-     any2rgb, crop
+     any2rgb, crop, _parse_ax
 from pyparty.config import BGCOLOR, BGRES
 
 logger = logging.getLogger(__name__) 
@@ -141,31 +141,30 @@ class Canvas(HasTraits):
                           res=self.rez)
         
     #http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.imshow
-    def show(self, *imshowargs, **imshowkwds):
+    def show(self, *args, **kwargs):
         """ Wrapper to imshow.  Converts to gray to allow color maps."""
-        
-        axes = imshowkwds.pop('axes', None)   
-        title = imshowkwds.pop('title', None)
-        
+
+        # This will pull out "ax", leaving remaing args/kwargs
+        axes, args, kwargs = _parse_ax(*args, **kwargs)
+        title = kwargs.pop('title', None)
         self._cache_image()
 
-        # cmap is the first argument in imshowargs
-        if imshowargs or 'cmap' in imshowkwds:
+        # cmap is the first argument in args
+	if args or 'cmap' in kwargs: 
             image = self.grayimage
         else:
             image = self.image
+                      
+	if axes:
+	    axes.imshow(image, *args, **kwargs)
+	else:      # matplotlib API asymmetry
+	    axes = plt.imshow(image, *args, **kwargs).axes        
+	
+	if title:
+	    axes.set_title(title)
+	return axes 
+        
 
-        if axes:
-            axes.imshow(image, *imshowargs, **imshowkwds)
-        else:      # matplotlib API asymmetry
-            axes = plt.imshow(image, *imshowargs, **imshowkwds).axes           
-        
-        if title:
-            axes.set_title(title)
-        return axes
-    
-        
-    # Private methods
     def _cache_image(self):
         """ Creates image array of particles.  Tried fitting to a property or
         Traits events interface to control the caching, but manually choosing
@@ -184,15 +183,15 @@ class Canvas(HasTraits):
     # ------------------
     @property
     def shape(self):
-        return self.image.shape
+        return self.rez
     
     @property
     def ndim(self):
-        return self.image.ndim
+        return self._background.ndim
  
     @property
     def dtype(self):
-        return self.image.dtype
+        return self._background.dtype
     
     @property
     def grayimage(self):
@@ -247,8 +246,8 @@ class Canvas(HasTraits):
         """ Returns boolean mask of all particles IN the image, with 
             background removed."""      
         # Faster to get all coords in image at once since going to paint white
-        rr_cc = coords_in_image( self._particles.rr_cc_all, self.image.shape)
-        out = np.zeros( self.imres, dtype=bool )
+        rr_cc = coords_in_image( self._particles.rr_cc_all, self.rez)
+        out = np.zeros( self.rez, dtype=bool )
         out[rr_cc] = True
         return out  
 
@@ -256,12 +255,8 @@ class Canvas(HasTraits):
     def _whereis(self, choice='in'):
         """ Wraps utils.where_is_particles for all three possibilities """
         return [p.name for p in self._particles 
-                if where_is_particle(p.rr_cc, self.image.shape) == choice]
-    
-    @property
-    def imres(self):
-        """ _background shape first 2 dimensions; color-independent """
-        return self._background.shape[0:2]
+                if where_is_particle(p.rr_cc, self.rez) == choice]
+
     
     @property
     def pin(self):
@@ -340,12 +335,12 @@ class Canvas(HasTraits):
     
         if keepres:
             if keepres == True:
-                cout._resolution = oldres
+                cout.rez = oldres
             else:
-                cout._resolution = keepres
+                cout.rez = keepres
                 
         else:
-            cout._resolution = cout._background.shape[0:2]   
+            cout.rez = cout._background.shape[0:2]   
 
         cout._cache_image()
 
@@ -366,7 +361,6 @@ class Canvas(HasTraits):
             
         cout._background = crop(cout._background, coords)
         cout.rx, cout.ry = cout._background.shape[0:2]        
-        cout._cache_image()
         
         cout._cache_image()
 
@@ -375,14 +369,23 @@ class Canvas(HasTraits):
         
   
     def _get_background(self):
-        """ Crop or extend self._background based on self.rx, ry """
+        """ Crop or extend self._background based on self.rx, ry.  Always 
+        returns a new object to avoid accidental refernce passing."""
         bgx, bgy = self._background.shape[0:2]
-        if bgx == self.rx and bgy == self.ry:
-            return self._background
+	rx, ry = self.rez
+        if bgx == rx and bgy == ry:
+            return np.copy(self._background)
+	
+	def _smaller(idx1, idx2):
+	    if idx1 < idx2:
+		return idx1
+	    return idx2
+	
+	xs, ys = _smaller(rx, bgx), _smaller(ry, bgy)
                 
-        out = np.empty( (self.rx, self.ry, 3) )
-        out[:] = BGCOLOR #.fill only works with scalar
-        out[:bgx, :bgy] = self._background #copy is not necessary here
+        out = np.empty( (rx, ry, 3) )
+        out[:] = BGCOLOR #.fill only works with scalar	
+        out[:xs, :ys] = self._background[:xs, :ys] #no copy needed	
         return out
     
     def _set_background(self, bg):
@@ -472,8 +475,11 @@ if __name__ == '__main__':
     c=Canvas()
     
     from pyparty.utils import subplots
-    subplots(nrows=2, ncols=2)
-    subplots(2,3)
+    ax1, ax2 = subplots(1,2)
+    
+    c.show(ax1)
+    
+    c=Canvas(background='black', res=(80,80))
     
     
     c.add('polygon', orientation=20.)

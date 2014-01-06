@@ -4,6 +4,8 @@ import math
 import numpy as np
 import matplotlib.colors as colors
 import matplotlib.pyplot as plt
+from matplotlib.axes import Subplot
+
 
 from skimage import img_as_float
 from skimage.color import gray2rgb
@@ -204,7 +206,39 @@ def rotate_vector(array, theta, style='degrees', rint='up'):
             r_array = np.rint(r_array)
         r_array = r_array.astype('int', copy=False) #saves memory
     return r_array
+
+def _parse_ax(*args, **kwargs):
+    """ Return axes from args, kwargs """
     
+    axes = kwargs.pop('axes', None)       
+
+    if not axes:
+	indicies = [idx for (idx, arg) in enumerate(args) if isinstance(arg, Subplot)]
+	if len(indicies) < 1:
+	    axes = None
+	elif len(indicies) > 1:
+	    raise UtilsError("Multiple axes not understood")
+	else:
+	    args = list(args)
+	    axes = args.pop(indicies[0])      
+    return axes, args, kwargs
+
+# showim(img, ax)
+def showim(image, *args, **kwargs):
+    """ Similar to imshow with a few more keywords"""
+
+    title = kwargs.pop('title', None)
+    axes, args, kwargs = _parse_ax(*args, **kwargs)
+        
+    if axes:
+	axes.imshow(image, *args, **kwargs)
+    else:      # matplotlib API asymmetry
+	axes = plt.imshow(image, *args, **kwargs).axes        
+    
+    if title:
+	axes.set_title(title)
+    return axes    
+
 
 def unzip_array(pairs):
     """ Inverse of np.array(zip(x,y)). Rerturn unzipped array of pairs:
@@ -214,7 +248,8 @@ def unzip_array(pairs):
 def subplots(*args, **kwds):
     """ Wrapper to plt.subplots(r, c).  Will return flattened axes and discard
     figure.  'flatten' keyword will not flatten if the plt.subplots() return
-    is not itself flat."""
+    is not itself flat.  If flatten=False and fig=True, standard plt.subplots
+    behavior is recovered."""
     
     flatten = kwds.pop('flatten', True)
     _return_fig = kwds.pop('fig', False)
@@ -335,6 +370,3 @@ def crop(image, coords):
 	image = image[yi:yf, xi:xf]   
 
     return image
-    
-    
-        

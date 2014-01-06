@@ -409,10 +409,12 @@ class ParticleManager(HasTraits):
         return super(ParticleManager, self).__repr__() .split()[-1].strip('>')   
         
     # Full attribute container sorted mappers        
-    def sortby(self, attr='name', inplace=False):
+    def sortby(self, attr='name', inplace=False, ascending=True):
         """ Sort list by attribute/descriptor"""
 
         plistout = sorted(self.plist, key=attrgetter(attr))
+        if not ascending:
+            plistout.reverse()
 
         if inplace:
             self.plist[:] = plistout
