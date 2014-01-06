@@ -232,7 +232,6 @@ class SimplePattern(CenteredParticle): #FAST ORIENT
             
         return np.array( (r1, r2, r3, r4) )[0:self._n]
 
-    # NOT GOING TO CACHE THIS UNTIL IM SURE EVERYTHING ELSE IS OK
     def _get_rr_cc(self):
         """ Draws circle for each vertex pair returned by self.skeleton, then
         concatenates them in a final (rr, cc) array. """

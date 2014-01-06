@@ -1,5 +1,5 @@
 from pyparty.shape_models.basic import Circle, BezierCurve, Ellipse, Line
-from pyparty.shape_models.polygons import Polygon, Rectangle, Square
+from pyparty.shape_models.polygons import Polygon, Rectangle, Square, Triangle
 from pyparty.shape_models.multi import Dimer, Trimer, Tetramer
 
 GROUPEDTYPES= \
@@ -10,12 +10,17 @@ GROUPEDTYPES= \
         'bezier' : BezierCurve,
         'ellipse' : Ellipse,
         'line' : Line, 
-        'polygon' : Polygon,
-        'rectangle' : Rectangle,
-        'square' : Square,
          },
+        
+    'polygon':
+        {
+        'polygon': Polygon, 
+        'triangle':Triangle,
+        'rectangle':Rectangle,
+        'square':Square,
+        },
 
-    'circle_multi':
+    'n-circle':
         {
         'dimer' : Dimer,
         'trimer' : Trimer,
@@ -23,7 +28,8 @@ GROUPEDTYPES= \
         }
     }
 
-ALLTYPES = dict(GROUPEDTYPES['simple'].items() + 
-                GROUPEDTYPES['circle_multi'].items() )
-
-# Eventually, break these up between basic, multi etc...
+ALLTYPES = dict(
+                GROUPEDTYPES['simple'].items() + 
+                GROUPEDTYPES['polygon'].items() + 
+                GROUPEDTYPES['n-circle'].items() 
+               )

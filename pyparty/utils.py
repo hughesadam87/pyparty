@@ -1,11 +1,16 @@
+from __future__ import division
 import logging
 import math
 import numpy as np
-from pyparty.config import PCOLOR, COLORTYPE
 import matplotlib.colors as colors
+import matplotlib.pyplot as plt
+
+from skimage import img_as_float
+from skimage.color import gray2rgb
+
+from pyparty.config import PCOLOR, COLORTYPE
 
 logger = logging.getLogger(__name__) 
-
 
 # COLOR RELATED ATTRIBUTES
 CTYPE, CBITS = COLORTYPE
@@ -17,8 +22,11 @@ ERRORMESSAGE = 'Valid color arguments include color names ("aqua"), ' +  \
 #http://matplotlib.org/api/colors_api.html#matplotlib.colors.ColorConverter            
 _rgb_from_string = colors.ColorConverter().to_rgb
 
+class UtilsError(Exception):
+    """ General utilities error """ 
+
 class ColorError(Exception):
-    """ """
+    """ Particular to color-utilities """   
 
 def _pix_norm(value, imax=CBITS):
     """ Normalize pixel intensity to colorbit """
@@ -62,11 +70,44 @@ def to_normrgb(color):
         if color > 1:
             color = _pix_norm(color)
         return (color, color, color)
+    
+    if isinstance(color, bool):
+	if color:
+	    return (1.,1.,1.)
+	return (0.,0.,0.)
 
     raise ColorError(ERRORMESSAGE)
 
-class UtilsError(Exception):
-    """ General utilities error """
+
+def any2rgb(array, name=''):
+    """ Returns a normalized float 3-channel array regardless of original
+    dtype and channel.  All valid pyparty images must pass this
+    
+    name : str
+        Name of array which will be referenced in logger messages"""
+    
+
+    # *****
+    # Quick way to convert to float (don't use img_as_float becase we want
+    # to enforce that upperlimit of 255 is checked
+    array = array / 1.0  
+	
+    # Returns scalar for 1-channel OR 3-channel
+    if array.max() > 1:
+	# For 8-bit, divide by 255!
+	if array.max() > COLORTYPE[1]:
+	    raise BackgroundError("Only 8bit ints are supported for now")
+	array = array / COLORTYPE[1] 
+    
+    if array.ndim == 3:
+        return array 
+    
+    elif array.ndim == 2:
+        logger.warn('%s color has been converted (1-channel to 3-channel RGB)'
+                    % name)
+        return gray2rgb(array)
+        
+    raise BackgroundError('%s must be 2 or 3 dimensional array!' % name )    
 
 def coords_in_image(rr_cc, shape):
     """ Taken almost directly from  skimage.draw().  Decided best not to
@@ -169,4 +210,131 @@ def unzip_array(pairs):
     """ Inverse of np.array(zip(x,y)). Rerturn unzipped array of pairs:
     (1,2), (25,5) --> array(1,25), array(25,25)."""
     return np.array( zip(*(pairs) ) )
+
+def subplots(*args, **kwds):
+    """ Wrapper to plt.subplots(r, c).  Will return flattened axes and discard
+    figure.  'flatten' keyword will not flatten if the plt.subplots() return
+    is not itself flat."""
+    
+    flatten = kwds.pop('flatten', True)
+    _return_fig = kwds.pop('fig', False)
+        	
+    fig, args = plt.subplots(*args, **kwds)
+    
+    # Seems like sometimes returns flat, sometimes returns list of lists
+    # so either way I flatten
+    try:
+        args = [ax.axes for ax in args] 
+    except Exception:
+	if flatten:
+            args = [ax.axes for row in args for ax in row]
+	else:
+	    args = [tuple(ax.axes for ax in row) for row in args]
+	    
+    if _return_fig:
+	return (fig, args)
+    else:
+        return args
+                
+# Used with crop
+def _get_xyshape(image):
+    """Returns first two dimensions of an image, whether it is 2d or 3d, 
+       as is the case of colored images.
+
+    Parameters
+    ----------
+    image: a ndarray
+    
+    Returns:
+    -----------
+    img_xf, img_yf: shape of first and second dimension of array
+    
+    Raises
+    ------
+    UtilsError
+        If image shape is not 2 or 3.
+    
+    """
+
+    ndim = len(image.shape)
+
+    if ndim == 3:
+        img_xf, img_yf, z = image.shape
+
+    elif ndim == 2:
+	img_xf, img_yf = image.shape
+
+    else:
+	raise UtilsError('Image must have dimensions 2 or 3 (received %s)' % ndim)
+
+    return img_xf, img_yf
+
+
+def crop(image, coords):
+    """Crops a rectangle (xi, yi, xf, yf) from an image.  If image
+       is 3-dimenionsal (eg color image), slices on first two dimensions.
+
+    Parameters
+    ----------
+    image: a ndarray
+    coords : (xi, yi, xf, yf)
+        lenngth-4 iterable with coordiantes corresponding to rectangle corners
+	in order (xi, yi, xf, yf)
+
+    Notes
+    -----
+    Allows for xf/yf > xi/yi for more flexible rectangle drawing.
+    Please refer to the numpy indexing API for de-facto slicing. 
+
+    Raises
+    ------
+    UtilsError
+    	If more or less than 4 coordinates are passed.
+        If x or y rectangle coordinates exceed the range of image (image.shape)
+
+
+    Examples
+    --------
+    >>> from skimage import data
+    >>> lena = img_as_float(data.lena())
+    >>> crop(lena, (0,0,400,300))	
+	
+    """
+
+    img_xf, img_yf = _get_xyshape(image)
+    
+    try:
+        xi, yi, xf, yf = coords
+    except Exception:
+	raise UtilsError("Coordinates must be lenth four iterable of form"
+	    "(xi, yi, xf, yf).  Instead, received %s" % coords)
+
+
+    # Make sure crop limits are in range of image
+    for x in (xi, xf):
+        if x < 0 or x > img_xf:
+	    raise UtilsError('Cropping bounds (%s, %s) exceed'
+                ' image horizontal range (%s, %s)' % (xi, xf, 0, img_xf))
+
+    for y in (yi, yf):
+        if y < 0 or y > img_yf:
+    	    raise UtilsError('Cropping bounds (%s, %s) exceed'
+                ' image vertical range (%s, %s)' % (yi, yf, 0, img_yf))
+
+    # Reverse bounds if final exceeds initial
+    if yf < yi:
+	yi, yf = yf, yi
+
+    if xf < xi:
+	xi, xf = xf, xi
+
+    ndim = len(image.shape)
+    if ndim == 3:
+        image = image[yi:yf, xi:xf, :]
+    else:
+	image = image[yi:yf, xi:xf]   
+
+    return image
+    
+    
         

@@ -15,7 +15,8 @@ from traits.api import HasTraits, Array, Instance, Property, Float
 from manager import ParticleManager, concat_particles
 
 # pyparty imports
-from pyparty.utils import coords_in_image, where_is_particle, to_normrgb
+from pyparty.utils import coords_in_image, where_is_particle, to_normrgb, \
+     any2rgb, crop
 from pyparty.config import BGCOLOR, BGRES
 
 logger = logging.getLogger(__name__) 
@@ -56,9 +57,8 @@ class Canvas(HasTraits):
     # Background is only a property because for _set validation...
     background = Property()
     _background = Array
-    default_background = Property(Array)
     
-    def __init__(self, background=None, particles=None): #No other traits to be set
+    def __init__(self, particles=None, background=None, res=None): #No other traits
         """ Load with optionally a background image and instance of Particle
             Manager"""
         
@@ -66,22 +66,27 @@ class Canvas(HasTraits):
             particles = ParticleManager()
         self._particles = particles
         
-        # This does a bunch of parsing for various bg inputs
-        self.background = background
+        # Set bg before resolution
+        self._resolution = BGRES
+        if background is None:
+            self.reset_background() #sets default color/resolution    
+        else:
+            self.set_bg(background, res, inplace=True) 
                         
     # Public Methods
     # -------------              
-    def clear_background(self):
-        """ Restore default background image; redraws
+    def reset_background(self):
+        """ Restore default background image; restores default RES, redraws
             particles over it."""
 
-        self.background = self.default_background        
+        self._resolution = BGRES  #must be set first
+        self._background = self.color_background        
         
     def clear_canvas(self):
         """ Background image to default; removes ALL particles."""
 
         self.clear_particles()
-        self.clear_background()
+        self.reset_background()
         
     def clear_particles(self):
         """ Clears all particles from image."""
@@ -96,7 +101,8 @@ class Canvas(HasTraits):
         if inplace:
             self._particles.map(fcn, *fcnargs, **fcnkwargs)
         else:
-            cout = Canvas(background=self.background, particles=self._particles)
+            cout = Canvas(background=self.background, particles=self._particles, 
+                          res=self.rez)
             cout._particles.map(fcn, *fcnargs, **fcnkwargs)
             return cout    
         
@@ -131,7 +137,8 @@ class Canvas(HasTraits):
         if inplace:
             self._particles = pout
         else:
-            return Canvas(background=self.background, particles=pout)
+            return Canvas(background=self.background, particles=pout,
+                          res=self.rez)
         
     #http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.imshow
     def show(self, *imshowargs, **imshowkwds):
@@ -164,8 +171,8 @@ class Canvas(HasTraits):
         Traits events interface to control the caching, but manually choosing
         cache points proved to be easier."""
     
-        # Notice this procedure
-        image = np.copy(self.background)
+        # self.background is always a new array; otherwise would use np.copy
+        image = self.background
         for p in self._particles:
             rr_cc, color = p.particle.rr_cc, p.color 
             rr_cc = coords_in_image(rr_cc, image.shape)
@@ -203,6 +210,37 @@ class Canvas(HasTraits):
     @property
     def binarybackground(self):
         return img_as_bool(self.graybackground)
+    
+    @property
+    def color_background(self):
+        """ Generate a colored background at current resolution """
+        return bgu.from_color_res(BGCOLOR, self.rx, self.ry)         
+    
+    # Image Resolution
+    @property
+    def rez(self):
+        return self._resolution
+    
+    @rez.setter
+    def rez(self, rez):
+        rx, ry = rez
+        self._resolution = ( int(rx), int(ry) )
+        
+    @property
+    def rx(self):
+        return self.rez[0]
+    
+    @rx.setter
+    def rx(self, rx):
+        self._resolution = ( int(rx), self._resolution[1] )
+    
+    @property
+    def ry(self):
+        return self.rez[1]    
+    
+    @ry.setter
+    def ry(self, ry):
+        self._resolution = ( self._resolution[0], int(ry) )    
     
     @property
     def pbinary(self):
@@ -285,57 +323,96 @@ class Canvas(HasTraits):
         raise CanvasError('Image cannot be set; please make changes to particles'
             ' and/or background attributes.')
     
+    # BACKGROUND RELATED
+    # ------------------
+    
+    def set_bg(self, bg, keepres=False, inplace=False):
+        """ Public background setting interface. """
+    
+        if inplace:
+            cout = self
+        else:
+            cout = Canvas(background=self.background, particles=self._particles, 
+                          res=self.rez)    
+
+        oldres = cout.rez                
+        cout._update_bg(bg)    
+    
+        if keepres:
+            if keepres == True:
+                cout._resolution = oldres
+            else:
+                cout._resolution = keepres
+                
+        else:
+            cout._resolution = cout._background.shape[0:2]   
+
+        cout._cache_image()
+
+        if not inplace:
+            return cout
+
+        
+    def crop_bg(self, *coords, **kwds):
+        """ Crop self._background and set as current background.  Because
+        using *args, can't follow with keywords"""
+        # avoid set_bg() because uses size of coords, not coords itself
+        inplace = kwds.pop('inplace', False)
+        if inplace:
+            cout = self
+        else:
+            cout = Canvas(background=self.background, particles=self._particles, 
+                          res=self.rez)            
+            
+        cout._background = crop(cout._background, coords)
+        cout.rx, cout.ry = cout._background.shape[0:2]        
+        cout._cache_image()
+        
+        cout._cache_image()
+
+        if not inplace:
+            return cout        
+        
+  
     def _get_background(self):
-        return self._background
+        """ Crop or extend self._background based on self.rx, ry """
+        bgx, bgy = self._background.shape[0:2]
+        if bgx == self.rx and bgy == self.ry:
+            return self._background
+                
+        out = np.empty( (self.rx, self.ry, 3) )
+        out[:] = BGCOLOR #.fill only works with scalar
+        out[:bgx, :bgy] = self._background #copy is not necessary here
+        return out
+    
+    def _set_background(self, bg):
+        """ Set background and use new resolution if there is one """
+        self.set_bg(bg, keepres=False, inplace=True)
     
     # REDO THIS WITH COLOR NORM AND STUFF!  Also, dtype warning?
-    def _set_background(self, background):
+    def _update_bg(self, background):
         """ Parses several valid inputs including: None, Path, Color (of any 
         valid to_normRGB() type, ndarray, (Color, Resolution)."""
+
         if background is None:
-            self._background = self.default_background   
-            
+            self._background = self.color_background
+                                        
         elif isinstance(background, np.ndarray):
             self._background = background
             
+        # colorstring or hex
         elif isinstance(background, basestring):
-            # String or colorstring        
-            self._background = bgu.from_string(background, BGRES[0], BGRES[1])
+            self._background = bgu.from_string(background, self.rx, self.ry)
             
-        # color will be normalized by from_color_res
-        elif isinstance(background, int) or isinstance(background, float):
-            self._background = bgu.from_color_res(background, BGRES[0], BGRES[1])
-
-        elif hasattr(background, '__iter__'):
-            try:
-                
-    
-        
-        # TYPE CAST THE ARRAY        
-        if self._background.ndim == 3:
-            logger.debug("self._background is ndim 3; color adjustment not required")
-        
-        elif self._background.ndim == 2:
-            logger.warn('background color has been converted (from grayscale to RGB)')
-            self._background = color.gray2rgb(self._background)
-            
+        # If not array, color is assume as valid to_norm_rgb(color) arg
+        # It will raise its own error if failure occurs
         else:
-            raise CanvasError('Background must be 2 or 3 dimensional array!')
+            self._background = bgu.from_color_res(background, self.rx, self.ry)            
+            
+        # Float-color convert array       
+        self._background = any2rgb(self._background, 'background')
         
-        # *****
-        # Note sure best way to check float dtype (worth doing?)
-        dtold = self._background.dtype
-        self._background = img_as_float(self._background)
-        if self._background.dtype != dtold:
-            logger.warn("Background dtype changed from %s to %s" %
-                              (dtold, self._background.dtype))
-        
-        # To ensure image updates even if show() not called
-        self._cache_image()
-        
-    def _get_default_background(self):
-        return bgu.from_color_res(BGCOLOR, BGRES[0])       
-    
+        # IMAGE IS CACHED AT END OF _set_bg()
     
     # Delegate dictionary interface to ParticleManager
     # -----------
@@ -365,7 +442,7 @@ class Canvas(HasTraits):
         res = '(%s X %s)' % (self.imres[0], self.imres[1] ) 
         _PAD = ' ' * 3
         
-        outstring = "Canvas as %s:\n" % self.mem_address
+        outstring = "Canvas at %s:\n" % self.mem_address
 
         outstring += "%sbackground -->  %s : %s\n" % (_PAD, res, _bgstyle) 
 
@@ -394,10 +471,18 @@ if __name__ == '__main__':
 
     c=Canvas()
     
+    from pyparty.utils import subplots
+    subplots(nrows=2, ncols=2)
+    subplots(2,3)
+    
+    
     c.add('polygon', orientation=20.)
     c.add('ellipse', orientation=32.0)
     c.add('circle', radius=20, center=(200,200))
     c.add('circle', radius=20, center=(20000,20000))
+    
+    from skimage.data import moon
+    c.set_bg(moon())
     
     print c
     
