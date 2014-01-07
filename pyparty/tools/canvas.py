@@ -196,6 +196,9 @@ class Canvas(HasTraits):
     @property
     def grayimage(self):
         """ Collapse multi-channel, scale to 255 (via ubyte) """
+	# img 127 --> ubyte of 123... 
+	# Try this:
+        #	print c.grayimage.max(), c.image.max() * 255, img_as_uint(lena()).max()
         return img_as_ubyte( color.rgb2gray(self.image) )
     
     @property
@@ -277,7 +280,7 @@ class Canvas(HasTraits):
     @property
     def pixcount(self):
         """ Counts # pixels in image """
-        l, w = self.imres
+        l, w = self.rez
         return int(l * w)
         
     @property
@@ -442,7 +445,7 @@ class Canvas(HasTraits):
     
     def __repr__(self):
         _bgstyle = 'user-array' #REPLACE
-        res = '(%s X %s)' % (self.imres[0], self.imres[1] ) 
+        res = '(%s X %s)' % (self.rx, self.ry ) 
         _PAD = ' ' * 3
         
         outstring = "Canvas at %s:\n" % self.mem_address
