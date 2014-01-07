@@ -48,7 +48,7 @@ class Ellipse(CenteredParticle):
         return draw.ellipse(self.cy, self.cx, self.yradius, self.xradius)        
 
 
-class Line(Segment):
+class LineSegment(Segment):
     """ Line with width """
  
     ptype = Str('line')

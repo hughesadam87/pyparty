@@ -1,5 +1,5 @@
-from pyparty.shape_models.basic import Circle, BezierCurve, Ellipse, Line
-from pyparty.shape_models.polygons import Polygon, Rectangle, Square, Triangle
+from pyparty.shape_models.basic import Circle, BezierCurve, Ellipse
+from pyparty.shape_models.polygons import Line, Polygon, Rectangle, Square, Triangle
 from pyparty.shape_models.multi import Dimer, Trimer, Tetramer
 
 GROUPEDTYPES= \

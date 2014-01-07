@@ -47,8 +47,7 @@ class CanvasAttributeError(CanvasError):
 
 class Canvas(HasTraits):
     """  """
-    image = Property(Array, depends_on='_image')
-    _image = Array
+    image = Property(Array) #chaching doesnt work
 
     # ALL INTERNAL REFERENCES SHOULD GO TO _PARTICLES
     particles = Property(Instance(ParticleManager, depends_on='_particles'))
@@ -124,9 +123,7 @@ class Canvas(HasTraits):
     def from_labels(self, inplace=False, neighbors=4,
                     background=None, **pmangerkwds):
         """ """
-        	
-        self._cache_image()
-        
+        	        
         if background: # scikit api doesn't accept None
             background = int(background) 
             labels = morphology.label(self.grayimage, neighbors, background)
@@ -147,7 +144,6 @@ class Canvas(HasTraits):
         # This will pull out "ax", leaving remaing args/kwargs
         axes, args, kwargs = _parse_ax(*args, **kwargs)
         title = kwargs.pop('title', None)
-        self._cache_image()
 
         # cmap is the first argument in args
 	if args or 'cmap' in kwargs: 
@@ -163,9 +159,9 @@ class Canvas(HasTraits):
 	if title:
 	    axes.set_title(title)
 	return axes 
-        
-
-    def _cache_image(self):
+    
+    
+    def _get_image(self):
         """ Creates image array of particles.  Tried fitting to a property or
         Traits events interface to control the caching, but manually choosing
         cache points proved to be easier."""
@@ -176,21 +172,24 @@ class Canvas(HasTraits):
             rr_cc, color = p.particle.rr_cc, p.color 
             rr_cc = coords_in_image(rr_cc, image.shape)
             image[rr_cc] = color
-        self._image = image 
+        return image 
     
         
     # Image Attributes Promoted
     # ------------------
     @property
     def shape(self):
-        return self.rez
+	""" Avoid recomputing image"""
+        return (self.rx, self.ry, 3)
     
     @property
     def ndim(self):
-        return self._background.ndim
+	""" Avoid recomputing image for this purpose """
+	return len(self._background)
  
     @property
     def dtype(self):
+	# Same dtype as image
         return self._background.dtype
     
     @property
@@ -311,11 +310,7 @@ class Canvas(HasTraits):
         """ Make a copy of the particles to avoid passing by reference. 
         Note this is implictly controlled by _COPYPARTICLES in config.
         """
-        self._particles = ParticleManager(particles.plist, particles.fastnames)
-        self._cache_image()
-    
-    def _get_image(self):
-        return self._image
+        self._particles = ParticleManager(particles.plist, particles.fastnames)    
     
     def _set_image(self):
         raise CanvasError('Image cannot be set; please make changes to particles'
@@ -345,8 +340,6 @@ class Canvas(HasTraits):
         else:
             cout.rez = cout._background.shape[0:2]   
 
-        cout._cache_image()
-
         if not inplace:
             return cout
 
@@ -365,8 +358,6 @@ class Canvas(HasTraits):
         cout._background = crop(cout._background, coords)
         cout.rx, cout.ry = cout._background.shape[0:2]        
         
-        cout._cache_image()
-
         if not inplace:
             return cout        
         
