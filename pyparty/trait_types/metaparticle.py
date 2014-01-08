@@ -72,6 +72,7 @@ class MetaParticle(object):
         """ Defer attribute calls to to self.particle unless overwriting
         name, color etc... 
         """
+        
         if attr == 'color':
             MetaParticle.__dict__['color'].__set__(self, to_normrgb(value))
             
@@ -86,9 +87,10 @@ class MetaParticle(object):
             MetaParticle.__dict__['particle'].__set__(self, value)
         
         else:
-            setattr(self.particle, attr, value)
+            setattr(self.particle, attr, value)           
            
-           
+
+# MEMOIZING (eg depends_on) SCREWS UP WHEN COPYING           
 def copy_metaparticle(obj):
     """ Make a copy of MetaParticle.  Since MetaParticle uses __slots__,
     copy.copy doesn't work. Deepcopy is required

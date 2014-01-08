@@ -77,7 +77,7 @@ class Particle(HasTraits):
         # Rotate transposed rr_cc
         centered = np.array(self.unrotated_rr_cc).T - center
         # Why negative theta?
-        rr_cc_rot = rotate_vector(centered, -theta, rint='up')
+        rr_cc_rot = rotate_vector(centered, theta, rint='up')
         
         # Do something like merge unique rr,cc pairs
 #        rr_cc_rot_up = rotate_vector(centered, theta, rint='up')
@@ -125,6 +125,9 @@ class Particle(HasTraits):
             self._ski_descriptor = regionprops(self.boxed(), cache=True)[0]
         return getattr(self._ski_descriptor, attr)
     
+    def as_patch(self):
+        """ Return matplotlib Patch representation (for certain shapes)"""
+        raise NotImplementedError
 
     @classmethod
     def auto_init(cls, *args, **kwargs):

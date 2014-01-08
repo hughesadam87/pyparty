@@ -38,7 +38,9 @@ SKIMAGE_DESCRIPTORS = [
     'moments_central', 
     'moments_hu', 
     'moments_normalized',
-    'orientation', 
+
+#    'orientation',  ### REMOVED THIS ONE BECAUSE OF NAME CONFLICT!!!
+
     'perimeter',
     'solidity',
 #    'weighted_centroid',   #THESE ALL DEPEND ON IMAGE_INTENSITY OPTION

@@ -3,6 +3,8 @@ import logging
 import math
 
 import numpy as np
+import matplotlib.patches as mpatch
+
 
 import skimage.draw as draw
 from traits.api import HasTraits, Property, provides, Int, Array,\
@@ -32,6 +34,9 @@ class Circle(CenteredParticle):
     def _get_rr_cc(self):
         """ Overload to prevent rotating a symmetric circle """
         return self.unrotated_rr_cc
+    
+    def as_patch(self):
+        return mpatch.Circle((self.cx, self.cy), self.radius)
         
 
 class Ellipse(CenteredParticle):
@@ -45,7 +50,11 @@ class Ellipse(CenteredParticle):
     unrotated_rr_cc = Property(Array, depends_on='center, xradius, yradius')    
 
     def _get_unrotated_rr_cc(self):
-        return draw.ellipse(self.cy, self.cx, self.yradius, self.xradius)        
+        return draw.ellipse(self.cy, self.cx, self.yradius, self.xradius)   
+    
+    def as_patch(self):
+        return mpatch.Ellipse((self.cx, self.cy), self.xradius, self.yradius,
+                              angle=self.orientation)    
 
 
 class LineSegment(Segment):

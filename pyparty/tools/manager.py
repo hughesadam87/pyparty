@@ -387,6 +387,8 @@ class ParticleManager(HasTraits):
         """ Particles names; so common, worth doing here"""
         return tuple(p.name for p in self.plist)
     
+    # Careful, this returns actual Shapes, not MetaParticles.  If in canvas
+    # doing something like c[ptype=='circle'] returns ParticleManager
     @property
     def particles(self):
         """ Particle objects"""

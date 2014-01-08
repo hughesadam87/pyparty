@@ -1,3 +1,5 @@
+import numpy as np
+
 """ Shared constants in pypart """
 
 # Particle Manager
@@ -39,7 +41,7 @@ CENTER_DEFAULT = tuple(map(lambda x: int(x/2.0), BGRES))
 XRADIUS = 10
 YRADIUS = 20
 
-#LINE/BEZIER CURVES
+#SEGMENTS/BEZIER CURVES
 XSTART = 206
 YSTART = 206
 XMID = 256
@@ -47,3 +49,10 @@ YMID = 256
 XEND = 306
 YEND = 306
 BEZIERWEIGHT=1.0
+
+#POLYGONS
+XVERTS = np.array( (220, 220, 280, 280) )
+YVERTS = np.array( (220, 280, 220, 280) )
+RECTLEN = 20
+RECTWID = 10
+LINEWID = 3

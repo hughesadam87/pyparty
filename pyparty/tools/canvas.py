@@ -2,6 +2,7 @@ import os.path as op
 import logging 
 
 import matplotlib.pyplot as plt
+from matplotlib.collections import PatchCollection
 import numpy as np
 
 import skimage.io
@@ -23,22 +24,22 @@ from pyparty.config import BGCOLOR, BGRES
 logger = logging.getLogger(__name__) 
 
 
-# Best way I could find to make a method decorator
-# Built rirght, but not working
-def inplace(method):
-    methodname = method.__name__
-    
-    #variables = method.func_code.co_varnames
 
+def inplace(method):
+    """ Thought I could decorate methods that have inplace keyword, but turned
+    out to be more than I bargained for.  Decorator syntax is fine, but not correct.
+    """
+    methodname = method.__name__
+    #variables = method.func_code.co_varnames
     @wraps(method)
     def wrapper(obj, *args, **kwargs):
-	print 'f is', method, 'in here', type(obj), type(method)
+	print 'method is', method, type(obj), type(method)
 	inplace = kwargs.pop('inplace', False)
 	if inplace:
 	    print 'in inplace', args, kwargs
 	    getattr(obj, methodname)(*args, **kwargs)
 	else:
-	    print 'HI obj is', obj
+	    print 'not inplace. obj is', obj
 	    new = Canvas(background=obj.background, particles=obj._particles,
 	                 res=obj.rez)
 	    return getattr(new, methodname)(*args, **kwargs)
@@ -83,7 +84,7 @@ class Canvas(HasTraits):
     background = Property()
     _background = Array
     
-    def __init__(self, particles=None, background=None, res=None): #No other traits
+    def __init__(self, particles=None, background=None, rez=None): #No other traits
         """ Load with optionally a background image and instance of Particle
             Manager"""
         
@@ -96,7 +97,7 @@ class Canvas(HasTraits):
         if background is None:
             self.reset_background() #sets default color/resolution    
         else:
-            self.set_bg(background, res, inplace=True) 
+            self.set_bg(background, rez, inplace=True) 
                         
     # Public Methods
     # -------------              
@@ -129,7 +130,7 @@ class Canvas(HasTraits):
             self._particles.map(fcn, *fcnargs, **fcnkwargs)
         else:
             cout = Canvas(background=self.background, particles=self._particles, 
-                          res=self.rez)
+                          rez=self.rez)
             cout._particles.map(fcn, *fcnargs, **fcnkwargs)
             return cout    
         
@@ -165,7 +166,42 @@ class Canvas(HasTraits):
             self._particles = pout
         else:
             return Canvas(background=self.background, particles=pout,
-                          res=self.rez)
+                          rez=self.rez)
+	
+    def patchshow(self, *args, **kwargs):
+	""" ...
+	args/kwargs include alpha, edgecolors, linestyles 
+	
+	Notes:
+	Matplotlib API is setup that args or kwargs can be entered.  Order is
+	important for args, but the correspond to same kwargs.
+	"""
+	
+        axes, args, kwargs = _parse_ax(*args, **kwargs)	
+	cbar = kwargs.pop('cbar', False)
+	
+	#Slightly quicker to directly access particle?
+	# FOR PATICLES IN IMAGE ONLY?
+	in_and_edges = self.pin + self.pedge
+	patches = [p.particle.as_patch() for p in in_and_edges]
+	p = PatchCollection(patches, *args, **kwargs)
+
+	# Dont in an example
+	if not axes:
+	    fig, axes = plt.subplots()
+
+	# Needed or only one color is used, even with colormap...
+	p.set_array(np.arange(len(patches)))
+	axes.add_collection(p)
+	
+	# SHOULD SHOW TAKE A COLOR BAR?
+	if cbar:
+	    fig.colorbar(p)
+	
+	axes.set_xlim([0, self.rx])
+	axes.set_ylim([self.ry, 0])    
+	return axes #fig, axes?
+    
         
     #http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.imshow
     def show(self, *args, **kwargs):
@@ -370,7 +406,7 @@ class Canvas(HasTraits):
             cout = self
         else:
             cout = Canvas(background=self.background, particles=self._particles, 
-                          res=self.rez)    
+                          rez=self.rez)    
 
         oldres = cout.rez                
         cout._update_bg(bg)    
@@ -397,7 +433,7 @@ class Canvas(HasTraits):
             cout = self
         else:
             cout = Canvas(background=self.background, particles=self._particles, 
-                          res=self.rez)            
+                          rez=self.rez)            
             
         cout._background = crop(cout._background, coords)
         cout.rx, cout.ry = cout._background.shape[0:2]        
@@ -460,8 +496,11 @@ class Canvas(HasTraits):
     def __getitem__(self, keyslice):
         """ Employs particle manager interface; however, returns single entry
             as a list to allow slicing directly into get_item[]"""
-        return self._particles.__getitem__(keyslice)
+	return self._particles.__getitem__(keyslice)
     
+        #IF WANT TO RETURN CANVAS ALWAYS SEE BELOW
+        #pout = self._particles.__getitem__(keyslice)
+	#return Canvas(background=self.background, particles=pout, rez=self.rez)
     
     def __delitem__(self, keyslice):
         return self._particles.__delitem__(keyslice)    
@@ -517,18 +556,25 @@ if __name__ == '__main__':
     
     c.show(ax1)
     
-    c=Canvas(background='black', res=(80,80))
+    c=Canvas(background='black', rez=(800,800))
     
     
-    c.add('polygon', orientation=20.)
-    c.add('polygon', center=((20,20),(50,50),(32,32)))
-    c.add('rectangle', center=(20,20), width=20)    
-    c.add('ellipse', orientation=32.0)
-    c.add('circle', radius=20, center=(200,200))
-    c.add('circle', radius=20, center=(20000,20000))
+    c.add('circle', name='top_right', radius=75, center=(400,100), color='y')
+    c.add('line', color='yellow', center=(300,300), length=200, width=20, orientation=30.0)
+    c.add('square', color='purple', length=50, center=(200,200), orientation=23.0)
+    c.add('triangle', color='teal', length=50, center=(250,250), orientation=23.0)
     
-    c.from_labels()
-
+    c.add('circle', name='bottom_right', radius=20, center=(400,400), color='red')
+    c.add('ellipse', name='bottom_left', center=(100,400), xradius=30, yradius=50, color='green', orientation=52.0)
+    c.add('circle', name='topleft_corner', radius=100, center=(0,0), color=(20,30,50) )
+    c.add('circle', name='off_image', radius=50, center=(900,200), color='teal')
+ 
+    c.particles
+    for p in c.particles:
+	p.as_patch()
+    c.show()
+    c.patchshow()
+#    plt.show()
     from skimage.data import moon
     c.set_bg(moon())
     
