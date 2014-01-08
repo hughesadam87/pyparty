@@ -192,6 +192,7 @@ class Canvas(HasTraits):
 
 	# Needed or only one color is used, even with colormap...
 	p.set_array(np.arange(len(patches)))
+#        p.set_array(np.array ( (p.color for p in in_and_edges) ) )
 	axes.add_collection(p)
 	
 	# SHOULD SHOW TAKE A COLOR BAR?
