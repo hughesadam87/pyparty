@@ -113,10 +113,10 @@ class Particle(HasTraits):
           
       
     # May want this to return the translation coordinates
-    def boxed(self):
+    def boxed(self, pad=0):
         """ Returns a minimal bounding box with object inside"""
         # Could work on unrotated, but probably would lead to issues with FastOriented
-        return rr_cc_box(self.rr_cc)
+        return rr_cc_box(self.rr_cc, pad=pad)
     
     def ski_descriptor(self, attr):
         """ Return scikit image descriptor. """
@@ -125,6 +125,15 @@ class Particle(HasTraits):
             self._ski_descriptor = regionprops(self.boxed(), cache=True)[0]
         return getattr(self._ski_descriptor, attr)
     
+
+    @classmethod
+    def auto_init(cls, *args, **kwargs):
+        """ For Particles with multiple constructors (eg polygons), this method
+        will infer which constructor to call based on the keywords.  For classes
+        with only one constructor (ie __init__), doesn't do anything. 
+        """
+        return cls(*args, **kwargs)
+        
 
 # For now this works, but is there a more intelligent way to design Particle
 # to use this case adn remove CenteredParticle altogether?
@@ -205,6 +214,7 @@ class SimplePattern(CenteredParticle): #FAST ORIENT
         raise ParticleError("FastOriented does not store unrotated rr_cc")
     
     def _get_skeleton(self, old, new):
+        # NEGATIVE THETA BECAUSE PARTICLE USES -THETA, SO BE CONSISTENT IN API
         rs = (1.0 - self.overlap) * (self.rs / cos(radians(self._offangle)))
         return simple(self.cx, self.cy, rs,  phi=-self.orientation)
     

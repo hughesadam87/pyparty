@@ -13,6 +13,7 @@ import pyparty.background.bg_utils as bgu
 
 from traits.api import HasTraits, Array, Instance, Property, Float
 from manager import ParticleManager, concat_particles
+from functools import wraps
 
 # pyparty imports
 from pyparty.utils import coords_in_image, where_is_particle, to_normrgb, \
@@ -20,6 +21,29 @@ from pyparty.utils import coords_in_image, where_is_particle, to_normrgb, \
 from pyparty.config import BGCOLOR, BGRES
 
 logger = logging.getLogger(__name__) 
+
+
+# Best way I could find to make a method decorator
+# Built rirght, but not working
+def inplace(method):
+    methodname = method.__name__
+    
+    #variables = method.func_code.co_varnames
+
+    @wraps(method)
+    def wrapper(obj, *args, **kwargs):
+	print 'f is', method, 'in here', type(obj), type(method)
+	inplace = kwargs.pop('inplace', False)
+	if inplace:
+	    print 'in inplace', args, kwargs
+	    getattr(obj, methodname)(*args, **kwargs)
+	else:
+	    print 'HI obj is', obj
+	    new = Canvas(background=obj.background, particles=obj._particles,
+	                 res=obj.rez)
+	    return getattr(new, methodname)(*args, **kwargs)
+    return wrapper
+
 
 def concat_canvas(c1, c2, bg_resolve='c2', **particle_args):
     """ Adds two canvas objects under various conditions """
@@ -30,13 +54,15 @@ def concat_canvas(c1, c2, bg_resolve='c2', **particle_args):
         raise NotImplementedError
     elif bg_resolve == 'c1':
         bgout = c1.background
+	rezout = c1.rez  #UNTESTED
     elif bg_resolve == 'c2':
         bgout = c2.background        
+	rezout = c2.rez
     else:
         raise CanvasAttributeError('"bg_resolve" invalid; must be %s' % bg_valid)
     
     pout = concat_particles(c1._particles, c2._particles, **particle_args)
-    return Canvas(background=bgout, particles=pout)
+    return Canvas(background=bgout, particles=pout, rez=rezout)
         
 
 class CanvasError(Exception):
@@ -92,10 +118,12 @@ class Canvas(HasTraits):
 
         self._particles.plist[:] = []
             
+ #   @inplace
     def pmap(self, fcn, *fcnargs, **fcnkwargs):
         """ Maps a function to each particle in ParticleManger; optionally
             can be done in place"""
 
+	#self._particles.map(fcn, *fcnargs, **fcnkwargs)
         inplace = fcnkwargs.pop('inplace', False)
         if inplace:
             self._particles.map(fcn, *fcnargs, **fcnkwargs)
@@ -120,6 +148,7 @@ class Canvas(HasTraits):
 
     
 #http://scikit-image.org/docs/dev/api/skimage.morphology.html#skimage.morphology.label
+#    @inplace
     def from_labels(self, inplace=False, neighbors=4,
                     background=None, **pmangerkwds):
         """ """
@@ -131,6 +160,7 @@ class Canvas(HasTraits):
             labels = morphology.label(self.grayimage, neighbors)
             
         pout = ParticleManager.from_labels(labels, **pmangerkwds)
+	
         if inplace:
             self._particles = pout
         else:
@@ -159,7 +189,7 @@ class Canvas(HasTraits):
 	if title:
 	    axes.set_title(title)
 	return axes 
-    
+    	
     
     def _get_image(self):
         """ Creates image array of particles.  Tried fitting to a property or
@@ -319,8 +349,22 @@ class Canvas(HasTraits):
     # BACKGROUND RELATED
     # ------------------
     
+#    @inplace
     def set_bg(self, bg, keepres=False, inplace=False):
         """ Public background setting interface. """
+	#print 'IN SET BG', bg, keepres
+	
+        #oldres = self.rez                
+        #self._update_bg(bg)    
+    
+        #if keepres:
+            #if keepres == True:
+                #self.rez = oldres
+            #else:
+                #self.rez = keepres
+                
+        #else:
+            #self.rez = self._background.shape[0:2]   	
     
         if inplace:
             cout = self
@@ -477,10 +521,14 @@ if __name__ == '__main__':
     
     
     c.add('polygon', orientation=20.)
+    c.add('polygon', center=((20,20),(50,50),(32,32)))
+    c.add('rectangle', center=(20,20), width=20)    
     c.add('ellipse', orientation=32.0)
     c.add('circle', radius=20, center=(200,200))
     c.add('circle', radius=20, center=(20000,20000))
     
+    c.from_labels()
+
     from skimage.data import moon
     c.set_bg(moon())
     

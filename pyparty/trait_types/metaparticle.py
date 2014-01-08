@@ -28,10 +28,30 @@ class MetaParticle(object):
                                 ' recieved %s' % type(particle))
         self.particle = particle      
 
-        #TEXTURES LATER 
+
+    # MAKE OUTLINE A 2D FUNCTION THAT RETURNS TRUE/FALSE MASK AFTER 2D INDEXING
+    # IS EASY, THEN CAN USE IT IN GENERAL FOR EXAMPLE LIKE TO DRAW OUTLINE OF
+    # OF A PBINARY PIC (IE OUTLINE(PBINARY) ), AND USE IT HERE
+    #TEXTURES ; still not sure best place for them.  Seems here 
+    #@property
+    #def outline(self):
+        #""" THIS WILL GIVE BORDER; HOWEVER, DOES NOT RE-TRANSLATE CIRCLE TO 
+        #CENTER"""
+        #from scipy.ndimage.filters import laplace
+        #pbox = self.particle.boxed(pad=1)
+        #return lap(pbox)        
+        
+    #@property
+#    def tiled(self):
+#        """ Eventually make this more in-depth; even a function like outline"""
+#        rr, cc = self.particle.rr_cc
+#        rspacing = cspacing = 2
+#        return tuple(rr[::rspacing], cc[::cspacing])
+       
         
     def __getattr__(self, attr):
-        """ """
+        """ Attribute can be in self.__slots__, descriptor or particle 
+        attribute."""
         if attr in self.__slots__:
             return getattr(self, attr)
         
