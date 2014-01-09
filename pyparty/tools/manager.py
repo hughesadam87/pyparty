@@ -224,7 +224,7 @@ class ParticleManager(HasTraits):
             del self.plist[idx_old]
 
                 
-    def _make_particle(self, ptype='', *traitargs, **traitkwargs):
+    def _make_particle(self, ptype='', *args, **kwargs):
         """ Instantiate a particle through string specifying class type
         via PARTICLETYPES.  Calls auto_init() to allow for flexible kwds"""
         try:
@@ -232,7 +232,7 @@ class ParticleManager(HasTraits):
         except KeyError:
             raise KeyErrorManager('"%s" is not an understood Particle type.  '
                 'Choose from: %s' % (ptype, self.available()))
-        return pclass.auto_init(*traitargs, **traitkwargs)
+        return pclass(*args, **kwargs)
     
     
     def map(self, fcn, *args, **kwargs):

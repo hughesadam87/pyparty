@@ -54,5 +54,5 @@ BEZIERWEIGHT=1.0
 XVERTS = np.array( (220, 220, 280, 280) )
 YVERTS = np.array( (220, 280, 220, 280) )
 RECTLEN = 20
-RECTWID = 10
+RECTWID = 10 #Not used
 LINEWID = 3

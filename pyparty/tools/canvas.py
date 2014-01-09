@@ -552,8 +552,8 @@ if __name__ == '__main__':
 
     c=Canvas()
     
-    from pyparty.utils import subplots
-    ax1, ax2 = subplots(1,2)
+    from pyparty.utils import splot
+    ax1, ax2 = splot(1,2)
     
     c.show(ax1)
     
@@ -569,17 +569,19 @@ if __name__ == '__main__':
     c.add('ellipse', name='bottom_left', center=(100,400), xradius=30, yradius=50, color='green', orientation=52.0)
     c.add('circle', name='topleft_corner', radius=100, center=(0,0), color=(20,30,50) )
     c.add('circle', name='off_image', radius=50, center=(900,200), color='teal')
- 
-    c.particles
-    for p in c.particles:
-	p.as_patch()
-    c.show()
-    c.patchshow()
-#    plt.show()
-    from skimage.data import moon
-    c.set_bg(moon())
     
-    print c
+    c._get_image()
+ 
+    #c.particles
+    #for p in c.particles:
+	#p.as_patch()
+    #c.show()
+    #c.patchshow()
+##    plt.show()
+    #from skimage.data import moon
+    #c.set_bg(moon())
+    
+    #print c
     
     
     #clab = c.from_labels()

@@ -10,7 +10,7 @@ import matplotlib.patches as mpatch
 
 from pyparty.shape_models.basic import LineSegment
 from pyparty.config import XVERTS, YVERTS, RECTLEN, RECTWID, LINEWID
-from pyparty.utils import rotate_vector, unzip_array
+from pyparty.utils import rotate_vector, unzip_array, rotate
 from pyparty.shape_models.abstract_shape import ShapeError, FastOriented, \
     CenteredParticle, rmeanint
 
@@ -130,8 +130,9 @@ class Polygon(FastOriented):
                            "initialialize a new polygon.")        
     
     def as_patch(self):
-        # FOR THE PATCH, PERFORM OUR OWN ROTATION; PATH API IS ERRANT
-        return mpatch.Polygon(self.xymatrix, closed=True)
+        """ Explictly rotate vertex coords for patch. """
+        rotated_coords = rotate(self.xymatrix, self.center, self.orientation)
+        return mpatch.Polygon(rotated_coords, closed=True)
     
     @classmethod
     def from_xypairs(cls, *args, **kwargs):
@@ -155,7 +156,8 @@ class Polygon(FastOriented):
                 _meth = 'from_xypairs'
                 obj = cls.from_xypairs(*args, **kwargs)
     
-            elif 'length' in kwargs:
+            elif 'center' in kwargs:
+                length = kwargs.setdefault('length', RECTLEN)    
                 if 'width' in kwargs:
                     _meth = 'from_length_width'                    
                     obj = cls.from_length_width(*args, **kwargs)
@@ -283,9 +285,13 @@ class Square(Rectangle):
     _n_unique = 2  # _validate_verts() from rectangle
     
     @classmethod
+    def from_length_width(cls, center, length, width, *args, **kwargs):
+        raise PolygonError("Square has no width parameter; please use Rectangle")
+    
+    @classmethod
     def from_length(cls, center, length, *args, **kwargs):
         """ Pass to rectangle's constructor """
-        return cls.from_length_width(center, length, length, *args, **kwargs)
+        return super(Square, cls).from_length_width(center, length, length, *args, **kwargs)
 
 
 class Line(Rectangle):

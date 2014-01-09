@@ -189,32 +189,11 @@ def rr_cc_box(rr_cc, pad=0):
     rect[rr_cc_trans] = 1
     return rect   
 
-def rotate_vector(array, theta, style='degrees', rint='up'):
-    """ Rotate an array ocounter-clockwise through theta.  rint rounds output 
-    to integer; up rounds normally, down does int rounding (ie rounds down).  
-    ARRAY MUST BE MEAN-CENTERED if rotating in place.
-    
-    array may be xy pairs [(x1,y1),(x2,y2)] or N,2 matrix."""
-
-    if style == 'degrees':
-        theta = math.radians(theta)
-        
-    costheta, sintheta = math.cos(theta), math.sin(theta)
-    
-    rotMatrix = np.array([
-        [costheta, -sintheta],  
-        [sintheta,  costheta]
-                     ])
-    r_array = np.dot(array, rotMatrix)
-    
-    if rint:
-        if rint =='up':
-            r_array = np.rint(r_array)
-        r_array = r_array.astype('int', copy=False) #saves memory
-    return r_array
 
 def _parse_ax(*args, **kwargs):
-    """ Return axes from args, kwargs """
+    """ Parse plotting *args, **kwargs for an AxesSubplot.  This allows for
+    axes to be passed as keyword or position.  Returns AxesSubplot, args, kwargs
+    with axes removed."""
     
     axes = kwargs.pop('axes', None)       
 
@@ -227,6 +206,7 @@ def _parse_ax(*args, **kwargs):
 	else:
 	    args = list(args)
 	    axes = args.pop(indicies[0])      
+    
     return axes, args, kwargs
 
 # showim(img, ax)
@@ -251,7 +231,7 @@ def unzip_array(pairs):
     (1,2), (25,5) --> array(1,25), array(25,25)."""
     return np.array( zip(*(pairs) ) )
 
-def subplots(*args, **kwds):
+def splot(*args, **kwds):
     """ Wrapper to plt.subplots(r, c).  Will return flattened axes and discard
     figure.  'flatten' keyword will not flatten if the plt.subplots() return
     is not itself flat.  If flatten=False and fig=True, standard plt.subplots
@@ -263,7 +243,10 @@ def subplots(*args, **kwds):
     fig, args = plt.subplots(*args, **kwds)
     
     # Seems like sometimes returns flat, sometimes returns list of lists
-    # so either way I flatten
+    # so either way I flatten    
+    if not hasattr(args, '__iter__'):
+	args = [args]
+    
     try:
         args = [ax.axes for ax in args] 
     except Exception:
@@ -376,3 +359,43 @@ def crop(image, coords):
 	image = image[yi:yf, xi:xf]   
 
     return image
+
+# NDARRAY TRANSFORMATIONS
+def meancenter(ndarray, center):
+    """ Subtract center (x,y) from N,2 or 2,N array.  """
+    try:
+        return ndarray - center
+    except ValueError:
+        return (ndarray.T - center).T
+
+
+def rotate(ndarray, center, theta, **kwds):
+    """ Meancenter and rotate """
+    ndarray = meancenter(ndarray, center)
+    rotated = rotate_vector(ndarray, theta, **kwds)
+    return rotated + center
+
+
+def rotate_vector(ndarray, theta, style='degrees', rint='up'):
+    """ Rotate an array ocounter-clockwise through theta.  rint rounds output 
+    to integer; up rounds normally, down does int rounding (ie rounds down).  
+    ARRAY MUST BE MEAN-CENTERED if rotating in place.
+    
+    ndarray may be xy pairs [(x1,y1),(x2,y2)] or N,2 matrix."""
+
+    if style == 'degrees':
+        theta = math.radians(theta)
+        
+    costheta, sintheta = math.cos(theta), math.sin(theta)
+    
+    rotMatrix = np.array([
+        [costheta, -sintheta],  
+        [sintheta,  costheta]
+                     ])
+    r_array = np.dot(ndarray, rotMatrix)
+    
+    if rint:
+        if rint =='up':
+            r_array = np.rint(r_array)
+        r_array = r_array.astype('int', copy=False) #saves memory
+    return r_array

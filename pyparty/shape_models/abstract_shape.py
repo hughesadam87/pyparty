@@ -16,7 +16,7 @@ import skimage.draw as draw
 from skimage.measure import regionprops
 from skimage.measure._regionprops import _RegionProperties
 
-from pyparty.utils import rr_cc_box, rotate_vector, unzip_array
+from pyparty.utils import rr_cc_box, rotate, unzip_array
 from pyparty.trait_types.intornone import IntOrNone
 from pyparty.patterns.elements import simple
 from pyparty.config import RADIUS_DEFAULT, CENTER_DEFAULT, XSTART, YSTART, \
@@ -75,15 +75,8 @@ class Particle(HasTraits):
             return self.unrotated_rr_cc
 
         # Rotate transposed rr_cc
-        centered = np.array(self.unrotated_rr_cc).T - center
-        # Why negative theta?
-        rr_cc_rot = rotate_vector(centered, theta, rint='up')
-        
-        # Do something like merge unique rr,cc pairs
-#        rr_cc_rot_up = rotate_vector(centered, theta, rint='up')
-#        rr_cc_rot_down = rotate_vector(centered, theta, rint='down')
-        
-        return  (rr_cc_rot + center).T
+        transposed = np.array(self.unrotated_rr_cc).T
+        return rotate(transposed, self.center, theta, rint='up').T
     
     #http://scikit-image.org/docs/dev/api/skimage.draw.html#circle
     def _get_unrotated_rr_cc(self):
