@@ -11,9 +11,10 @@ import matplotlib.patches as mpatch
 from pyparty.shape_models.basic import LineSegment
 from pyparty.config import XVERTS, YVERTS, RECTLEN, RECTWID, LINEWID
 from pyparty.config import CENTER_DEFAULT as CDEF
-from pyparty.tools.arraytools import rotate_vector, unzip_array, rotate
+from pyparty.tools.arraytools import rotate_vector, unzip_array, rotate, \
+     rmeanint
 from pyparty.shape_models.abstract_shape import ShapeError, FastOriented, \
-    CenteredParticle, rmeanint
+    CenteredParticle
 
 logger = logging.getLogger(__name__) 
 
@@ -132,7 +133,7 @@ class Polygon(FastOriented):
     
     def as_patch(self):
         """ Explictly rotate vertex coords for patch. """
-        rotated_coords = rotate(self.xymatrix, self.center, self.phi)
+        rotated_coords = rotate(self.xymatrix, theta=self.phi, center=self.center)
         return mpatch.Polygon(rotated_coords, closed=True)
     
     @classmethod
@@ -265,7 +266,6 @@ class Rectangle(Polygon):
             longest = b
             smallest = a
         return (longest, smallest)    
-    
     
     
 class Square(Rectangle):

@@ -560,20 +560,26 @@ if __name__ == '__main__':
     
     c=Canvas(background='black', rez=(800,800))
     
-    c.add('circle', name='top_right', radius=75, center=(400,100), color='y')
-    c.add('line', color='yellow', center=(300,300), length=200, width=20, orientation=30.0)
-    c.add('square', color='purple', length=50, center=(200,200), orientation=23.0)
-    c.add('triangle', color='teal', length=50, center=(250,250), orientation=23.0)
+    c.add('circle', name='top_right', radius=75, phi=100, center=(400,100), color='y')
+    c.add('line', color='yellow', center=(300,300), length=200, width=20, phi=30.0)
+    c.add('square', color='purple', length=50, center=(200,200), phi=23.0)
+    c.add('triangle', color='teal', length=50, center=(250,250), phi=23.0)
     
     c.add('circle', name='bottom_right', radius=20, center=(400,400), color='red')
-    c.add('ellipse', name='bottom_left', center=(100,400), xradius=30, yradius=50, color='green', orientation=52.0)
+    c.add('ellipse', name='bottom_left', center=(100,400), xradius=30, yradius=50, color='green', phi=52.0)
     c.add('circle', name='topleft_corner', radius=100, center=(0,0), color=(20,30,50) )
     c.add('circle', name='off_image', radius=50, center=(900,200), color='teal')
-    c.add('polygon', name='bowtie', color='orange', orientation=50.0)
+    c.add('polygon', name='bowtie', color='orange', phi=50.0)
+
+    clab = c.from_labels() #neighbors = 4 default connectivity
+
+    clab.patchshow()
     
-     
-    print c.particles
+    print c.plist[0].particle.as_patch()
+        
+    
     for p in c.particles:
+	
 	p.as_patch()
     c.show()
     #c.patchshow()
