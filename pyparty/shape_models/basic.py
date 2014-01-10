@@ -4,14 +4,11 @@ import math
 
 import numpy as np
 import matplotlib.patches as mpatch
-
-
 import skimage.draw as draw
 from traits.api import HasTraits, Property, provides, Int, Array,\
      Float, Str, cached_property
 
 from abstract_shape import Particle, CenteredParticle, Segment
-from pyparty.utils import rotate_vector
 from pyparty.config import RADIUS_DEFAULT, CENTER_DEFAULT, XRADIUS, YRADIUS, \
      XMID, YMID, BEZIERWEIGHT
 
@@ -54,7 +51,7 @@ class Ellipse(CenteredParticle):
     
     def as_patch(self):
         return mpatch.Ellipse((self.cx, self.cy), self.xradius, self.yradius,
-                              angle=self.orientation)    
+                              angle=self.phi)    
 
 
 class LineSegment(Segment):

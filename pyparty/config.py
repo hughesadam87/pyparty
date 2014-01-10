@@ -11,7 +11,7 @@ ALIGN = 'l'
 MAXOUT = 50 #How many rows to show before cutting off
 
 # Attributes to show when particles printed
-PRINTDISPLAY = ('name', 'ptype') #, 'color') COLOR NEEDS ROUNDED
+PRINTDISPLAY = ('name', 'ptype', 'radius', 'eccentricity','color') 
 
 #Should new ParticleManager make new Particles?
 _COPYPARTICLES = True 
@@ -30,11 +30,16 @@ BGCOLOR = (1.0, 1.0, 1.0) # default background color
 # ------
 BGRES = (512, 512) # Default canvas background resolution
 
+# Grid
+# ----
+
+
 # Shape model defaults
 # --------------------
 
 # Center particles (to middle of default image BACKGROUND size)
 RADIUS_DEFAULT = 20  
+# USED BY ALL PARTICLES
 CENTER_DEFAULT = tuple(map(lambda x: int(x/2.0), BGRES))
 
 #Ellipse 

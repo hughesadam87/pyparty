@@ -92,6 +92,22 @@ def summarize_particles(obj):
     return ('<< %s /%s at %s >>' % 
             (countstring, ptypestring, obj.mem_address ) )    
 
+def _attr_mapper(obj, attr):
+    """ Helper to format particles for string-formatting.  Adds ??? for
+    missing attributes; handles colors specially..."""   
+    try:
+        val = getattr(obj, attr)
+    except (AttributeError, ParticleError):
+        return '????'
+    
+    if attr == 'color':
+        return '%.1f : %.1f : %.1f' % val
+        
+    if isinstance(val, float):
+        return str(round(val, 2))
+
+    return str(val)    
+
 def format_particles(obj, align='l', padding=3, attrs=('name')):
     """ Output column-delimted representation of a ParticleManager instance.
 
@@ -121,7 +137,7 @@ def format_particles(obj, align='l', padding=3, attrs=('name')):
     outrows = [ [''] + [a.upper() for a in attrs] ]
     
     for i, p in enumerate(outlist):
-        att_row = [str(i)] + [str(getattr(p, a)) for a in attrs]
+        att_row = [str(i)] + [_attr_mapper(p,a) for a in attrs]
         outrows.append(tuple(att_row))
          
     widths = [max(map(len, col)) for col in zip(*outrows)]
@@ -449,13 +465,17 @@ class ParticleManager(HasTraits):
             return tuple( (k+':', sorted(v.keys())) 
                           for k, v in GROUPEDTYPES.items() ) 
         
-    # Later put this all in color stuff (changes colors) [NOTE USED]
+    # Later put this all in color stuff (changes colors) [NOT USED]
     def hsv_colors(self):
         def _invert(p):
             r, g, b = p.color
             p.color = (1.-r, 1.-g, 1.-b)
             return p
         self.map(_invert)
+        
+    def descriptor_table(self, outfile, alphebetize=False):
+        """ Output all particle descriptors into a table. """
+        raise NotImplementedError
         
         
     # Class methods

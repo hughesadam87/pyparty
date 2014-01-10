@@ -168,6 +168,7 @@ class Canvas(HasTraits):
             return Canvas(background=self.background, particles=pout,
                           rez=self.rez)
 	
+	
     def patchshow(self, *args, **kwargs):
 	""" ...
 	args/kwargs include alpha, edgecolors, linestyles 
@@ -559,7 +560,6 @@ if __name__ == '__main__':
     
     c=Canvas(background='black', rez=(800,800))
     
-    
     c.add('circle', name='top_right', radius=75, center=(400,100), color='y')
     c.add('line', color='yellow', center=(300,300), length=200, width=20, orientation=30.0)
     c.add('square', color='purple', length=50, center=(200,200), orientation=23.0)
@@ -569,13 +569,13 @@ if __name__ == '__main__':
     c.add('ellipse', name='bottom_left', center=(100,400), xradius=30, yradius=50, color='green', orientation=52.0)
     c.add('circle', name='topleft_corner', radius=100, center=(0,0), color=(20,30,50) )
     c.add('circle', name='off_image', radius=50, center=(900,200), color='teal')
+    c.add('polygon', name='bowtie', color='orange', orientation=50.0)
     
-    c._get_image()
- 
-    #c.particles
-    #for p in c.particles:
-	#p.as_patch()
-    #c.show()
+     
+    print c.particles
+    for p in c.particles:
+	p.as_patch()
+    c.show()
     #c.patchshow()
 ##    plt.show()
     #from skimage.data import moon

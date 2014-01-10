@@ -39,7 +39,7 @@ SKIMAGE_DESCRIPTORS = [
     'moments_hu', 
     'moments_normalized',
 
-#    'orientation',  ### REMOVED THIS ONE BECAUSE OF NAME CONFLICT!!!
+    'orientation',  
 
     'perimeter',
     'solidity',

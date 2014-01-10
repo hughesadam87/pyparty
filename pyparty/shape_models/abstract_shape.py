@@ -16,7 +16,8 @@ import skimage.draw as draw
 from skimage.measure import regionprops
 from skimage.measure._regionprops import _RegionProperties
 
-from pyparty.utils import rr_cc_box, rotate, unzip_array
+from pyparty.utils import rr_cc_box
+from pyparty.tools.arraytools import rotate, unzip_array
 from pyparty.trait_types.intornone import IntOrNone
 from pyparty.patterns.elements import simple
 from pyparty.config import RADIUS_DEFAULT, CENTER_DEFAULT, XSTART, YSTART, \
@@ -56,7 +57,7 @@ class Particle(HasTraits):
     psource = Str('pyparty_builtin')
     ski_descriptor = Instance(_RegionProperties)    
 
-    orientation = Float(0.0) 
+    phi = Float(0.0) 
     
     center = Property(Tuple, depends_on = 'unrotated_rr_cc')    
     cx = Property(Int, depends_on = 'center')
@@ -68,7 +69,7 @@ class Particle(HasTraits):
     
     def _get_rr_cc(self):
         """ Rotate unrotated_rr_cc through theta """
-        theta = self.orientation
+        theta = self.phi
         center = self.center[::-1] #Necessary 
         
         if theta % 360.0 == 0.0:
@@ -212,7 +213,7 @@ class SimplePattern(CenteredParticle): #FAST ORIENT
     def _get_skeleton(self, old, new):
         # NEGATIVE THETA BECAUSE PARTICLE USES -THETA, SO BE CONSISTENT IN API
         rs = (1.0 - self.overlap) * (self.rs / cos(radians(self._offangle)))
-        return simple(self.cx, self.cy, rs,  phi=-self.orientation)
+        return simple(self.cx, self.cy, rs,  phi=-self.phi)
     
     def draw_skeleton(self):
         """ Would like to draw lines connecting verticies returned from skeleton.
