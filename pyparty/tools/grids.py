@@ -3,8 +3,9 @@ from traits.api import *
 import numpy as np
 from math import sqrt as msqrt
 from pyparty.utils import mem_address
+from pyparty.config import _PAD
 from pyparty.tools.arraytools import array2sphere, column_array, translate, \
-     rotate
+     rotate, astype_rint
 
 
 def rint(x): return int(round(x,0))
@@ -118,12 +119,15 @@ class Grid(HasTraits):
         if not self.polar:
             return np.meshgrid(x,y) #XX, YY      
         
+
     def rotate(self, theta):
         """ Theta in degrees.  Problem is that rotating grid result in negative 
         indicies in rr, cc.  Therefore, don't want to do image[rr,cc].  Returns 
         (2,N) indicies."""
         newgrid = rotate(column_array(self.grid), theta, center=self.midpoint)
-        return unzip_array(newgrid.astype(int))        
+        logger.warn("Rotations will lead to astry indicies")
+        return unzip_array(astype_rint(newgrid))        
+    
         
     @property
     def meshindex(self):
@@ -134,7 +138,7 @@ class Grid(HasTraits):
     
         
     @property
-    def xx(self):          # 0, XPOINTS, RES  (MAYBE RENAME XPONITS)
+    def xx(self):          
         return self.mesh[0]
    
     @property
@@ -163,8 +167,13 @@ class Grid(HasTraits):
         gx, gy = np.gradient(self.zz)
         return gx, gy
     
+    
     def __repr__(self):
-        _PAD = ' ' * 3        
+        """   
+        Grid (512 X 512) at 0x359da10:
+           X --> 10 divisions (51.1 pixels / div)
+           Y --> 10 divisions (51.1 pixels / div)
+         """
         address = mem_address(super(Grid, self).__repr__())
         outstring = "%s (%s X %s) at %s:\n" % (self.__class__.__name__, 
             self.shape[0], self.shape[1], address)
@@ -186,16 +195,17 @@ class TiledGrid(Grid):
     -----
     Edges, corners, centers are returned as len(2) tuples of indicies, the same
     primitive as rr_cc in Particles.  This facilitates easy indexing 
-    (eg image[corners]=1) as well as compatibility with utils and arraytools."""
+    (eg image[corners]=1) as well as compatibility with utils and arraytools.
+    """
     
      
     @property
     def xx(self):          # 0, XPOINTS, RES  (MAYBE RENAME XPONITS)
-        return self.mesh[0].astype(int)
+        return astype_rint(self.mesh[0])
    
     @property
     def yy(self):
-        return self.mesh[1].astype(int)
+        return astype_rint(self.mesh[1])
      
     @property
     def hlines(self):
@@ -223,7 +233,7 @@ class TiledGrid(Grid):
     
     @property
     def corners(self):
-        """ Default corners: bottom-right corners """
+        """ Default corners: bottom-left corners """
         return np.where(self.hlines * self.vlines)
     
     @property
@@ -246,34 +256,37 @@ class TiledGrid(Grid):
         raise NotImplementedError
     
     def grid_points(self, which=0):
-        """ 0 = center, 1 = bottom right corner, 2 = top right corner, 
-        3 = topleft corner, 4 = bottom left corner.  Returns integer grid
+        """ 0 = center, 1 = bottom left corner, 2 = top left corner, 
+        3 = top left corner, 4 = bottom right corner.  Returns integer grid
         in form tuple(2, N)
         
         Notes
         -----
-        Everything is computed relative to self.corners, which is the bottom
+        GRID IS INTENDED TO BE PLOTTED WITH NEGATIVE Y-AXIS!  Thus, top right
+        and bottom right are actually reversed so that plotting looks right.
+        
+        Everything is computed relative to BOTTOM LEFT CORNER, which is the bottom
         right corner of each tile."""
         
-        if which == 1 or which == 'br' or which == 'bottomright':
+
+        if which == 1 or which == 'tl': 
             return self.corners
         
-        # SHOULD THESE ALL BE NEGATIVE?  GOING CLOCKWISE RIGHT?s
-        elif which == 0 or which == 'c' or which == 'center':
-            r = .5* self.diagonalspacing 
-            theta = 135.0
-    
-        elif which == 2 or which == 'tr' or which == 'topright':
-            r = self.yspacing 
-            theta = 90.0      
+        elif which == 0 or which == 'c':
+            r = .5 * self.diagonalspacing
+            theta = 45.0
+
+        elif which == 2 or which == 'bl':
+            r = self.yspacing
+            theta = 90.0            
+
+        elif which ==  3 or which == 'br':
+            r = self.diagonalspacing
+            theta = 45.0
             
-        elif which == 3 or which == 'tl' or which == 'topleft':
-            r = self.diagonalspacing 
-            theta = 135.0 
-            
-        elif which == 4 or which == 'bl' or which == 'bottomleft':
-            r = self.xspacing 
-            theta = 180.0      
+        elif which == 4 or which == 'tr':
+            r=self.xspacing
+            theta = 0.0
     
         else:
             raise GridError('Grid points must be 0-4, or "c" or "center" etc...'
@@ -281,9 +294,8 @@ class TiledGrid(Grid):
         
         # Turn into column array; translate, then return to 2,N tuple
         cornerpairs = column_array(self.corners)
-        # NEGATIVE THETA?
-        translated = translate(cornerpairs, r, -theta)
-        return unzip_array(translated.astype(int))           
+        translated = translate(cornerpairs, r, theta)
+        return unzip_array(astype_rint(translated))
 
 
 class CartesianGrid(TiledGrid):
@@ -312,7 +324,8 @@ if __name__ == '__main__':
     #image[t.grid_points(1)]=.4
     #image[t.grid_points(2)]=.6
     #image[t.grid_points(3)]=.8
-    #image[t.grid_points(4)]=1
+    image[t.grid_points(4)]=1
+    
 
     image[t.grid]=1
     plt.imshow(image, plt.cm.gray)

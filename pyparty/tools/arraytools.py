@@ -5,6 +5,10 @@ from pyparty.utils import UtilsError
 class ArrayUtilsError(UtilsError):
     """ """
 
+def astype_rint(array):
+    """ Converts ndarray to int, but rounds integers"""
+    return np.around(array).astype(int)
+
 def column_array(len2iter):
     """ Takes an iterable of 2 arrays [(x, x2, x3) (y, y2, y3)] and returns
     array N x 2 (ie 2 columns)"""

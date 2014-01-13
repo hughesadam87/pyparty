@@ -20,7 +20,7 @@ from functools import wraps
 # pyparty imports
 from pyparty.utils import coords_in_image, where_is_particle, to_normrgb, \
      any2rgb, crop, _parse_ax, mem_address
-from pyparty.config import BGCOLOR, BGRES, GRIDXSPACE, GRIDYSPACE
+from pyparty.config import BGCOLOR, BGRES, GRIDXSPACE, GRIDYSPACE, _PAD
 from pyparty.tools.grids import Grid, CartesianGrid
 
 logger = logging.getLogger(__name__) 
@@ -104,7 +104,7 @@ class Canvas(HasTraits):
             self.set_bg(background, rez, inplace=True) 
             
         if not grid:
-            self.reset_grid()
+            self.reset_grid(rez)
 
     # Public Methods
     # -------------              
@@ -115,10 +115,12 @@ class Canvas(HasTraits):
         self._resolution = BGRES  #must be set first
         self._background = self.color_background        
         
-    def reset_grid(self):
-        """ New grid of default x/y spacing """
+    def reset_grid(self, rez=None):
+        """ New grid of default x/y spacing; rez is optional """
+        if not rez:
+            rez = BGRES
         xs = ys = 0
-        xe, ye = BGRES
+        xe, ye = rez
         self.grid = CartesianGrid(xstart=xs, ystart=ys, xend=xe, yend=ye,
                               xspacing=GRIDXSPACE, yspacing = GRIDYSPACE)
 
@@ -127,6 +129,7 @@ class Canvas(HasTraits):
 
         self.clear_particles()
         self.reset_background()
+        self.reset_grid()
 
     def clear_particles(self):
         """ Clears all particles from image."""
@@ -557,16 +560,21 @@ class Canvas(HasTraits):
     def __repr__(self):
         _bgstyle = 'user-array' #REPLACE
         res = '(%s X %s)' % (self.rx, self.ry ) 
-        _PAD = ' ' * 3
         address = mem_address(super(Canvas, self).__repr__())
+        
+        g=self.grid
+        gridstring = "%sxygrid     -->  (%sp X %sp) : (%.1f X %.1f) [pix/tile]" \
+            % (_PAD, g.xpoints, g.ypoints, g.xspacing, g.yspacing)
+        
                                                          # For sublcassing
         outstring = "%s at %s:\n" % (self.__class__.__name__, address)
 
         outstring += "%sbackground -->  %s : %s\n" % (_PAD, res, _bgstyle) 
 
-        outstring += "%sparticles  -->  %s particles : %s types" % (_PAD, \
+        outstring += "%sparticles  -->  %s particles : %s types\n" % (_PAD, \
             len(self._particles), len(self._particles.ptype_count))
-
+        outstring += gridstring
+        
         return outstring
 
     def __len__(self):
@@ -641,5 +649,6 @@ if __name__ == '__main__':
     c.add('polygon', name='bowtie', color='orange', phi=50.0)
     
     crand = c.random_circles()
-    crand.show()
-    plt.show()
+    print c
+#    crand.show()
+#    plt.show()

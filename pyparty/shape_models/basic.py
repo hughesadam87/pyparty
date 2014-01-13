@@ -5,7 +5,7 @@ import math
 import numpy as np
 import matplotlib.patches as mpatch
 import skimage.draw as draw
-from traits.api import HasTraits, Property, provides, Int, Array,\
+from traits.api import HasTraits, Property, Int, Array,\
      Float, Str, cached_property
 
 from abstract_shape import Particle, CenteredParticle, Segment

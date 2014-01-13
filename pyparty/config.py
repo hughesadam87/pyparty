@@ -18,6 +18,8 @@ PRINTDISPLAY = ('name', 'ptype', 'radius', 'phi')
 #Should new ParticleManager make new Particles?
 _COPYPARTICLES = True 
 
+# __repr__ indentation for Canvas/Grids
+_PAD = ' ' * 3  
 
 # Color-related
 # -------------
