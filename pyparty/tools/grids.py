@@ -178,11 +178,11 @@ class Grid(HasTraits):
         outstring = "%s (%s X %s) at %s:\n" % (self.__class__.__name__, 
             self.shape[0], self.shape[1], address)
 
-        outstring += "%sX --> %s divisions (%s pixels / div)\n" % (
-            _PAD, self.xpoints, round(self.xspacing, 1) )
+        outstring += "%sX --> %s divisions (%.1f pixels / div)\n" % (
+            _PAD, self.xpoints, self.xspacing )
 
-        outstring += "%sY --> %s divisions (%s pixels / div)" % (
-            _PAD, self.ypoints, round(self.yspacing, 1) )       
+        outstring += "%sY --> %s divisions (%.1f pixels / div)" % (
+            _PAD, self.ypoints, self.yspacing )       
         
         return outstring
         
