@@ -19,7 +19,7 @@ from matplotlib.patches import Path, PathPatch
 
 
 from pyparty.utils import rr_cc_box
-from pyparty.tools.arraytools import rotate, unzip_array, boolmask, \
+from pyparty.tools.arraytools import rotate, boolmask, \
     findcenter, meancenter
 from pyparty.trait_types.intornone import IntOrNone
 from pyparty.patterns.elements import simple
@@ -127,7 +127,7 @@ class Particle(HasTraits):
         indicies returned by an outline function, then sorted by angle."""
         
         # Steps:
-           # Get mean-centerd outline
+           # Get mean-centered outline
            # Index by sorted angles (via arctan2 function)
            # Re-center, and flip y/x because Path takes (y,x) coords it seems...?
             # - Either that or they are getting reversed (not transposed) somehow
@@ -136,12 +136,11 @@ class Particle(HasTraits):
         angles = np.arctan2(centered[1], centered[0]) # y/x
         centered = (centered.T[np.argsort(angles)])
         path = Path(np.fliplr(centered + self.center))
-        return PathPatch(path, facecolor=(.2,.5,.8), **kwargs) #facecolor doesn't realy matter        
+        return PathPatch(path, facecolor=facecolor, **kwargs) #facecolor doesn't realy matter        
 
 
     @property
     def outline(self):
-        
         from scipy.ndimage.filters import laplace    
         pbox = self.boxed(pad=1)
         return boolmask(laplace(pbox))

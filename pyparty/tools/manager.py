@@ -89,8 +89,7 @@ def summarize_particles(obj):
             ptypestring = '%s ptypes' % len(obj.ptypes)
         ptypestring = ' ptype="%s"' % obj[0].ptype
         
-    return ('<< %s /%s at %s >>' % 
-            (countstring, ptypestring, obj.mem_address ) )    
+    return ('<< %s /%s at %s >>' %(countstring, ptypestring, obj.mem_address ) )   
 
 def _attr_mapper(obj, attr):
     """ Helper to format particles for string-formatting.  Adds ??? for
@@ -193,7 +192,7 @@ class ParticleManager(HasTraits):
             """
         return dict( (pobj.name, idx) for idx, pobj in enumerate(self.plist))    
             
-    def add(self, particle, name='', color=None, force=False,  *pargs, **pkwargs):
+    def add(self, particle, name='', color=None, force=False, *pargs, **pkwargs):
         """ If color not passed, default color is used
             If not idx, put in last entry 
 
@@ -379,11 +378,8 @@ class ParticleManager(HasTraits):
     
     # MAKE MORE SUCCINT
     def __repr__(self):
-        """ <Particle at Address> [items]
-
-        Examples
-        --------
-        <ParticleManager at 0x2c6eb30> [(circle_0 : circle ...],
+        """ For 0 particles or many particles, calls "summarize_particles"; 
+        otherwise, calls format particles, which returns a table.
         """        
         if len(self) >= MAXOUT or len(self) == 0:
             return summarize_particles(self)
@@ -421,11 +417,6 @@ class ParticleManager(HasTraits):
         rr, cc = zip(*(p.rr_cc for p in self.plist))
         return ( np.concatenate(rr), np.concatenate(cc) )
         
-    @property
-    def mem_address(self):
-        """ Return address in memory """
-        return super(ParticleManager, self).__repr__() .split()[-1].strip('>')   
-        
     # Full attribute container sorted mappers        
     def sortby(self, attr='name', inplace=False, ascending=True):
         """ Sort list by attribute/descriptor"""
@@ -444,6 +435,10 @@ class ParticleManager(HasTraits):
         """ Returns rr_cc, color for each particle; useful to canvas """
         return [(p[3].rr_cc, p[2]) for p in self.plist]
     
+    @property
+    def mem_address(self):
+        """ Return address in memory """
+        return super(ParticleManager, self).__repr__() .split()[-1].strip('>')           
     
     @property
     def ptypes(self):

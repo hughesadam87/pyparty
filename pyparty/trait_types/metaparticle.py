@@ -85,6 +85,12 @@ class MetaParticle(object):
                                     ' recieved %s' % type(value))
 
             MetaParticle.__dict__['particle'].__set__(self, value)
+            
+            
+        elif attr in CUSTOM_DESCRIPTORS or attr in SKIMAGE_DESCRIPTORS:
+            raise ParticleError("%s already reserved name for particle:" 
+                " descriptor setting is not allowed." % attr)
+                                
         
         else:
             setattr(self.particle, attr, value)           

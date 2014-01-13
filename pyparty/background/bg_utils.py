@@ -5,9 +5,17 @@ import os.path as op
 from skimage.io import imread
 from pyparty.utils import to_normrgb
 import numpy as np
+from pyparty.utils import any2rgb
 
 class BackgroundError(Exception):
     """ Background error """
+
+# Not sure best way to implement; EG as utility or form canvas
+def from_grid(grid_obj):
+    """ Up-normalizes Grid.zz array to 1.0 and passes to any2rgb for array 
+    conversion.  This way, the upper lim will always roundto 255"""
+    zz_array = grid_obj.zz
+    return any2rgb(zz_array / float(zz_array.max()) )
 
 def from_color_res(color, resx, resy=None):
     """ Constant image of resolution (resx, resy) """
@@ -18,6 +26,7 @@ def from_color_res(color, resx, resy=None):
     color = to_normrgb(color)
     background[:,:,:] = color
     return background        
+
 
 def from_string(path_or_color, resx=None, resy=None):
     """ Load an image from harddrive; wraps skimage.io.imread. 

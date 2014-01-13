@@ -1,5 +1,14 @@
 import numpy as np
 import math
+from pyparty.utils import UtilsError
+
+class ArrayUtilsError(UtilsError):
+    """ """
+
+def column_array(len2iter):
+    """ Takes an iterable of 2 arrays [(x, x2, x3) (y, y2, y3)] and returns
+    array N x 2 (ie 2 columns)"""
+    return np.array(zip(*len2iter))
 
 def boolmask(ndarray):
     """ Given an array, converted to binary and indiciesa evaluating to true
@@ -8,6 +17,7 @@ def boolmask(ndarray):
     return np.array(zip(xs, ys)).T
     #OUTPUT IS 2,N array
 
+# REPLACE
 def unzip_array(pairs):
     """ Inverse of np.array(zip(x,y)). Rerturn unzipped array of pairs:
     (1,2), (25,5) --> array(1,25), array(25,25)."""
@@ -20,13 +30,7 @@ def add_xy(ndarray, xy_pair):
         return ndarray + xy_pair
     except ValueError:
         return (ndarray.T + xy_pair).T
-    
-#def order_cords(ndarray, center, clockwise=True):
-    #""" Array must be (2,N) !!.  This will work either way, but if (N,2),
-    #arctan function will only return a len(2) array"""
-    #centered = meancenter(ndarray, center)
-    #centered.sort(
-        
+           
 
 def rmeanint(x): return int(round(np.mean(x), 0))
     
@@ -59,7 +63,7 @@ def translate(ndarray, r, theta=0.0):
     """ Translate along a vector with magnitude r and angle theta (IN DEGREES). 
     Merely gets x,y coords of r, theta vector adds to the array element wise."""
     theta = math.radians(theta)
-    return add_xy(ndarray, (math.cos(theta), math.sin(theta)) )
+    return add_xy(ndarray, (r*math.cos(theta), r*math.sin(theta)) )
 
 
 def rotate_vector(ndarray, theta, style='degrees', rint='up'):
@@ -85,3 +89,28 @@ def rotate_vector(ndarray, theta, style='degrees', rint='up'):
             r_array = np.rint(r_array)
         r_array = r_array.astype('int', copy=False) #saves memory
     return r_array
+
+def to_spherical(r):
+    """ Convert xyz vector a single row of three elements to spherical """
+    x,y,z = r
+    r = math.sqrt(x**2 + y**2 + z**2)              
+    theta = math.atan2(y,x)                          
+    phi = math.atan2(z,math.sqrt(x**2 + y**2))     
+    return r, theta, phi
+
+def array2sphere(xyz_array):
+    """ Cartesion to spherical coords.  xyz_array must be (N,2) or (N,3)!!!
+    EG  [( x, y, z          or [ (x1, y1), (x2, y2)]
+          x2, y2, z2)]
+    """
+    xdim, ydim = xyz_array.shape[0:2]
+    if ydim == 3:
+        return np.apply_along_axis(to_spherical, 1, xyz_array)
+    # Return only r/theta, add column zeros for z
+    elif ydim ==2:    
+        out = np.zeros((xdim, 3))
+        out[..., 0:2] = xyz_array #DONT NEED TO COPY, RIGHT?
+        return np.apply_along_axis(to_spherical, 1, out)[..., 0:2]
+    else:
+        raise ArrayUtilsError("xyz_array must be of shape (N,2) or (N,3) (ie "
+            "rows of xy or xyz vectors), recived: %s" % str(xyz_array.shape))

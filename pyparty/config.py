@@ -1,5 +1,7 @@
 import numpy as np
 
+def rint(x): return int(round(x,0))
+
 """ Shared constants in pypart """
 
 # Particle Manager
@@ -32,7 +34,9 @@ BGRES = (512, 512) # Default canvas background resolution
 
 # Grid
 # ----
-
+_points = 15
+GRIDXSPACE = rint( BGRES[0] / _points )#pixels / tile (20 tiles on 512 or so)
+GRIDYSPACE = rint( BGRES[1] / _points )
 
 # Shape model defaults
 # --------------------

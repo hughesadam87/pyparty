@@ -354,3 +354,16 @@ def crop(image, coords):
 	image = image[yi:yf, xi:xf]   
 
     return image
+
+def mem_address(obj):
+    """ Return memory address string for a python object.  Object must have
+    default python object __repr__ (ie it would look something like:
+        <pyparty.tools.grids.CartesianGrid object at 0x3ba2fb0>
+    The address is merely returned by string parsing. """
+    try:
+        out = obj.__repr__().split()[-1]
+    except Exception as E:
+	raise UtilsError("Failed to return memory address by string parsing.  "
+	    "Recieved following message: %s" % E.message)
+    else:
+        return out.strip("'").strip('>')
