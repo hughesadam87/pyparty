@@ -1,7 +1,7 @@
 from __future__ import division
-from traits.api import *
+from traits.api import HasTraits, Int, Bool, Function
 import numpy as np
-from math import sqrt as msqrt
+import math
 from pyparty.utils import mem_address
 from pyparty.config import _PAD
 from pyparty.tools.arraytools import array2sphere, column_array, translate, \
@@ -59,10 +59,6 @@ class Grid(HasTraits):
     xpoints = Int(10)
     ypoints = Int(10)
     
-    # Avoids intermediate values _xspainc
-    xspacing = Property()
-    yspacing = Property()
-
     # REMOVE THIS AND MAKE POLAR GRID ITS OWN THING
     polar = Bool(False)
     
@@ -100,7 +96,7 @@ class Grid(HasTraits):
     
     @property
     def diagonalspacing(self):
-        return msqrt(self.xspacing**2 + self.yspacing**2)
+        return math.sqrt(self.xspacing**2 + self.yspacing**2)
     
     @xspacing.setter
     def xspacing(self, xsp):
@@ -198,14 +194,18 @@ class TiledGrid(Grid):
     (eg image[corners]=1) as well as compatibility with utils and arraytools.
     """
     
+    def __init__(self, *args, **kwargs):
+        """ DO NOT REMOVE OR SUBLCASSES WILL NOT INITIALIZE CORRECTLY"""
+        return super(TiledGrid, self).__init__(*args, **kwargs)
+    
      
     @property
     def xx(self):          # 0, XPOINTS, RES  (MAYBE RENAME XPONITS)
-        return astype_rint(self.mesh[0])
+        return self.mesh[0].astype(int)
    
     @property
     def yy(self):
-        return astype_rint(self.mesh[1])
+        return self.mesh[1].astype(int)
      
     @property
     def hlines(self):
@@ -255,9 +255,15 @@ class TiledGrid(Grid):
         numsquares = rint(area / squaresize)
         raise NotImplementedError
     
+    
+    #Make keyword that distinguishes between true grid and canvas
     def grid_points(self, which=0):
-        """ 0 = center, 1 = bottom left corner, 2 = top left corner, 
-        3 = top left corner, 4 = bottom right corner.  Returns integer grid
+        """ Return the corners/centers of a grid.  NOTE THAT THIS IS INTENDED
+        to be used on a canvas, so y-axis and x-axis are reversed.  SOmething like
+        x--> -y  y---> -x.  Thus, these transforms arnen't inuitive at all!
+        
+        0 = center, 1 = bottom right corner, 2 = bottom left corner, 
+        3 = top left corner, 4 = top right corner.  Returns integer grid
         in form tuple(2, N)
         
         Notes
@@ -268,25 +274,28 @@ class TiledGrid(Grid):
         Everything is computed relative to BOTTOM LEFT CORNER, which is the bottom
         right corner of each tile."""
         
+        
+        thetadiag = math.degrees(math.atan(self.xspacing/self.yspacing))
+        thetadiag = thetadiag - 180.0 #NEEDED
 
-        if which == 1 or which == 'tl': 
+        if which == 1 or which == 'br' or which == 'bottomright':
             return self.corners
         
-        elif which == 0 or which == 'c':
+        elif which == 0 or which == 'c' or which == 'center':
             r = .5 * self.diagonalspacing
-            theta = 45.0
-
-        elif which == 2 or which == 'bl':
-            r = self.yspacing
-            theta = 90.0            
-
-        elif which ==  3 or which == 'br':
-            r = self.diagonalspacing
-            theta = 45.0
+            theta = thetadiag 
             
-        elif which == 4 or which == 'tr':
-            r=self.xspacing
-            theta = 0.0
+        elif which == 2 or which == 'bl' or which == 'bottomleft':
+            r = self.xspacing
+            theta = -90
+            
+        elif which == 3 or which == 'tl' or which == 'topleft':
+            r= self.diagonalspacing
+            theta = thetadiag 
+            
+        elif which == 4 or which == 'tr' or which == 'topright':
+            r = self.yspacing
+            theta = -180. 
     
         else:
             raise GridError('Grid points must be 0-4, or "c" or "center" etc...'
@@ -295,7 +304,12 @@ class TiledGrid(Grid):
         # Turn into column array; translate, then return to 2,N tuple
         cornerpairs = column_array(self.corners)
         translated = translate(cornerpairs, r, theta)
+        # DO I WANT THIS OR STANDARD INT ARRAY TYPE?
         return unzip_array(astype_rint(translated))
+    
+    def as_patch(self):
+        #Just draw a patch line for every hline, vline
+        raise NotImplementedError
 
 
 class CartesianGrid(TiledGrid):

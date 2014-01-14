@@ -13,7 +13,7 @@ ALIGN = 'l'
 MAXOUT = 50 #How many rows to show before cutting off
 
 # Attributes to show when particles printed
-PRINTDISPLAY = ('name', 'ptype', 'radius', 'phi') 
+PRINTDISPLAY = ('name', 'ptype', 'center', 'phi') 
 
 #Should new ParticleManager make new Particles?
 _COPYPARTICLES = True 
@@ -36,6 +36,8 @@ BGRES = (512, 512) # Default canvas background resolution
 
 # Grid
 # ----
+
+# BACKWARDS BECAUSE GRID IS RELATIVE INVERSE
 _points = 15
 GRIDXSPACE = rint( BGRES[0] / _points )#pixels / tile (20 tiles on 512 or so)
 GRIDYSPACE = rint( BGRES[1] / _points )

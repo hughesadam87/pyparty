@@ -6,7 +6,8 @@ class ArrayUtilsError(UtilsError):
     """ """
 
 def astype_rint(array):
-    """ Converts ndarray to int, but rounds integers"""
+    """ Converts ndarray to int, but rounds integers.  Sometimes don't want 
+    accurate rounding, such as with grids"""
     return np.around(array).astype(int)
 
 def column_array(len2iter):

@@ -1,3 +1,4 @@
+import os
 import os.path as op
 import logging 
 import copy
@@ -25,6 +26,7 @@ from pyparty.tools.grids import Grid, CartesianGrid
 
 logger = logging.getLogger(__name__) 
 
+def rint(x): return int(round(x,0))
 
 def inplace(method):
     """ Thought I could decorate methods that have inplace keyword, but turned
@@ -101,10 +103,12 @@ class Canvas(HasTraits):
         if background is None:
             self.reset_background() #sets default color/resolution    
         else:
-            self.set_bg(background, rez, inplace=True) 
+            self.set_bg(background, keepres=rez, inplace=True) 
             
         if not grid:
             self.reset_grid(rez)
+        else:
+            self.grid = grid
 
     # Public Methods
     # -------------              
@@ -112,7 +116,7 @@ class Canvas(HasTraits):
         """ Restore default background image; restores default RES, redraws
             particles over it."""
 
-        self._resolution = BGRES  #must be set first
+        self.rez = BGRES  #must be set first
         self._background = self.color_background        
         
     def reset_grid(self, rez=None):
@@ -121,8 +125,8 @@ class Canvas(HasTraits):
             rez = BGRES
         xs = ys = 0
         xe, ye = rez
-        self.grid = CartesianGrid(xstart=xs, ystart=ys, xend=xe, yend=ye,
-                              xspacing=GRIDXSPACE, yspacing = GRIDYSPACE)
+        self.grid = CartesianGrid(ystart=xs, xstart=ys, yend=xe, xend=ye,
+                              xspacing=GRIDYSPACE, yspacing = GRIDXSPACE)
 
     def clear_canvas(self):
         """ Background image to default; removes ALL particles."""
@@ -229,6 +233,8 @@ class Canvas(HasTraits):
         title = kwargs.pop('title', None)
         grid = kwargs.pop('grid', False)
         gcolor = kwargs.pop('gcolor', None)
+        save = kwargs.pop('save', None)
+
         
         # cmap is the first argument in args
         if args or 'cmap' in kwargs: 
@@ -268,6 +274,20 @@ class Canvas(HasTraits):
         if title:
             axes.set_title(title)
             
+        # Save image array (with grid)
+        if save:
+            if save==True:
+                from time import time as tstamp
+                dirname, basename = os.getcwd(), 'canvas_%.0f.png' % tstamp()
+                path = op.join(dirname, basename)
+                logger.warn("Saving to %s" % path)
+            else:
+                path = save
+            path = op.expanduser(path)
+            if op.exists(path):
+                raise CanvasError('Path exists: "%s"' % path)
+            skimage.io.imsave(path, image)
+                        
         return axes 
 
 
@@ -330,12 +350,18 @@ class Canvas(HasTraits):
     # Image Resolution
     @property
     def rez(self):
+        """ Resoloution; since x,y is wonky on image, rx really is y dim"""
         return self._resolution
 
     @rez.setter
     def rez(self, rez):
-        rx, ry = rez
-        self._resolution = ( int(rx), int(ry) )
+        rx, ry = rint(rez[0]), rint(rez[1])
+        self._resolution = rx, ry
+        
+        # BACKWARDS BECAUSE GRID IS RELATIVE INVERSE
+        if self.grid:
+            self.grid.xend = ry 
+            self.grid.yend = rx 
 
     @property
     def rx(self):
@@ -634,21 +660,20 @@ if __name__ == '__main__':
 
     c=Canvas()
 
-    from pyparty.utils import splot
-    c=Canvas(background='black')
+    #from pyparty.utils import splot
+    #c=Canvas(background='black')
 
-    c.add('circle', name='top_right', radius=75, phi=100, center=(400,100), color='y')
-    c.add('line', color='yellow', center=(300,300), length=200, width=20, phi=30.0)
-    c.add('square', color='purple', length=50, center=(200,200), phi=23.0)
-    c.add('triangle', color='teal', length=50, center=(250,250), phi=23.0)
+    #c.add('circle', name='top_right', radius=75, phi=100, center=(400,100), color='y')
+    #c.add('line', color='yellow', center=(300,300), length=200, width=20, phi=30.0)
+    #c.add('square', color='purple', length=50, center=(200,200), phi=23.0)
+    #c.add('triangle', color='teal', length=50, center=(250,250), phi=23.0)
 
-    c.add('circle', name='bottom_right', radius=20, center=(400,400), color='red')
-    c.add('ellipse', name='bottom_left', center=(100,400), xradius=30, yradius=50, color='green', phi=52.0)
-    c.add('circle', name='topleft_corner', radius=100, center=(0,0), color=(20,30,50) )
-    c.add('circle', name='off_image', radius=50, center=(900,200), color='teal')
-    c.add('polygon', name='bowtie', color='orange', phi=50.0)
-    
-    crand = c.random_circles()
-    print c
+    #c.add('circle', name='bottom_right', radius=20, center=(400,400), color='red')
+    #c.add('ellipse', name='bottom_left', center=(100,400), xradius=30, yradius=50, color='green', phi=52.0)
+    #c.add('circle', name='topleft_corner', radius=100, center=(0,0), color=(20,30,50) )
+    #c.add('circle', name='off_image', radius=50, center=(900,200), color='teal')
+    #c.add('polygon', name='bowtie', color='orange', phi=50.0)
+
+#    crand = c.random_circles()
 #    crand.show()
 #    plt.show()
