@@ -209,8 +209,16 @@ class Canvas(HasTraits):
         grid = kwargs.pop('grid', False)
         gcolor = kwargs.pop('gcolor', None)
         gstyle = kwargs.pop('gstyle', 'solid')
-        gunder = False
-
+        gunder = kwargs.pop('gunder',False)
+        
+        # grid overlay
+        if gcolor or gunder and not grid:
+            grid = True
+            
+        # If user enters gcolor, assume default grid
+        elif grid and not gcolor:
+            gcolor = (0,0,1)        
+        
         # Dont in an example
         if not axes:
             fig, axes = plt.subplots()
@@ -221,8 +229,14 @@ class Canvas(HasTraits):
 #        p.set_array(np.array ( (p.color for p in in_and_edges) ) )
  
         # Add particles; add gridpatch
-        axes.add_collection(p)
-        axes.add_collection(self.grid.as_patch())
+        
+        if gunder:
+            axes.add_collection(self.grid.as_patch())
+            axes.add_collection(p)
+        else:
+            axes.add_collection(p)          
+            if grid:
+                axes.add_collection(self.grid.as_patch())    
 
         # SHOULD SHOW TAKE A COLOR BAR?
         if cbar:
@@ -244,24 +258,24 @@ class Canvas(HasTraits):
         
         grid = kwargs.pop('grid', False)
         gcolor = kwargs.pop('gcolor', None)
-        gstyle = kwargs.pop('gstyle', 'solid')
         gunder = kwargs.pop('gunder', False)
-        
         
         # cmap is the first argument in args
         if args or 'cmap' in kwargs: 
-            image = self.grayimage
+            bg = self.graybackground
         else:
-            image = self.image
+            bg = self.background
             
         # grid overlay
-        if gcolor and not grid:
+        if gcolor or gunder and not grid:
             grid = True
             
         # If user enters gcolor, assume default grid
         elif grid and not gcolor:
             gcolor = (0,0,1)
         
+        # Map attributes from grid (centers, corners, grid)
+        gattr = np.zeros(bg.shape).astype(bool)  #IE pass
         if grid:
             if grid == True:
                 grid = 'grid'
@@ -272,9 +286,14 @@ class Canvas(HasTraits):
             except Exception:
                 raise CanvasError('Invalid grid argument, "%s".  Choose from:  '
                     'True, "grid", "centers", "corners", "xlines", "vlines"' 
-                    % grid)
-            
+                    % grid)            
             gcolor = to_normrgb(gcolor)
+        
+        if gunder:
+            bg[gattr] = gcolor
+            image = self._draw_particles(bg)
+        else:
+            image = self._draw_particles(bg)
             image[gattr] = gcolor
             
         # Matplotlib
@@ -302,7 +321,7 @@ class Canvas(HasTraits):
                         
         return axes 
 
-    def _draw_particles(image):
+    def _draw_particles(self, image):
         """ Draws particles over any image (ie background, background+grid """
         for p in self._particles:
             rr_cc, color = p.particle.rr_cc, p.color 
@@ -690,5 +709,5 @@ if __name__ == '__main__':
     c.add('circle', name='off_image', radius=50, center=(900,200), color='teal')
     c.add('polygon', name='bowtie', color='orange', phi=50.0)
 
-    c.patchshow(plt.cm.jet, alpha=1, hatch='*')
+    c.show(grid='hlines', gunder=True)
     plt.show()
