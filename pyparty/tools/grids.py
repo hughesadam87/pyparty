@@ -2,6 +2,8 @@ from __future__ import division
 from traits.api import HasTraits, Int, Bool, Function
 import numpy as np
 import math
+from matplotlib.patches import Path, PathPatch
+from matplotlib.collections import PatchCollection, PathCollection
 from pyparty.utils import mem_address
 from pyparty.config import _PAD
 from pyparty.tools.arraytools import array2sphere, column_array, translate, \
@@ -181,6 +183,12 @@ class Grid(HasTraits):
             _PAD, self.ypoints, self.yspacing )       
         
         return outstring
+    
+    ## useful?
+    #@classmethod
+    #def copy(cls, obj):
+        #""" Return a new grid with copied attributes. """
+        #return cls()
         
     
 class TiledGrid(Grid):
@@ -209,11 +217,22 @@ class TiledGrid(Grid):
      
     @property
     def hlines(self):
-        return self.gradient[0].astype(bool)
+        
+        gx = self.gradient[0]
+        out = np.zeros(gx.shape)
+        # Mask every other column
+        for i in range(0, gx.shape[0], 2):
+            out[i, :] = gx[i, :]
+        return out.astype(bool)       
     
     @property
     def vlines(self):
-        return self.gradient[1].astype(bool)
+        gy = self.gradient[1]
+        out = np.zeros(gy.shape)
+        # Mask every other column
+        for i in range(0, gy.shape[1], 2):
+            out[:, i] = gy[:, i]
+        return out.astype(bool)
     
     @property
     def grid(self):
@@ -307,9 +326,33 @@ class TiledGrid(Grid):
         # DO I WANT THIS OR STANDARD INT ARRAY TYPE?
         return unzip_array(astype_rint(translated))
     
-    def as_patch(self):
-        #Just draw a patch line for every hline, vline
-        raise NotImplementedError
+    def as_patch(self, **kwds):
+        """ matplotlib pathpatch for hlines and vlines
+        
+        **pathkwds : any valid PathCollection keyword (linestyle, edgecolor)
+        
+        Notes
+        -----
+        First, finds coordinates of hlines, vlines.  Then, it it finds
+        the x, y coords of each line; it extracts the points corresponding to
+        each isoline, and makes a path for each of these."""
+        
+        hlines = zip(*np.where(self.hlines))
+        vlines = zip(*np.where(self.vlines))
+        
+        xunique = set([x for x, y in hlines])
+        yunique = set([y for x, y in vlines])
+
+        hpaths = []
+        vpaths = []
+        
+        for xun in xunique:
+            hpaths.append(Path([(x,y) for x,y in hlines if x==xun]))
+            
+        for yun in yunique:
+            vpaths.append(Path([(x,y) for x,y in vlines if y==yun]))            
+            
+        return PathCollection(hpaths + vpaths, **kwds)
 
 
 class CartesianGrid(TiledGrid):

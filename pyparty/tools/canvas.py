@@ -205,15 +205,24 @@ class Canvas(HasTraits):
         in_and_edges = self.pin + self.pedge
         patches = [p.particle.as_patch() for p in in_and_edges]
         p = PatchCollection(patches, *args, **kwargs)
+        
+        grid = kwargs.pop('grid', False)
+        gcolor = kwargs.pop('gcolor', None)
+        gstyle = kwargs.pop('gstyle', 'solid')
+        gunder = False
 
         # Dont in an example
         if not axes:
             fig, axes = plt.subplots()
-
+            axes.imshow(self.background)
+        
         # Needed or only one color is used, even with colormap...
         p.set_array(np.arange(len(patches)))
 #        p.set_array(np.array ( (p.color for p in in_and_edges) ) )
+ 
+        # Add particles; add gridpatch
         axes.add_collection(p)
+        axes.add_collection(self.grid.as_patch())
 
         # SHOULD SHOW TAKE A COLOR BAR?
         if cbar:
@@ -231,10 +240,13 @@ class Canvas(HasTraits):
         # This will pull out "ax", leaving remaing args/kwargs
         axes, args, kwargs = _parse_ax(*args, **kwargs)
         title = kwargs.pop('title', None)
+        save = kwargs.pop('save', None)
+        
         grid = kwargs.pop('grid', False)
         gcolor = kwargs.pop('gcolor', None)
-        save = kwargs.pop('save', None)
-
+        gstyle = kwargs.pop('gstyle', 'solid')
+        gunder = kwargs.pop('gunder', False)
+        
         
         # cmap is the first argument in args
         if args or 'cmap' in kwargs: 
@@ -290,6 +302,14 @@ class Canvas(HasTraits):
                         
         return axes 
 
+    def _draw_particles(image):
+        """ Draws particles over any image (ie background, background+grid """
+        for p in self._particles:
+            rr_cc, color = p.particle.rr_cc, p.color 
+            rr_cc = coords_in_image(rr_cc, image.shape)
+            image[rr_cc] = color
+        return image 
+
 
     def _get_image(self):
         """ Creates image array of particles.  Tried fitting to a property or
@@ -297,12 +317,7 @@ class Canvas(HasTraits):
         cache points proved to be easier."""
 
         # self.background is always a new array; otherwise would use np.copy
-        image = self.background
-        for p in self._particles:
-            rr_cc, color = p.particle.rr_cc, p.color 
-            rr_cc = coords_in_image(rr_cc, image.shape)
-            image[rr_cc] = color
-        return image 
+        return self._draw_particles(self.background)
 
 
     # Image Attributes Promoted
@@ -616,15 +631,16 @@ class Canvas(HasTraits):
         raise CanvasError("%s does not support subtraction" % 
               self.__class__.__name__)
     
+    
     # Class methods
     # ------------
-    
     @classmethod
     def copy(cls, obj):
         """ Returns a copied canvas object. """
         newgrid = copy.copy(obj.grid)
         return cls(background=obj.background, particles=obj._particles, 
                                   rez=obj.rez, grid=newgrid)        
+
     
     # Extend to polygons/other circles in future
     # May want to refactor into particle manager method actually
@@ -650,30 +666,29 @@ class Canvas(HasTraits):
         # Use default resolution and grid
         return cls(background=bgcolor, particles=particles)
 
+
 class ScaledCanvas(Canvas):
-    """ Canvas with a "scale" that maps system of coordinates from p
-    ixels
+    """ Canvas with a "scale" that maps system of coordinates from pixels
         to pre-set units."""
+    NotImplemented
 
 
 if __name__ == '__main__':
 
-    c=Canvas()
+   #c=Canvas()
+    
+    c=Canvas(background='white')
 
-    #from pyparty.utils import splot
-    #c=Canvas(background='black')
+    c.add('circle', name='top_right', radius=75, phi=100, center=(400,100), color='y')
+    c.add('line', color='yellow', center=(300,300), length=200, width=20, phi=30.0)
+    c.add('square', color='purple', length=50, center=(200,200), phi=23.0)
+    c.add('triangle', color='teal', length=50, center=(250,250), phi=23.0)
 
-    #c.add('circle', name='top_right', radius=75, phi=100, center=(400,100), color='y')
-    #c.add('line', color='yellow', center=(300,300), length=200, width=20, phi=30.0)
-    #c.add('square', color='purple', length=50, center=(200,200), phi=23.0)
-    #c.add('triangle', color='teal', length=50, center=(250,250), phi=23.0)
+    c.add('circle', name='bottom_right', radius=20, center=(400,400), color='red')
+    c.add('ellipse', name='bottom_left', center=(100,400), xradius=30, yradius=50, color='green', phi=52.0)
+    c.add('circle', name='topleft_corner', radius=100, center=(0,0), color=(20,30,50) )
+    c.add('circle', name='off_image', radius=50, center=(900,200), color='teal')
+    c.add('polygon', name='bowtie', color='orange', phi=50.0)
 
-    #c.add('circle', name='bottom_right', radius=20, center=(400,400), color='red')
-    #c.add('ellipse', name='bottom_left', center=(100,400), xradius=30, yradius=50, color='green', phi=52.0)
-    #c.add('circle', name='topleft_corner', radius=100, center=(0,0), color=(20,30,50) )
-    #c.add('circle', name='off_image', radius=50, center=(900,200), color='teal')
-    #c.add('polygon', name='bowtie', color='orange', phi=50.0)
-
-#    crand = c.random_circles()
-#    crand.show()
-#    plt.show()
+    c.patchshow(plt.cm.jet, alpha=1, hatch='*')
+    plt.show()
