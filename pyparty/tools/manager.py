@@ -12,7 +12,7 @@ from enthought.traits.api import HasTraits, Instance, Property, Tuple,\
 from pyparty.shape_models.api import GROUPEDTYPES, ALLTYPES
 from pyparty.shape_models.abstract_shape import Particle, ParticleError
 from pyparty.trait_types.metaparticle import MetaParticle, copy_metaparticle
-from pyparty.config import NAMESEP, PADDING, ALIGN, MAXOUT, PCOLOR, \
+from pyparty.config import NAMESEP, PADDING, ALIGN, MAXOUT, \
      _COPYPARTICLES, PRINTDISPLAY
 
 logger = logging.getLogger(__name__) 

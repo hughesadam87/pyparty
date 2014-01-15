@@ -1,6 +1,7 @@
 from __future__ import division
 import logging
 import math
+import random 
 
 import numpy as np
 import matplotlib.colors as colors
@@ -30,6 +31,22 @@ class UtilsError(Exception):
 class ColorError(Exception):
     """ Particular to color-utilities """   
 
+def rand_color(style=None):
+    """ Random color of various styles """
+    if style == 'hex':
+        r = lambda: random.randint(0,255)
+        return ('#%02X%02X%02X' % (r(),r(),r()))
+
+    elif style == 'bright':
+        r = lambda: random.uniform(.5, 1.0)
+        return ( r(), r(), r() )
+        
+    else:
+        r = lambda: random.random()
+        return  ( r(), r(), r() )
+    
+        
+
 def _pix_norm(value, imax=CBITS):
     """ Normalize pixel intensity to colorbit """
     if value > imax:
@@ -38,10 +55,14 @@ def _pix_norm(value, imax=CBITS):
 
 def to_normrgb(color):
     """ Returns an rgb len(3) tuple on range 0.0-1.0 with several input styles; 
-        wraps matplotlib.color.ColorConvert """
+        wraps matplotlib.color.ColorConvert.  If None, returns config.PCOLOR by
+        default."""
 
     if color is None:
-        return PCOLOR
+        if not PCOLOR or PCOLOR =='random':
+            color = rand_color(style='hex')
+        else:
+            color = PCOLOR
 
     # If iterable, assume 3-channel RGB
     if hasattr(color, '__iter__'):
@@ -192,10 +213,11 @@ def rr_cc_box(rr_cc, pad=0):
 
 def _parse_ax(*args, **kwargs):
     """ Parse plotting *args, **kwargs for an AxesSubplot.  This allows for
-    axes to be passed as keyword or position.  Returns AxesSubplot, args, kwargs
-    with axes removed."""
+    axes and colormap to be passed as keyword or position. 
+    Returns AxesSubplot, colormap, kwargs with *args removed"""
 
     axes = kwargs.pop('axes', None)       
+    cmap = kwargs.pop('cmap', None)
 
     if not axes:
         indicies = [idx for (idx, arg) in enumerate(args) if isinstance(arg, Subplot)]
@@ -206,8 +228,16 @@ def _parse_ax(*args, **kwargs):
         else:
             args = list(args)
             axes = args.pop(indicies[0])      
+            
+    if args and not cmap:
+        if len(args) > 1:
+            raise UtilsError("Please only pass a colormap and/or Axes"
+                 " subplot to Canvas plotting")
+        elif len(args) == 1:
+            kwargs['cmap'] = args[0]            
+            
 
-    return axes, args, kwargs
+    return axes, kwargs
 
 # showim(img, ax)
 def showim(image, *args, **kwargs):

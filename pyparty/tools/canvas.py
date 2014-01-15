@@ -1,3 +1,4 @@
+from __future__ import division
 import os
 import os.path as op
 import logging 
@@ -13,15 +14,16 @@ import skimage.measure as measure
 import skimage.morphology as morphology
 from skimage import img_as_float, img_as_bool, img_as_ubyte
 import pyparty.background.bg_utils as bgu
+from pyparty.shape_models.abstract_shape import ParticleError
 
-from traits.api import HasTraits, Array, Instance, Property, Float
+from traits.api import HasTraits, Array, Instance, Property, Float, Tuple, Int
 from manager import ParticleManager, concat_particles
 from functools import wraps
 
 # pyparty imports
 from pyparty.utils import coords_in_image, where_is_particle, to_normrgb, \
      any2rgb, crop, _parse_ax, mem_address
-from pyparty.config import BGCOLOR, BGRES, GRIDXSPACE, GRIDYSPACE, _PAD
+from pyparty.config import BGCOLOR, BGRES, GRIDXSPACE, GRIDYSPACE, _PAD, GCOLOR
 from pyparty.tools.grids import Grid, CartesianGrid
 
 logger = logging.getLogger(__name__) 
@@ -71,11 +73,14 @@ def concat_canvas(c1, c2, bg_resolve='c2', **particle_args):
     return Canvas(background=bgout, particles=_pout, rez=rezout, grid=gridout)
 
 class CanvasError(Exception):
-    """ Custom exception """ 
+    """ """    
 
 class CanvasAttributeError(CanvasError):
-    """ Custom exception """     
-
+    """ """    
+    
+class CanvasPlotError(CanvasError):
+    """ """    
+    
 class Canvas(HasTraits):
     """  """
     image = Property(Array) #chaching doesnt work
@@ -87,6 +92,9 @@ class Canvas(HasTraits):
     # Background is only a property because for _set validation...
     background = Property()
     _background = Array
+    
+    # Use this as a listener for grid
+    _resolution = Tuple(Int, Int)
 
     grid = Instance(CartesianGrid)
 
@@ -197,51 +205,67 @@ class Canvas(HasTraits):
         important for args, but the correspond to same kwargs.
         """
 
-        axes, args, kwargs = _parse_ax(*args, **kwargs)	
-        cbar = kwargs.pop('cbar', False)
-
-        #Slightly quicker to directly access particle?
-        # FOR PATICLES IN IMAGE ONLY?
-        in_and_edges = self.pin + self.pedge
-        patches = [p.particle.as_patch() for p in in_and_edges]
-        p = PatchCollection(patches, *args, **kwargs)
+        axes, kwargs = _parse_ax(*args, **kwargs)	
+        
+        title = kwargs.pop('title', None)
+        save = kwargs.pop('save', None)
+        bgonly = kwargs.pop('bgonly', False)
         
         grid = kwargs.pop('grid', False)
         gcolor = kwargs.pop('gcolor', None)
         gstyle = kwargs.pop('gstyle', 'solid')
         gunder = kwargs.pop('gunder',False)
         
+        
+        if bgonly: 
+            if 'cmap' not in kwargs:
+                raise CanvasPlotError("bgonly keyword requires a colormap")
+
+            bg = kwargs['cmap'](self.graybackground)[... , :3]
+            del kwargs['cmap']
+
+        else:
+            bg = self.background
+
+        #Slightly quicker to directly access particle?
+        # FOR PATICLES IN IMAGE ONLY?
+        in_and_edges = self.pin + self.pedge
+        patches = [p.particle.as_patch(facecolor=p.color) for p in in_and_edges]
+        
+        if 'cmap' in kwargs:
+            p = PatchCollection(patches, **kwargs)
+            p.set_array(np.arange(len(patches)))
+        else:
+            p = PatchCollection(patches, match_original=True, **kwargs)
+        
         # grid overlay
-        if gcolor or gunder and not grid:
+        if gcolor or gunder or gstyle and not grid:
             grid = True
             
         # If user enters gcolor, assume default grid
-        elif grid and not gcolor:
-            gcolor = (0,0,1)        
-        
-        # Dont in an example
+        if grid and not gcolor:
+            gcolor = GCOLOR        
+
+        # Create an axes with background (HOW TO GENERALIZE MULTIPLOTS???)
         if not axes:
             fig, axes = plt.subplots()
-            axes.imshow(self.background)
+        else:
+            axes.images=[]
+        axes.imshow(self.grayimage)
         
-        # Needed or only one color is used, even with colormap...
-        p.set_array(np.arange(len(patches)))
-#        p.set_array(np.array ( (p.color for p in in_and_edges) ) )
- 
-        # Add particles; add gridpatch
-        
+        # Grid under particles
         if gunder:
-            axes.add_collection(self.grid.as_patch())
+            axes.add_collection(self.grid.as_patch(
+                edgecolor=gcolor, linestyle=gstyle))
             axes.add_collection(p)
+        # Grid over particles
         else:
             axes.add_collection(p)          
             if grid:
-                axes.add_collection(self.grid.as_patch())    
-
-        # SHOULD SHOW TAKE A COLOR BAR?
-        if cbar:
-            fig.colorbar(p)
-
+                axes.add_collection(self.grid.as_patch(
+                    edgecolor=gcolor, linestyle=gstyle))    
+        
+        # REVERSE AXES
         axes.set_xlim([0, self.rx])
         axes.set_ylim([self.ry, 0])    
         return axes #fig, axes?
@@ -252,31 +276,39 @@ class Canvas(HasTraits):
         """ Wrapper to imshow.  Converts to gray to allow color maps."""
 
         # This will pull out "ax", leaving remaing args/kwargs
-        axes, args, kwargs = _parse_ax(*args, **kwargs)
+        axes, kwargs = _parse_ax(*args, **kwargs)
         title = kwargs.pop('title', None)
         save = kwargs.pop('save', None)
+        bgonly = kwargs.pop('bgonly', False)
         
         grid = kwargs.pop('grid', False)
         gcolor = kwargs.pop('gcolor', None)
         gunder = kwargs.pop('gunder', False)
         
-        # cmap is the first argument in args
-        if args or 'cmap' in kwargs: 
-            bg = self.graybackground
+        # Get the background
+        if bgonly: 
+            if not kwargs['cmap']:
+                raise CanvasPlotError("bgonly keyword requires a colormap")
+
+            bg = kwargs['cmap'](self.graybackground)[... , :3]
+            del kwargs['cmap']
+
         else:
             bg = self.background
-            
+                              
         # grid overlay
         if gcolor or gunder and not grid:
             grid = True
             
         # If user enters gcolor, assume default grid
-        elif grid and not gcolor:
-            gcolor = (0,0,1)
+        if grid and not gcolor:
+            gcolor = GCOLOR
         
         # Map attributes from grid (centers, corners, grid)
         gattr = np.zeros(bg.shape).astype(bool)  #IE pass
         if grid:
+            if not gcolor:
+                gcolor = GCOLOR
             if grid == True:
                 grid = 'grid'
 
@@ -284,11 +316,12 @@ class Canvas(HasTraits):
             try:
                 gattr=getattr( self.grid, grid.lower() )
             except Exception:
-                raise CanvasError('Invalid grid argument, "%s".  Choose from:  '
+                raise CanvasPlotError('Invalid grid argument, "%s".  Choose from:  '
                     'True, "grid", "centers", "corners", "xlines", "vlines"' 
                     % grid)            
             gcolor = to_normrgb(gcolor)
-        
+                                  
+        #Draw grid over or under?
         if gunder:
             bg[gattr] = gcolor
             image = self._draw_particles(bg)
@@ -296,11 +329,15 @@ class Canvas(HasTraits):
             image = self._draw_particles(bg)
             image[gattr] = gcolor
             
+        # GRAY CONVERT
+        if 'cmap' in kwargs:
+            image = img_as_ubyte(color.rgb2gray(image))
+            
         # Matplotlib
         if axes:
-            axes.imshow(image, *args, **kwargs)
+            axes.imshow(image, **kwargs)
         else:      # matplotlib API asymmetry
-            axes = plt.imshow(image, *args, **kwargs).axes        
+            axes = plt.imshow(image, **kwargs).axes        
 
         if title:
             axes.set_title(title)
@@ -316,7 +353,7 @@ class Canvas(HasTraits):
                 path = save
             path = op.expanduser(path)
             if op.exists(path):
-                raise CanvasError('Path exists: "%s"' % path)
+                raise CanvasPlotError('Path exists: "%s"' % path)
             skimage.io.imsave(path, image)
                         
         return axes 
@@ -337,7 +374,7 @@ class Canvas(HasTraits):
 
         # self.background is always a new array; otherwise would use np.copy
         return self._draw_particles(self.background)
-
+        
 
     # Image Attributes Promoted
     # ------------------
@@ -381,6 +418,15 @@ class Canvas(HasTraits):
         """ Generate a colored background at current resolution """
         return bgu.from_color_res(BGCOLOR, self.rx, self.ry)         
 
+    
+    #GRID LISTENER
+    def __resolution_changed(self):        
+        # BACKWARDS BECAUSE GRID IS RELATIVE INVERSE
+        if self.grid:
+            self.grid.xend = self.ry 
+            self.grid.yend = self.rx 
+
+    
     # Image Resolution
     @property
     def rez(self):
@@ -392,10 +438,6 @@ class Canvas(HasTraits):
         rx, ry = rint(rez[0]), rint(rez[1])
         self._resolution = rx, ry
         
-        # BACKWARDS BECAUSE GRID IS RELATIVE INVERSE
-        if self.grid:
-            self.grid.xend = ry 
-            self.grid.yend = rx 
 
     @property
     def rx(self):
@@ -522,18 +564,29 @@ class Canvas(HasTraits):
             return cout
 
 
-    def crop_bg(self, *coords, **kwds):
-        """ Crop self._background and set as current background.  Because
-        using *args, can't follow with keywords"""
+    def zoom_bg(self, *coords, **kwds):
+        """ Zoom in on current image and set the zoomed background as the 
+        background of a new canvas.  Note that because indicies will always 
+        resume at 0, particle positions will not maintain their relative 
+        positions.
+        """
         # avoid set_bg() because uses size of coords, not coords itself
         inplace = kwds.pop('inplace', False)
+        autogrid = kwds.pop('autogrid', True)
+        
         if inplace:
             cout = self
         else:
             cout = Canvas.copy(self)          
 
         cout._background = crop(cout._background, coords)
-        cout.rx, cout.ry = cout._background.shape[0:2]        
+        cout.rez = cout._background.shape[0:2]        
+        if autogrid:
+            xmag = self.rx / float(cout.rx) 
+            ymag = self.ry / float(cout.ry) 
+            
+            cout.grid.xpoints = rint(self.grid.xpoints / xmag)
+            cout.grid.ypoints = rint(self.grid.ypoints / ymag)
 
         if not inplace:
             return cout        
@@ -610,7 +663,12 @@ class Canvas(HasTraits):
 
     def __getattr__(self, attr):
         """ Defaults to particle manager """
-        return getattr(self._particles, attr)
+        try:
+            return getattr(self._particles, attr)
+        except ParticleError:
+            raise CanvasAttributeError('"%s" could not be found on %s, '
+                'underlying manager, or on one-or multiple of the '
+                'Particles' % (attr, self.__class__.__name__) )
 
     def __iter__(self):
         """ Iteration is blocked """
@@ -695,13 +753,13 @@ class ScaledCanvas(Canvas):
 if __name__ == '__main__':
 
    #c=Canvas()
-    
-    c=Canvas(background='white')
+    from skimage.data import lena
+    c=Canvas(background=lena())
 
     c.add('circle', name='top_right', radius=75, phi=100, center=(400,100), color='y')
-    c.add('line', color='yellow', center=(300,300), length=200, width=20, phi=30.0)
-    c.add('square', color='purple', length=50, center=(200,200), phi=23.0)
-    c.add('triangle', color='teal', length=50, center=(250,250), phi=23.0)
+    c.add('line',  center=(300,300), length=200, width=20, phi=30.0)
+    c.add('square', length=50, center=(200,200), phi=23.0)
+    c.add('triangle', length=50, center=(250,250), phi=23.0)
 
     c.add('circle', name='bottom_right', radius=20, center=(400,400), color='red')
     c.add('ellipse', name='bottom_left', center=(100,400), xradius=30, yradius=50, color='green', phi=52.0)
@@ -709,5 +767,10 @@ if __name__ == '__main__':
     c.add('circle', name='off_image', radius=50, center=(900,200), color='teal')
     c.add('polygon', name='bowtie', color='orange', phi=50.0)
 
-    c.show(grid='hlines', gunder=True)
+  #  c.patchshow(plt.cm.jet, gstyle='--', gunder=False, hatch='*')
+    from pyparty import splot
+    ax1, ax2 = splot(1,2)
+    c.patchshow(ax1, plt.cm.Blues, gcolor='green', bgonly=False)#, cmap=plt.cm.gray)
+    c2=c.zoom_bg(200, 200, 450, 450)
+    c2.show(ax2, gunder=False, grid=True)
     plt.show()

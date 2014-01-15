@@ -131,10 +131,10 @@ class Polygon(FastOriented):
         raise PolygonError("Verticies are polygon are immutable; please"
                            "initialialize a new polygon.")        
     
-    def as_patch(self):
+    def as_patch(self, *args, **kwargs):
         """ Explictly rotate vertex coords for patch. """
         rotated_coords = rotate(self.xymatrix, theta=self.phi, center=self.center)
-        return mpatch.Polygon(rotated_coords, closed=True)
+        return mpatch.Polygon(rotated_coords, closed=True, **kwargs)
     
     @classmethod
     def from_xypairs(cls, *args, **kwargs):

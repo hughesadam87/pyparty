@@ -32,8 +32,8 @@ class Circle(CenteredParticle):
         """ Overload to prevent rotating a symmetric circle """
         return self.unrotated_rr_cc
     
-    def as_patch(self):
-        return mpatch.Circle((self.cx, self.cy), self.radius)
+    def as_patch(self, *args, **kwargs):
+        return mpatch.Circle((self.cx, self.cy), self.radius, **kwargs)
         
 
 class Ellipse(CenteredParticle):
@@ -49,9 +49,9 @@ class Ellipse(CenteredParticle):
     def _get_unrotated_rr_cc(self):
         return draw.ellipse(self.cy, self.cx, self.yradius, self.xradius)   
     
-    def as_patch(self):
+    def as_patch(self, *args, **kwargs):
         return mpatch.Ellipse((self.cx, self.cy), self.xradius, self.yradius,
-                              angle=self.phi)    
+                              angle=self.phi, **kwargs)    
 
 
 class LineSegment(Segment):

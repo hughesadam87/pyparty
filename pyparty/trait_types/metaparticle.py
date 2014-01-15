@@ -3,7 +3,6 @@ import copy
 from pyparty.shape_models.abstract_shape import Particle, ParticleError
 from pyparty.descriptors.api import CUSTOM_DESCRIPTORS, SKIMAGE_DESCRIPTORS
 from pyparty.utils import to_normrgb
-from pyparty.config import PCOLOR
     
 class MetaParticle(object):
     """ Stores a particle and metadata for use by ParticleManager.

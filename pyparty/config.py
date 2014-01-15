@@ -26,9 +26,16 @@ _PAD = ' ' * 3
 _8_bit = ('uint8', 255)
 #_16_bit = ('uint16', 65536) UNTESTED
 
+def rrr():
+    return (ran(), ran(), ran())
+
+# Colors
+# -------
 COLORTYPE = _8_bit
-PCOLOR = (0.0, 0.0, 1.0) # default particle color
+#PCOLOR = (0.0, 0.0, 1.0) # default particle color
+PCOLOR = 'random'
 BGCOLOR = (1.0, 1.0, 1.0) # default background color
+GCOLOR = (1.0, 0.0, 0.0)  #default grid color
 
 # Canvas
 # ------
