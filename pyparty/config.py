@@ -34,8 +34,8 @@ def rrr():
 COLORTYPE = _8_bit
 #PCOLOR = (0.0, 0.0, 1.0) # default particle color
 PCOLOR = 'random'
-BGCOLOR = (1.0, 1.0, 1.0) # default background color
-GCOLOR = (1.0, 0.0, 0.0)  #default grid color
+BGCOLOR = 'white'# default background color
+GCOLOR = 'red'  #default grid color
 
 # Canvas
 # ------

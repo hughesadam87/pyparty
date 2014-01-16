@@ -78,7 +78,7 @@ class Particle(HasTraits):
 
         # Rotate transposed rr_cc
         transposed = np.array(self.unrotated_rr_cc).T
-        return rotate(transposed, center=self.center, theta=self.phi, rint='up').T
+        return rotate(transposed, center=center, theta=self.phi, rint='up').T
     
     #http://scikit-image.org/docs/dev/api/skimage.draw.html#circle
     def _get_unrotated_rr_cc(self):

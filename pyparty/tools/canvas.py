@@ -22,9 +22,12 @@ from functools import wraps
 
 # pyparty imports
 from pyparty.utils import coords_in_image, where_is_particle, to_normrgb, \
-     any2rgb, crop, _parse_ax, mem_address
+     any2rgb, crop, _parse_ax, _parse_path, mem_address
 from pyparty.config import BGCOLOR, BGRES, GRIDXSPACE, GRIDYSPACE, _PAD, GCOLOR
 from pyparty.tools.grids import Grid, CartesianGrid
+
+# Ensure colors are correctly mapped
+BGCOLOR, GCOLOR = to_normrgb(BGCOLOR), to_normrgb(GCOLOR)
 
 logger = logging.getLogger(__name__) 
 
@@ -114,7 +117,7 @@ class Canvas(HasTraits):
             self.set_bg(background, keepres=rez, inplace=True) 
             
         if not grid:
-            self.reset_grid(rez)
+            self.reset_grid()
         else:
             self.grid = grid
 
@@ -127,13 +130,11 @@ class Canvas(HasTraits):
         self.rez = BGRES  #must be set first
         self._background = self.color_background        
         
-    def reset_grid(self, rez=None):
+    def reset_grid(self):
         """ New grid of default x/y spacing; rez is optional """
-        if not rez:
-            rez = BGRES
         xs = ys = 0
-        xe, ye = rez
-        self.grid = CartesianGrid(ystart=xs, xstart=ys, yend=xe, xend=ye,
+        xe, ye = self.rez
+        self.grid = CartesianGrid(ystart=ys, xstart=xs, yend=xe, xend=ye,
                               xspacing=GRIDYSPACE, yspacing = GRIDXSPACE)
 
     def clear_canvas(self):
@@ -207,73 +208,119 @@ class Canvas(HasTraits):
 
         axes, kwargs = _parse_ax(*args, **kwargs)	
         
-        title = kwargs.pop('title', None)
-        save = kwargs.pop('save', None)
+        title = kwargs.pop('title', None)        
         bgonly = kwargs.pop('bgonly', False)
-        
+
         grid = kwargs.pop('grid', False)
         gcolor = kwargs.pop('gcolor', None)
-        gstyle = kwargs.pop('gstyle', 'solid')
+        gstyle = kwargs.pop('gstyle', None)
         gunder = kwargs.pop('gunder',False)
+        pmap = kwargs.pop('pmap', None)
         
-        
-        if bgonly: 
-            if 'cmap' not in kwargs:
-                raise CanvasPlotError("bgonly keyword requires a colormap")
+        alpha = kwargs.get('alpha', None)
+        edgecolor = kwargs.get('edgecolor', None)
+        linewidth = kwargs.get('linewidth', None)
+        linestyle = kwargs.get('linestyle', None)
 
-            bg = kwargs['cmap'](self.graybackground)[... , :3]
-            del kwargs['cmap']
+        # Some keywords to savefig; not all supported
+        save = kwargs.pop('save', None)
+        dpi = kwargs.pop('dpi', None)
+        bbox_inches = kwargs.pop('bbox_inches', None)
+        
+        
+        # GET NOT POP
+        cmap = kwargs.get('cmap', None)       
+        
+        # Corner case, don't touch
+        if pmap and cmap and bgonly:
+            bgonly = False
+        
+        if bgonly and not cmap: 
+            raise CanvasPlotError('"bgonly" is only valid when a colormap is' 
+            ' passed.')
+
+        if cmap:
+            bg = self.graybackground
 
         else:
             bg = self.background
-
-        #Slightly quicker to directly access particle?
-        # FOR PATICLES IN IMAGE ONLY?
-        in_and_edges = self.pin + self.pedge
-        patches = [p.particle.as_patch(facecolor=p.color) for p in in_and_edges]
-        
-        if 'cmap' in kwargs:
-            p = PatchCollection(patches, **kwargs)
-            p.set_array(np.arange(len(patches)))
+            
+        #Overwrite axes image
+        if not axes:
+            fig, axes = plt.subplots()
         else:
-            p = PatchCollection(patches, match_original=True, **kwargs)
+            axes.images=[]
+        # DONT PASS ALL KWARGS
+        axes.imshow(bg, cmap=cmap)
+
+        # FOR PATICLES IN IMAGE ONLY.
+        in_and_edges = self.pin + self.pedge
+        
+        # PARTICLE FACECOLOR, ALPHA and other PATCH ARGS
+        # http://matplotlib.org/api/artist_api.html#matplotlib.patches.Patch
+        patches = [p.particle.as_patch(facecolor=p.color, alpha=alpha, 
+                    edgecolor=edgecolor, linestyle=linestyle, linewidth=linewidth)
+                   for p in in_and_edges]
+
+        if not patches:
+            raise CanvasPlotError("No patches found in the present canvas.  This"
+                " results in an unresolved bug in patchshow(); please use show(). "  
+                "Sorry for the inconvienence; fixes forthcoming...")
+
+        # Overwrite patch attributes in the Collection call
+        if pmap:
+            kwargs['cmap'] = pmap                    #BUG IF PATCHES IS NONE AND MATCH ORIGINAL
+        if 'cmap' in kwargs and not bgonly:
+            p = PatchCollection(patches, **kwargs) #cmap and Patch Args
+            p.set_array(np.arange(len(patches)))        
+
+        # Use settings passed to "patches"
+        else:                                                  #Thinking good to drop this
+            p = PatchCollection(patches, match_original=True, **kwargs) #Collection Args
         
         # grid overlay
         if gcolor or gunder or gstyle and not grid:
             grid = True
             
-        # If user enters gcolor, assume default grid
+        # If user enters gcolor/gstyle, assume default grid
         if grid and not gcolor:
-            gcolor = GCOLOR        
-
-        # Create an axes with background (HOW TO GENERALIZE MULTIPLOTS???)
-        if not axes:
-            fig, axes = plt.subplots()
-        else:
-            axes.images=[]
-        axes.imshow(self.grayimage)
+            gcolor = GCOLOR       
+            
+        if grid and not gstyle:
+            gstyle = 'solid'
         
         # Grid under particles
         if gunder:
             axes.add_collection(self.grid.as_patch(
-                edgecolor=gcolor, linestyle=gstyle))
+                edgecolors=gcolor, linestyles=gstyle))
             axes.add_collection(p)
         # Grid over particles
         else:
             axes.add_collection(p)          
             if grid:
                 axes.add_collection(self.grid.as_patch(
-                    edgecolor=gcolor, linestyle=gstyle))    
+                    edgecolors=gcolor, linestyles=gstyle))    
         
-        # REVERSE AXES
-        axes.set_xlim([0, self.rx])
-        axes.set_ylim([self.ry, 0])    
-        return axes #fig, axes?
+        if title:
+            axes.set_title(title)        
+
+        if save:
+            path = _parse_path(save)
+            plt.savefig(path, dpi=dpi, bbox_inches=bbox_inches)
+        
+        return axes 
 
 
     #http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.imshow
     def show(self, *args, **kwargs):
-        """ Wrapper to imshow.  Converts to gray to allow color maps."""
+        """ Wrapper to imshow.  Converts to gray to allow color maps.
+        
+        Notes
+        -----
+        Differs from patchshow in that the collective image (bg, grid, particles)
+        is a series of masks, so they have to be drawn onto a single ndarray and 
+        then plotted.  Sicne patchshow is writing patchs, it can plot the background
+        separate from the grid and particles, which is slightly easier"""
 
         # This will pull out "ax", leaving remaing args/kwargs
         axes, kwargs = _parse_ax(*args, **kwargs)
@@ -284,12 +331,16 @@ class Canvas(HasTraits):
         grid = kwargs.pop('grid', False)
         gcolor = kwargs.pop('gcolor', None)
         gunder = kwargs.pop('gunder', False)
+        gstyle = kwargs.pop('gstyle', None) #NOT USED
+        
+        if 'pmap' in kwargs:
+            raise CanvasPlotError('"pmap" is only valid for patchshow() method')
         
         # Get the background
         if bgonly: 
             if not kwargs['cmap']:
-                raise CanvasPlotError("bgonly keyword requires a colormap")
-
+                raise CanvasPlotError('"bgonly" is only valid when a colormap is' 
+                ' passed.')
             bg = kwargs['cmap'](self.graybackground)[... , :3]
             del kwargs['cmap']
 
@@ -317,7 +368,7 @@ class Canvas(HasTraits):
                 gattr=getattr( self.grid, grid.lower() )
             except Exception:
                 raise CanvasPlotError('Invalid grid argument, "%s".  Choose from:  '
-                    'True, "grid", "centers", "corners", "xlines", "vlines"' 
+                    'True, "grid", "centers", "corners", "hlines", "vlines"' 
                     % grid)            
             gcolor = to_normrgb(gcolor)
                                   
@@ -336,7 +387,7 @@ class Canvas(HasTraits):
         # Matplotlib
         if axes:
             axes.imshow(image, **kwargs)
-        else:      # matplotlib API asymmetry
+        else:     
             axes = plt.imshow(image, **kwargs).axes        
 
         if title:
@@ -344,16 +395,7 @@ class Canvas(HasTraits):
             
         # Save image array (with grid)
         if save:
-            if save==True:
-                from time import time as tstamp
-                dirname, basename = os.getcwd(), 'canvas_%.0f.png' % tstamp()
-                path = op.join(dirname, basename)
-                logger.warn("Saving to %s" % path)
-            else:
-                path = save
-            path = op.expanduser(path)
-            if op.exists(path):
-                raise CanvasPlotError('Path exists: "%s"' % path)
+            path = _parse_path(save)
             skimage.io.imsave(path, image)
                         
         return axes 
@@ -585,8 +627,8 @@ class Canvas(HasTraits):
             xmag = self.rx / float(cout.rx) 
             ymag = self.ry / float(cout.ry) 
             
-            cout.grid.xpoints = rint(self.grid.xpoints / xmag)
-            cout.grid.ypoints = rint(self.grid.ypoints / ymag)
+            cout.grid.xdiv = rint(self.grid.xdiv / xmag)
+            cout.grid.ydiv = rint(self.grid.ydiv / ymag)
 
         if not inplace:
             return cout        
@@ -682,7 +724,7 @@ class Canvas(HasTraits):
         
         g=self.grid
         gridstring = "%sxygrid     -->  (%sp X %sp) : (%.1f X %.1f) [pix/tile]" \
-            % (_PAD, g.xpoints, g.ypoints, g.xspacing, g.yspacing)
+            % (_PAD, g.xdiv, g.ydiv, g.xspacing, g.yspacing)
         
                                                          # For sublcassing
         outstring = "%s at %s:\n" % (self.__class__.__name__, address)
@@ -722,26 +764,21 @@ class Canvas(HasTraits):
     # Extend to polygons/other circles in future
     # May want to refactor into particle manager method actually
     @classmethod
-    def random_circles(cls, n=50, rmin=5, rmax=50, bgcolor=None, pcolor=None):
+    def random_circles(cls, n=50, rmin=5, rmax=50, background=BGCOLOR, pcolor=None):
         """ Return a canvas populated with n randomly positioned circles.  
         Radius ranges vary randomly between 5 and 50."""
         import random as r
-
-        def _rand_rgb(): return (r.random(), r.random(), r.random() )
-
-        if not bgcolor:
-            bgcolor = _rand_rgb()
-            
+                       
         particles = ParticleManager()            
         # Randomize particle centers within the image default dimensions
         for i in range(n):
             cx, cy = r.randint(0, BGRES[0]), r.randint(0, BGRES[1])
             radius = r.randint(rmin,rmax)
-            pcolor = _rand_rgb()
-            particles.add('circle', center=(cx,cy), radius=radius, color=pcolor)
+            particles.add('circle', center=(cx,cy), radius=radius, 
+                          color=to_normrgb(pcolor))
         
         # Use default resolution and grid
-        return cls(background=bgcolor, particles=particles)
+        return cls(background=background, particles=particles)
 
 
 class ScaledCanvas(Canvas):
@@ -754,23 +791,30 @@ if __name__ == '__main__':
 
    #c=Canvas()
     from skimage.data import lena
-    c=Canvas(background=lena())
+    c=Canvas(background='gray')
+#    c.grid.xdiv=9
+    c.rez=(200,500)
 
-    c.add('circle', name='top_right', radius=75, phi=100, center=(400,100), color='y')
-    c.add('line',  center=(300,300), length=200, width=20, phi=30.0)
-    c.add('square', length=50, center=(200,200), phi=23.0)
-    c.add('triangle', length=50, center=(250,250), phi=23.0)
+    for (cy, cx) in zip(*(c.grid.corners)):
+        c.add('circle', radius=5, center=(cx, cy))
+        
+    #c.add('circle', name='top_right', radius=75, phi=100, center=(400,100), color='y')
+    #c.add('line',  center=(300,300), length=200, width=20, phi=30.0)
+    #c.add('square', length=50, center=(200,200), phi=23.0)
+    #c.add('triangle', length=50, center=(250,250), phi=23.0)
 
-    c.add('circle', name='bottom_right', radius=20, center=(400,400), color='red')
-    c.add('ellipse', name='bottom_left', center=(100,400), xradius=30, yradius=50, color='green', phi=52.0)
-    c.add('circle', name='topleft_corner', radius=100, center=(0,0), color=(20,30,50) )
-    c.add('circle', name='off_image', radius=50, center=(900,200), color='teal')
-    c.add('polygon', name='bowtie', color='orange', phi=50.0)
+    #c.add('circle', name='bottom_right', radius=20, center=(400,400), color='red')
+    #c.add('ellipse', name='bottom_left', center=(100,400), xradius=20, yradius=20, color='purple', phi=52.0)
+    #c.add('ellipse', name='bottom_we', center=(200,400), xradius=20, yradius=20, color='teal', phi=0.0)
+    #c.add('circle', name='topleft_corner', radius=100, center=(0,0), color=(20,30,50) )
+    #c.add('circle', name='off_image', radius=50, center=(900,200), color='teal')
+    #c.add('polygon', name='bowtie', color='orange', phi=50.0)
 
   #  c.patchshow(plt.cm.jet, gstyle='--', gunder=False, hatch='*')
     from pyparty import splot
-    ax1, ax2 = splot(1,2)
-    c.patchshow(ax1, plt.cm.Blues, gcolor='green', bgonly=False)#, cmap=plt.cm.gray)
-    c2=c.zoom_bg(200, 200, 450, 450)
-    c2.show(ax2, gunder=False, grid=True)
+    from pyparty.utils import showim
+
+#    c2=c.zoom_bg(1, 1, 25,25)
+#    c2.patchshow(grid=True)
+    c.show(grid=True)
     plt.show()

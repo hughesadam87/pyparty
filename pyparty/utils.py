@@ -2,10 +2,13 @@ from __future__ import division
 import logging
 import math
 import random 
+import os
+import os.path as op
 
 import numpy as np
 import matplotlib.colors as colors
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 
 from matplotlib.axes import Subplot
 from skimage import img_as_float
@@ -59,10 +62,7 @@ def to_normrgb(color):
         default."""
 
     if color is None:
-        if not PCOLOR or PCOLOR =='random':
-            color = rand_color(style='hex')
-        else:
-            color = PCOLOR
+        color = PCOLOR
 
     # If iterable, assume 3-channel RGB
     if hasattr(color, '__iter__'):
@@ -83,6 +83,8 @@ def to_normrgb(color):
                              % CBITS)
 
     if isinstance(color, str):
+        if color == 'random':
+            color = rand_color(style='hex')            
         return _rgb_from_string(color)
 
     # If single channel --> map accross channels EG 22 --> (22, 22, 22)
@@ -210,6 +212,19 @@ def rr_cc_box(rr_cc, pad=0):
     rect[rr_cc_trans] = 1
     return rect   
 
+def _parse_path(path):
+    """ Validate a path; if None, set to cwd with timestamp."""
+    
+    if path==True:
+        from time import time as tstamp
+        dirname, basename = os.getcwd(), 'canvas_%.0f.png' % tstamp()
+        path = op.join(dirname, basename)
+        logger.warn("Saving to %s" % path)
+    path = op.expanduser(path)
+    if op.exists(path):
+        raise UtilsError('Path exists: "%s"' % path)    
+    return path
+
 
 def _parse_ax(*args, **kwargs):
     """ Parse plotting *args, **kwargs for an AxesSubplot.  This allows for
@@ -217,7 +232,7 @@ def _parse_ax(*args, **kwargs):
     Returns AxesSubplot, colormap, kwargs with *args removed"""
 
     axes = kwargs.pop('axes', None)       
-    cmap = kwargs.pop('cmap', None)
+    cmap = kwargs.get('cmap', None)
 
     if not axes:
         indicies = [idx for (idx, arg) in enumerate(args) if isinstance(arg, Subplot)]
@@ -236,6 +251,13 @@ def _parse_ax(*args, **kwargs):
         elif len(args) == 1:
             kwargs['cmap'] = args[0]            
             
+    # If string, replace cmap with true cmap instance (used by show())
+    if 'cmap' in kwargs:
+        cmap = kwargs['cmap']
+        if isinstance(cmap, str):
+            kwargs['cmap'] = cm.get_cmap(cmap)    
+            
+        
 
     return axes, kwargs
 
@@ -244,12 +266,12 @@ def showim(image, *args, **kwargs):
     """ Similar to imshow with a few more keywords"""
 
     title = kwargs.pop('title', None)
-    axes, args, kwargs = _parse_ax(*args, **kwargs)
+    axes, kwargs = _parse_ax(*args, **kwargs)
 
     if axes:
-        axes.imshow(image, *args, **kwargs)
+        axes.imshow(image, **kwargs)
     else:      # matplotlib API asymmetry
-        axes = plt.imshow(image, *args, **kwargs).axes        
+        axes = plt.imshow(image, **kwargs).axes        
 
     if title:
         axes.set_title(title)

@@ -58,8 +58,8 @@ class Grid(HasTraits):
     xend = Int(512)
     yend = Int(512)
     
-    xpoints = Int(10)
-    ypoints = Int(10)
+    xdiv = Int(10)
+    ydiv = Int(10)
     
     # REMOVE THIS AND MAKE POLAR GRID ITS OWN THING
     polar = Bool(False)
@@ -90,11 +90,11 @@ class Grid(HasTraits):
 
     @property
     def xspacing(self):
-        return (self.xend - self.xstart) / self.xpoints
+        return (self.xend - self.xstart) / self.xdiv
     
     @property
     def yspacing(self):
-        return (self.yend - self.ystart) / self.ypoints   
+        return (self.yend - self.ystart) / self.ydiv   
     
     @property
     def diagonalspacing(self):
@@ -102,18 +102,18 @@ class Grid(HasTraits):
     
     @xspacing.setter
     def xspacing(self, xsp):
-        self.xpoints = rint( (self.xend - self.xstart) / xsp )
+        self.xdiv = rint( (self.xend - self.xstart) / xsp )
     
     @yspacing.setter
     def yspacing(self, ysp):
-        self.ypoints = rint( (self.yend - self.ystart) / ysp )
+        self.ydiv = rint( (self.yend - self.ystart) / ysp )
    
     # This would be good property to caches
     @property
     def mesh(self):
         """ [XX, YY] (each 512, 512)"""
-        x = np.linspace(self.xstart, self.xpoints, self.xend)
-        y = np.linspace(self.ystart, self.ypoints, self.yend)
+        x = np.linspace(self.xstart, self.xdiv, self.xend)
+        y = np.linspace(self.ystart, self.ydiv, self.yend)
         if not self.polar:
             return np.meshgrid(x,y) #XX, YY      
         
@@ -130,8 +130,8 @@ class Grid(HasTraits):
     @property
     def meshindex(self):
         """ Indicies of meshgrid: not sure if useful atm """
-        x = np.linspace(self.xstart, self.xpoints, self.xend)
-        y = np.linspace(self.ystart, self.ypoints, self.yend)
+        x = np.linspace(self.xstart, self.xdiv, self.xend)
+        y = np.linspace(self.ystart, self.ydiv, self.yend)
         return np.meshgrid(x,y, indexing='ij')   
     
         
@@ -164,8 +164,8 @@ class Grid(HasTraits):
         """ X and Y components of gradient.  gx+gy for net grad field """
         gx, gy = np.gradient(self.zz)
         return gx, gy
-    
-    
+            
+
     def __repr__(self):
         """   
         Grid (512 X 512) at 0x359da10:
@@ -177,10 +177,10 @@ class Grid(HasTraits):
             self.shape[0], self.shape[1], address)
 
         outstring += "%sX --> %s divisions (%.1f pixels / div)\n" % (
-            _PAD, self.xpoints, self.xspacing )
+            _PAD, self.xdiv, self.xspacing )
 
         outstring += "%sY --> %s divisions (%.1f pixels / div)" % (
-            _PAD, self.ypoints, self.yspacing )       
+            _PAD, self.ydiv, self.yspacing )       
         
         return outstring
     
@@ -221,17 +221,36 @@ class TiledGrid(Grid):
         gx = self.gradient[0]
         out = np.zeros(gx.shape)
         # Mask every other column
-        for i in range(0, gx.shape[0], 2):
-            out[i, :] = gx[i, :]
+        
+        # if odd, iterate one more
+        itermax = gx.shape[0]
+        if itermax % 2:  #IF EVEN PASS; IF ODD, ADD ONE
+            for i in range(0, itermax, 2):
+                out[i, :] = gx[i, :]
+                
+        else:
+            for i in range(1, itermax, 2):
+                out[i, :] = gx[i, :]            
+
+        out[0,:] = 1.0
         return out.astype(bool)       
     
     @property
     def vlines(self):
         gy = self.gradient[1]
         out = np.zeros(gy.shape)
-        # Mask every other column
-        for i in range(0, gy.shape[1], 2):
-            out[:, i] = gy[:, i]
+        
+        # if even, iterate one more
+        itermax = gy.shape[1]
+        if itermax % 2:
+            for i in range(0, itermax, 2):
+                out[:, i] = gy[:, i]
+        else:
+            for i in range(1, itermax, 2):
+                out[:, i] = gy[:, i]
+
+        #FILL LEFT EDGE
+        out[:, 0] = 1.0                
         return out.astype(bool)
     
     @property
@@ -259,7 +278,18 @@ class TiledGrid(Grid):
     def centers(self):
         """ For now, returns indicies (IE TUPLE) instead of matrix.  Still is
         indexable with Image[cx, cy] """
-        return self.grid_points(0)
+
+        thetadiag = math.degrees(math.atan(self.xspacing/self.yspacing))
+        r = .5 * self.diagonalspacing
+        
+        cornerpairs = column_array(self.corners)
+        translated = translate(cornerpairs, r, thetadiag)
+        rr_cen, cc_cen = unzip_array(astype_rint(translated))
+
+        return (rr_cen[rr_cen >= 0], cc_cen[cc_cen >= 0])
+       
+        
+#        return self.grid_points(0)
     
     @property
     def gmap(self, where='centers'):
@@ -273,58 +303,21 @@ class TiledGrid(Grid):
         squaresize = self.xspacing * self.yspacing
         numsquares = rint(area / squaresize)
         raise NotImplementedError
-    
-    
-    #Make keyword that distinguishes between true grid and canvas
-    def grid_points(self, which=0):
-        """ Return the corners/centers of a grid.  NOTE THAT THIS IS INTENDED
-        to be used on a canvas, so y-axis and x-axis are reversed.  SOmething like
-        x--> -y  y---> -x.  Thus, these transforms arnen't inuitive at all!
-        
-        0 = center, 1 = bottom right corner, 2 = bottom left corner, 
-        3 = top left corner, 4 = top right corner.  Returns integer grid
-        in form tuple(2, N)
-        
-        Notes
-        -----
-        GRID IS INTENDED TO BE PLOTTED WITH NEGATIVE Y-AXIS!  Thus, top right
-        and bottom right are actually reversed so that plotting looks right.
-        
-        Everything is computed relative to BOTTOM LEFT CORNER, which is the bottom
-        right corner of each tile."""
-        
-        
-        thetadiag = math.degrees(math.atan(self.xspacing/self.yspacing))
-        thetadiag = thetadiag - 180.0 #NEEDED
 
-        if which == 1 or which == 'br' or which == 'bottomright':
-            return self.corners
+
+    def pairs(self, attr):
+        """ Return pairs of attributes that are typically stored as len(2) 
+        tuple, indicies.  Valid attr include corners, centers, etc..."""
+        valid = ['grid', 'centers', 'corners', 'hlines', 'vlines']
+        if attr not in valid:
+            raise GridError('Invalid grid argument, "%s".  Choose from:  '
+                'True, "grid", "centers", "corners", "xlines", "vlines"' )
         
-        elif which == 0 or which == 'c' or which == 'center':
-            r = .5 * self.diagonalspacing
-            theta = thetadiag 
-            
-        elif which == 2 or which == 'bl' or which == 'bottomleft':
-            r = self.xspacing
-            theta = -90
-            
-        elif which == 3 or which == 'tl' or which == 'topleft':
-            r= self.diagonalspacing
-            theta = thetadiag 
-            
-        elif which == 4 or which == 'tr' or which == 'topright':
-            r = self.yspacing
-            theta = -180. 
+        rr_attr, cc_attr = getattr(self, attr)
+        # REVERSED X, Y ORDERING
+        return zip(*(cc_attr, rr_attr))
     
-        else:
-            raise GridError('Grid points must be 0-4, or "c" or "center" etc...'
-                ' %s is invalid' % which)
-        
-        # Turn into column array; translate, then return to 2,N tuple
-        cornerpairs = column_array(self.corners)
-        translated = translate(cornerpairs, r, theta)
-        # DO I WANT THIS OR STANDARD INT ARRAY TYPE?
-        return unzip_array(astype_rint(translated))
+    
     
     def as_patch(self, **kwds):
         """ matplotlib pathpatch for hlines and vlines
@@ -346,11 +339,12 @@ class TiledGrid(Grid):
         hpaths = []
         vpaths = []
         
+        # REVERSE PATHS FOR SAKE OF PLOT (y,x) !!
         for xun in xunique:
-            hpaths.append(Path([(x,y) for x,y in hlines if x==xun]))
+            hpaths.append(Path([(y, x) for x,y in hlines if x==xun]))
             
         for yun in yunique:
-            vpaths.append(Path([(x,y) for x,y in vlines if y==yun]))            
+            vpaths.append(Path([(y, x) for x,y in vlines if y==yun]))            
             
         return PathCollection(hpaths + vpaths, **kwds)
 
@@ -365,7 +359,10 @@ class CartesianGrid(TiledGrid):
             raise GridError("Zfcn is fixed for CartesianGrid; use TiledGrid")
 
         kwargs.update({'zfcn':'fade', 'style':'d'})
-        super(CartesianGrid, self).__init__(*args, **kwargs)     
+        super(CartesianGrid, self).__init__(*args, **kwargs)            
+        
+
+    # REVERSES X AND Y DATA
 
     
 if __name__ == '__main__':
