@@ -1,4 +1,4 @@
-.. image:: /background/georgetestjpg
+.. image:: /background/georgetest.jpg
    :height: 100px
    :width: 200 px
    :scale: 50 %
