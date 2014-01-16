@@ -1,4 +1,4 @@
-.. image:: /home/hugadams/Desktop/NYTRIP_2013_FILES/pyparty/background/georgetest.jpg
+.. image:: /background/gwu.jpg
    :height: 100px
    :width: 200 px
    :scale: 50 %
