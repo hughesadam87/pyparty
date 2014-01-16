@@ -227,7 +227,6 @@ class Canvas(HasTraits):
         dpi = kwargs.pop('dpi', None)
         bbox_inches = kwargs.pop('bbox_inches', None)
         
-        
         # GET NOT POP
         cmap = kwargs.get('cmap', None)       
         
@@ -792,12 +791,16 @@ if __name__ == '__main__':
    #c=Canvas()
     from skimage.data import lena
     c=Canvas(background='gray')
-#    c.grid.xdiv=9
-    c.rez=(200,500)
+    c.grid.xdiv=9
+    c.rez=(500,250)
 
-    for (cy, cx) in zip(*(c.grid.corners)):
+    for (cy, cx) in zip(*c.grid.centers):
         c.add('circle', radius=5, center=(cx, cy))
-        
+#        print cy, cx
+
+    for (cy, cx) in zip(*c.grid.corners):
+        c.add('circle', radius=5, center=(cx, cy), color='blue')        
+                
     #c.add('circle', name='top_right', radius=75, phi=100, center=(400,100), color='y')
     #c.add('line',  center=(300,300), length=200, width=20, phi=30.0)
     #c.add('square', length=50, center=(200,200), phi=23.0)
@@ -816,5 +819,5 @@ if __name__ == '__main__':
 
 #    c2=c.zoom_bg(1, 1, 25,25)
 #    c2.patchshow(grid=True)
-    c.show(grid=True)
+    c.patchshow(grid=True)
     plt.show()

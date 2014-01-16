@@ -277,20 +277,28 @@ class TiledGrid(Grid):
     @property
     def centers(self):
         """ For now, returns indicies (IE TUPLE) instead of matrix.  Still is
-        indexable with Image[cx, cy] """
+        indexable with Image[cx, cy].  Takes atan2(x,y) relative to top left
+        corner, result in a vector facing down, right.  Instead, we translate 
+        opposite this (up, left), and then cut out centers that are negative.
+        In short, we compute the vector from topleft corner to center, then 
+        translate in opposite direction."""
 
+        rxmax, rymax = self.shape
+
+        # Vector from top left corner facing down/right to center
         thetadiag = math.degrees(math.atan(self.xspacing/self.yspacing))
         r = .5 * self.diagonalspacing
-        
+        # Translate towards up/left direction.
+        thetadiag = thetadiag + 180
+               
         cornerpairs = column_array(self.corners)
         translated = translate(cornerpairs, r, thetadiag)
         rr_cen, cc_cen = unzip_array(astype_rint(translated))
 
-        return (rr_cen[rr_cen >= 0], cc_cen[cc_cen >= 0])
-       
-        
-#        return self.grid_points(0)
-    
+        # MASK WAS DEFINED WRONG
+        mask = (rr_cen >= 0) & (rr_cen < rxmax) & (cc_cen > 0) & (cc_cen < rymax)
+        return (rr_cen[mask], cc_cen[mask])
+           
     @property
     def gmap(self, where='centers'):
         """ Map a function to each point in the grid"""
