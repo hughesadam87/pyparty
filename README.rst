@@ -1,4 +1,4 @@
-.. image:: /pyparty/background/georgetest.png
+.. image:: /background/georgetest.png
    :height: 100px
    :width: 200 px
    :scale: 50 %
