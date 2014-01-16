@@ -1,4 +1,4 @@
-.. image:: /data/gwu.jpg
+.. image:: /background/georgetestjpg
    :height: 100px
    :width: 200 px
    :scale: 50 %
@@ -25,10 +25,10 @@ BSD_
 Documentation
 =============
 
-The official documentation_ does not yet exist.  Please see **pyparty.examples.Notebooks**
+The official documentation_ doesn't officially exist yet.  Please see **pyparty.examples.Notebooks**
 for example gallery.  For convienence, these have been linked below:
 
-   - `Basic Operations`_ (Tutorial)
+   - `Basic Operations`_ (Primary Tutorial)
    - `Manage Particles on Image`_
    - `pyparty shapes`_
    
@@ -36,6 +36,9 @@ for example gallery.  For convienence, these have been linked below:
    .. _`Manage Particles on Image`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/basictests.ipynb?create=1
    .. _`pyparty shapes`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/basictests.ipynb?create=1
 
+Notebooks were initialized with ``pylab=inline``:
+
+   .. ipython notebook --pylab=inline
    
 Having trouble viewing/editing notebooks?  Consider using `Enthought
 Canopy`_, which has an `iPython Notebook`_ kernel builtin.  For simply viewing,
@@ -82,7 +85,7 @@ better separation between *particles* and *image*.
 
 Dependencies
 ============
-``pyparty`` requires **scikit-image** and **Traits** and their dependencies.  
+``pyparty`` requires **scikit-image**, **matplotlib**, **Traits** and their dependencies.  
 
 ``pyparty`` uses Traits_ because it is well-suited for writing clean, type-checked
 object-oriented classes. You will not need to understand or use **Traits**
@@ -117,3 +120,15 @@ Interested in the Python ecosystem?   Check out some of these related libraries:
    .. _NumPy: http://www.numpy.org/
    .. _pandas: http://pandas.pydata.org/
    .. _SciPy: http://scipy.org/
+   
+Coming Soon
+===========
+
+
+
+About the Author
+================
+
+I'm a PhD student at GWU.  I work in biomolecule sensing and nanophotonics; you can check me out here_.  Last summer, I interened at Enthought and really enjoy software design.  As with any PhD, my time is fairly limited, especially in pursuing sofftware ventures.  As such, you may not find my code documentation up to par, and ``pyparty`` doesn't have any nosetests yet.  I know this is cardinal sin uno, but developing the iPython notebooks alongside the code helped served as a basic test platform.  If anyone feels so compelled to assist in this effort, I'd be forever in your debt.
+
+   .. _here : https://www.researchgate.net/profile/Adam_Hughes2/?ev=hdr_xprf
