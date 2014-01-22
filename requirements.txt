@@ -1,4 +1,3 @@
 scikit-image
-traits
-#-e git+https://github.com/enthought/okonomiyaki#egg=okonomiyaki
+traits==4.3.0
 

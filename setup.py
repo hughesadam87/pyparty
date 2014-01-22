@@ -7,16 +7,16 @@ NAME = 'pyparty'
 
 # Python >= 2.7 ?
 # -------
-#user_py = sys.version_info
-#if user_py < (2, 7):
-#    raise SystemExit('%s requires python 2.7 or higher (%s found).' % \
-#                    (NAME, '.'.join(str(x) for x in user_py[0:3])))
+user_py = sys.version_info
+if user_py < (2, 7):
+    raise SystemExit('%s requires python 2.7 or higher (%s found).' % \
+                    (NAME, '.'.join(str(x) for x in user_py[0:3])))
     
 # For now, most of these are in here for testing.  Dependency version 
 #requirements can probably be relaxed, especially chaco.
 setup(
     name = NAME,
-    version = '0.1.1-4', # NO HYPHENS
+    version = '0.1.1-1', 
     author = 'Adam Hughes',
     maintainer = 'Adam Hughes',
     maintainer_email = 'hughesadam87@gmail.com',
@@ -27,8 +27,6 @@ setup(
     package_data={   
       'pyparty.examples.Notebooks':['*.ipynb'],
       'pyparty.data':['*'],
-      'pyparty':['*.rst']
-#      'pyuvvis.scripts':['*.png']
                  },
        
 #    entry_points = {'console_scripts': [
@@ -40,7 +38,9 @@ setup(
     download_url = 'https://github.com/hugadams/pyparty',
     license = 'LICENSE.txt',
     description = 'Tools for patterning 2d-shapes on ndarrays',
-#    long_description = open(op.join(sys.path[0], 'README.rst'), 'rb').read(),
+    
+     # REMOVED DUE TO ENCODING ISSUES
+ #   long_description = open(op.join(sys.path[0], 'README.txt'), 'rb').read(),
     
     classifiers = [
           'Development Status :: 2 - Pre-Alpha',
