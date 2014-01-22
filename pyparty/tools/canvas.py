@@ -12,7 +12,7 @@ import skimage.io
 import skimage.color as color
 import skimage.measure as measure
 import skimage.morphology as morphology
-from skimage import img_as_float, img_as_bool, img_as_ubyte
+from skimage import img_as_float, img_as_bool
 import pyparty.background.bg_utils as bgu
 from pyparty.shape_models.abstract_shape import ParticleError
 
@@ -22,7 +22,7 @@ from functools import wraps
 
 # pyparty imports
 from pyparty.utils import coords_in_image, where_is_particle, to_normrgb, \
-     any2rgb, crop, _parse_ax, _parse_path, mem_address
+     any2rgb, crop, _parse_ax, _parse_path, mem_address, rgb2uint
 from pyparty.config import BGCOLOR, BGRES, GRIDXSPACE, GRIDYSPACE, _PAD, GCOLOR
 from pyparty.tools.grids import Grid, CartesianGrid
 
@@ -33,25 +33,25 @@ logger = logging.getLogger(__name__)
 
 def rint(x): return int(round(x,0))
 
-def inplace(method):
-    """ Thought I could decorate methods that have inplace keyword, but turned
-    out to be more than I bargained for.  Decorator syntax is fine, but not correct.
-    """
-    methodname = method.__name__
-    #variables = method.func_code.co_varnames
-    @wraps(method)
-    def wrapper(obj, *args, **kwargs):
-        print 'method is', method, type(obj), type(method)
-        inplace = kwargs.pop('inplace', False)
-        if inplace:
-            print 'in inplace', args, kwargs
-            getattr(obj, methodname)(*args, **kwargs)
-        else:
-            print 'not inplace. obj is', obj
-            new = Canvas(background=obj.background, particles=obj._particles,
-                         res=obj.rez)
-            return getattr(new, methodname)(*args, **kwargs)
-    return wrapper
+#def inplace(method):
+    #""" Thought I could decorate methods that have inplace keyword, but turned
+    #out to be more than I bargained for.  Decorator syntax is fine, but not correct.
+    #"""
+    #methodname = method.__name__
+    ##variables = method.func_code.co_varnames
+    #@wraps(method)
+    #def wrapper(obj, *args, **kwargs):
+        #print 'method is', method, type(obj), type(method)
+        #inplace = kwargs.pop('inplace', False)
+        #if inplace:
+            #print 'in inplace', args, kwargs
+            #getattr(obj, methodname)(*args, **kwargs)
+        #else:
+            #print 'not inplace. obj is', obj
+            #new = Canvas(background=obj.background, particles=obj._particles,
+                         #res=obj.rez)
+            #return getattr(new, methodname)(*args, **kwargs)
+#    return wrapper
 
 
 def concat_canvas(c1, c2, bg_resolve='c2', **particle_args):
@@ -381,7 +381,7 @@ class Canvas(HasTraits):
             
         # GRAY CONVERT
         if 'cmap' in kwargs:
-            image = img_as_ubyte(color.rgb2gray(image))
+            image = rgb2uint(image)
             
         # Matplotlib
         if axes:
@@ -437,10 +437,7 @@ class Canvas(HasTraits):
     @property
     def grayimage(self):
         """ Collapse multi-channel, scale to 255 (via ubyte) """
-        # img 127 --> ubyte of 123... 
-        # Try this:
-        #	print c.grayimage.max(), c.image.max() * 255, img_as_uint(lena()).max()
-        return img_as_ubyte( color.rgb2gray(self.image) )
+        return rgb2uint(self.image)
 
     @property
     def binaryimage(self):
@@ -459,6 +456,25 @@ class Canvas(HasTraits):
         """ Generate a colored background at current resolution """
         return bgu.from_color_res(BGCOLOR, self.rx, self.ry)         
 
+    # Promote most common grid attributes    
+    @property
+    def gcenters(self):
+        return self.grid.centers
+    
+    @property
+    def gcorners(self):
+        return self.grid.corners
+    
+    @property
+    def ghlines(self):
+        return self.grid.hlines
+    
+    @property
+    def gvlines(self):
+        return self.grid.vlines      
+    
+    def gpairs(self, attr):
+        return self.grid.pairs(attr)
     
     #GRID LISTENER
     def __resolution_changed(self):        
@@ -790,28 +806,20 @@ if __name__ == '__main__':
 
    #c=Canvas()
     from skimage.data import lena
-    c=Canvas(background='gray')
-    c.grid.xdiv=9
-    c.rez=(500,250)
-
-    for (cy, cx) in zip(*c.grid.centers):
-        c.add('circle', radius=5, center=(cx, cy))
-#        print cy, cx
-
-    for (cy, cx) in zip(*c.grid.corners):
-        c.add('circle', radius=5, center=(cx, cy), color='blue')        
+    from pyparty.data import lena_who
+    c=Canvas()
                 
-    #c.add('circle', name='top_right', radius=75, phi=100, center=(400,100), color='y')
-    #c.add('line',  center=(300,300), length=200, width=20, phi=30.0)
-    #c.add('square', length=50, center=(200,200), phi=23.0)
-    #c.add('triangle', length=50, center=(250,250), phi=23.0)
+    c.add('circle', name='top_right', radius=75, phi=100, center=(400,100), color='y')
+    c.add('line',  center=(300,300), length=200, phi=30.0)
+    c.add('rectangle', length=50, width=15, center=(200,200), phi=23.0)
+    c.add('square', length=50, center=(300,300), phi=23.0)
 
-    #c.add('circle', name='bottom_right', radius=20, center=(400,400), color='red')
-    #c.add('ellipse', name='bottom_left', center=(100,400), xradius=20, yradius=20, color='purple', phi=52.0)
-    #c.add('ellipse', name='bottom_we', center=(200,400), xradius=20, yradius=20, color='teal', phi=0.0)
-    #c.add('circle', name='topleft_corner', radius=100, center=(0,0), color=(20,30,50) )
-    #c.add('circle', name='off_image', radius=50, center=(900,200), color='teal')
-    #c.add('polygon', name='bowtie', color='orange', phi=50.0)
+    c.add('circle', name='bottom_right', radius=20, center=(400,400), color='red')
+    c.add('ellipse', name='bottom_left', center=(100,400), xradius=20, yradius=20, color='purple', phi=52.0)
+    c.add('ellipse', name='bottom_we', center=(200,400), xradius=20, yradius=20, color='teal', phi=0.0)
+    c.add('circle', name='topleft_corner', radius=100, center=(0,0), color=(20,30,50) )
+    c.add('circle', name='off_image', radius=50, center=(900,200), color='teal')
+    c.add('polygon', name='bowtie', color='orange', phi=50.0)
 
   #  c.patchshow(plt.cm.jet, gstyle='--', gunder=False, hatch='*')
     from pyparty import splot
@@ -819,5 +827,5 @@ if __name__ == '__main__':
 
 #    c2=c.zoom_bg(1, 1, 25,25)
 #    c2.patchshow(grid=True)
-    c.patchshow(grid=True)
+    c.patchshow()
     plt.show()

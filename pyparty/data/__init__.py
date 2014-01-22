@@ -29,7 +29,7 @@ def load(f):
 
 
 def gwu():
-    return load("gwu.jpg")
+    return load("gwu.png")
 
 def spectrum():
     return load("spectrum.jpg")

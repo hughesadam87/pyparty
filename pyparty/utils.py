@@ -11,8 +11,8 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
 from matplotlib.axes import Subplot
-from skimage import img_as_float
-from skimage.color import gray2rgb
+from skimage import img_as_float, img_as_ubyte
+from skimage.color import gray2rgb, rgb2gray
 
 from pyparty.config import PCOLOR, COLORTYPE
 
@@ -155,6 +155,16 @@ def coords_in_image(rr_cc, shape):
     rr, cc = rr_cc 
     mask = (rr >= 0) & (rr < shape[0]) & (cc >= 0) & (cc < shape[1])
     return (rr[mask], cc[mask])            
+
+def rgb2uint(image):
+    """ Returns color image as 8-bit unsigned (0-255) int.  Unsigned 8bit gray 
+    values are safer to plotting; so enforced throughout pyparty."""
+     # img 127 --> ubyte of 123... 
+        # Try this:
+        #	print c.grayimage.max(), c.image.max() * 255, img_as_uint(lena()).max()
+    return img_as_ubyte( rgb2gray(image) )
+    
+    
 
 def where_is_particle(rr_cc, shape):
     """ Quickly evaluates if particle rr, cc is fully within, partically in,

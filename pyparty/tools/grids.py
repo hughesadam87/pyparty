@@ -1,14 +1,17 @@
 from __future__ import division
-from traits.api import HasTraits, Int, Bool, Function
+import logging
 import numpy as np
 import math
+
+from traits.api import HasTraits, Int, Bool, Function
 from matplotlib.patches import Path, PathPatch
 from matplotlib.collections import PatchCollection, PathCollection
-from pyparty.utils import mem_address
+from pyparty.utils import mem_address, rgb2uint, crop
 from pyparty.config import _PAD
 from pyparty.tools.arraytools import array2sphere, column_array, translate, \
      rotate, astype_rint
 
+logger = logging.getLogger(__name__) 
 
 def rint(x): return int(round(x,0))
 
@@ -64,6 +67,7 @@ class Grid(HasTraits):
     # REMOVE THIS AND MAKE POLAR GRID ITS OWN THING
     polar = Bool(False)
     
+    
     # MUST RETURN (N X N) array.  IE xx + yy, or xx.  
     zfcn = Function()
 
@@ -116,7 +120,7 @@ class Grid(HasTraits):
         y = np.linspace(self.ystart, self.ydiv, self.yend)
         if not self.polar:
             return np.meshgrid(x,y) #XX, YY      
-        
+                
 
     def rotate(self, theta):
         """ Theta in degrees.  Problem is that rotating grid result in negative 
@@ -126,6 +130,31 @@ class Grid(HasTraits):
         logger.warn("Rotations will lead to astry indicies")
         return unzip_array(astype_rint(newgrid))        
     
+
+    def blend_bg(self, bg, weight=0.5):
+        if weight > 1 or weight < 0:
+            raise GridError("weight must be between 0 and 1")
+        
+        if bg.ndim == 3:
+            bg = rgb2uint(bg)
+            logger.warn('3-channel image convert to 8-bit uint')
+            
+        if bg.shape != self.shape:
+            xf, yf = self.shape
+            try:
+                bg = crop(bg, 0, 0, xf, yf)
+            except Exception as E:
+                raise GridError('bg shape %s did not match grid shape %s and '
+                    'cropping failed with: %s' % (bg.shape, self.shape, E.message))
+            else:
+                logger.warn("bg image cropped to grid dimensions %s" % self.shape)
+    
+        # Normalize the values to balance weight sum
+        scale = bg.max() / self.zz.max()
+        zzout = self.zz * scale 
+        alpha = 1-weight
+    
+        return (weight * zzout + ( alpha  * bg) ) #/ scale 
         
     @property
     def meshindex(self):
@@ -145,7 +174,7 @@ class Grid(HasTraits):
         
     @property
     def zz(self):
-        return self.zfcn(self.xx, self.yy)
+        return self.zfcn(self.xx, self.yy) 
     
     @property
     def shape(self):
@@ -299,10 +328,6 @@ class TiledGrid(Grid):
         mask = (rr_cen >= 0) & (rr_cen < rxmax) & (cc_cen > 0) & (cc_cen < rymax)
         return (rr_cen[mask], cc_cen[mask])
            
-    @property
-    def gmap(self, where='centers'):
-        """ Map a function to each point in the grid"""
-        raise NotImplementedError
     
     @property
     def tiles(self):
@@ -369,32 +394,13 @@ class CartesianGrid(TiledGrid):
         kwargs.update({'zfcn':'fade', 'style':'d'})
         super(CartesianGrid, self).__init__(*args, **kwargs)            
         
-
-    # REVERSES X AND Y DATA
-
     
 if __name__ == '__main__':
-    t=CartesianGrid()
-    print t
-    
-#    print t.grid, t.hlines
+    g=Grid()
     import matplotlib.pyplot as plt
+    plt.imshow(g.zz)
+    plt.show()
 
-
-    image = np.zeros((512,512))
-    #image[t.grid_points(0)]=.2
-    #image[t.grid_points(1)]=.4
-    #image[t.grid_points(2)]=.6
-    #image[t.grid_points(3)]=.8
-    image[t.grid_points(4)]=1
-    
-
-    image[t.grid]=1
-    plt.imshow(image, plt.cm.gray)
-#    plt.show()
-  #  print t.centers[0], t.corners[0]
-  
-  
 # XXX SCRAP
 #-----------
 

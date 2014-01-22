@@ -83,7 +83,7 @@ class Particle(HasTraits):
     #http://scikit-image.org/docs/dev/api/skimage.draw.html#circle
     def _get_unrotated_rr_cc(self):
         """ Subclasses must overwrite """        
-        raise NotImplementedError
+        raise NotImplementedError    
 
     def _set_unrotated_rr_cc(self):
         raise NotImplementedError

@@ -26,9 +26,6 @@ _PAD = ' ' * 3
 _8_bit = ('uint8', 255)
 #_16_bit = ('uint16', 65536) UNTESTED
 
-def rrr():
-    return (ran(), ran(), ran())
-
 # Colors
 # -------
 COLORTYPE = _8_bit
@@ -75,4 +72,5 @@ XVERTS = np.array( (220, 220, 280, 280) )
 YVERTS = np.array( (220, 280, 220, 280) )
 RECTLEN = 20
 RECTWID = 10 #Not used
-LINEWID = 3
+LINELEN = 50
+LINEWID = 1

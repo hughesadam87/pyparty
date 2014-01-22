@@ -23,9 +23,9 @@ GROUPEDTYPES= \
     'polygon':
         {
         'polygon': Polygon,  
-        'triangle':Triangle,
-        'rectangle':Rectangle,
-        'square':Square,
+        'triangle': Triangle,
+        'rectangle': Rectangle,
+        'square': Square,
         },
 
     'n-circle':

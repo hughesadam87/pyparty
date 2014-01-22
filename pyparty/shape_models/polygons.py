@@ -9,7 +9,7 @@ from traits.api import Array, Str, Property, Tuple
 import matplotlib.patches as mpatch
 
 from pyparty.shape_models.basic import LineSegment
-from pyparty.config import XVERTS, YVERTS, RECTLEN, RECTWID, LINEWID
+from pyparty.config import XVERTS, YVERTS, RECTLEN, RECTWID, LINEWID, LINELEN
 from pyparty.config import CENTER_DEFAULT as CDEF
 from pyparty.tools.arraytools import rotate_vector, unzip_array, rotate, \
      rmeanint
@@ -20,8 +20,25 @@ logger = logging.getLogger(__name__)
 
 def rint(x): return int(round(x,0))
 
+def _invalid_constructor(attr, cname='Polygon', **kwargs):
+    """ Raises either PolyConstructError or NotImplementedError depending on
+    which keywords are passed.  Exists to reduced boilerplate.  Tried to 
+    integrate as class/static method but it added too much overhead"""
+
+    if attr in kwargs:
+        raise PolyConstructError('Cannot construct "%s" from parameter "width"' % 
+                                 cname)
+    else:
+        raise NotImplementedError   
+    
+
 class PolygonError(Exception):
     """  """
+    
+class PolyConstructError(PolygonError):
+    """ Raised when a polygon has a bad-constructor call and wants to alert user
+    instead of going to the next call.  For example, calling square with
+    from_length_width() """
         
 class Polygon(FastOriented):
     """ General CLOSED polygon which uses only verticies to wrap 
@@ -62,11 +79,11 @@ class Polygon(FastOriented):
     def __init__(self, *args, **kwargs):
         """ Initialize and run any coord validation imposed by shape."""
 
-        self._xverts = kwargs.pop('xverts', XVERTS )
-        self._yverts = kwargs.pop('yverts', YVERTS )
+        self._xverts = kwargs.pop('xverts')
+        self._yverts = kwargs.pop('yverts')
         self._validate_verts()        
-        super(Polygon, self).__init__(*args, **kwargs)            
-
+        super(Polygon, self).__init__(*args, **kwargs)
+        
     
     def _validate_verts(self):
         """ Verticies are validated once upon initialization for any polygon.
@@ -137,12 +154,18 @@ class Polygon(FastOriented):
         return mpatch.Polygon(rotated_coords, closed=True, **kwargs)
     
     @classmethod
+    def from_verts(cls, *args, **kwargs):
+        kwargs.setdefault('xverts', XVERTS)
+        kwargs.setdefault('yverts', YVERTS)
+        return cls(*args, **kwargs)     
+    
+    @classmethod
     def from_xypairs(cls, *args, **kwargs):
         """ Set verticies from list of (x, y) pairs """
         sets = kwargs.pop('sets')
         xv, yv = unzip_array(sets)
         return cls(xverts=xv, yverts=yv, *args, **kwargs)
-    
+               
     @classmethod
     def auto_init(cls, *args, **kwargs):
         """ For Particles with multiple constructors (eg polygons), this method
@@ -152,33 +175,29 @@ class Polygon(FastOriented):
         
         # Define all of the auto_init methods for all polygons, instead of for
         # each class
-                        
-        try:
-            _meth = 'from_xypairs'
-            return cls.from_xypairs(*args, **kwargs)
-        except Exception:
-            pass
-            
-        try:
-            _meth = 'from_verticies'             
-            return cls(*args, **kwargs)
-        except Exception:
-            pass
         
-        kwargs.setdefault('center', CDEF)        
-        
-        try:
-            _meth = 'from_length_width'                    
-            return cls.from_length_width(*args, **kwargs)                 
-        except Exception:
-            pass 
-        
-        # If all else fails
-        _meth = 'from_length'                                        
-        return cls.from_length(*args, **kwargs)                
+        for meth in ['from_length_width', 'from_length', 
+                     'from_xypairs', 'from_verts']:
+            try:
+                return getattr(cls, meth)(*args, **kwargs)
+            except Exception as EXC:
+                if isinstance(EXC, PolyConstructError):
+                    logger.critical("FAILED AT METHOD %s" % meth)
+                    raise EXC
+                else:
+                    logger.info("Passing on polygon constructor ERROR %s" % EXC)
 
-
+        raise EXC
     
+    # If user tries to construct polygon with length/width
+    @classmethod
+    def from_length_width(cls, *args, **kwargs):       
+        _invalid_constructor('width', cname=cls.__name__, **kwargs)  
+        
+    @classmethod
+    def from_length(cls, *args, **kwargs):       
+        _invalid_constructor('length', cname=cls.__name__, **kwargs)          
+                
     
 class Triangle(Polygon):
     """ Not very restrictive; only imposes 3-coordinates. """
@@ -190,9 +209,10 @@ class Triangle(Polygon):
         super(Triangle, self)._validate_verts()
         if len(self._xverts) != 3:
             raise PolygonError('Triangle requires 3 verticies!')
+
         
     @classmethod
-    def from_length(cls, center, length=RECTLEN, *args, **kwargs):
+    def from_length(cls, center=CDEF, length=RECTLEN, *args, **kwargs):
         """ Equilateral triangle! """
         cx, cy = center
         center_to_corner = length / math.sqrt(3)     
@@ -222,10 +242,11 @@ class Rectangle(Polygon):
         
         #if len(xvset) != nu or len(yvset) != nu or xvset != yvset:
             #raise ShapeError("Rectangle must contain exactly %s unique values"
-                            #" EG: (1,2), (1,3), (8,3), (8,2)  --> 1,5,8" % nu)         
-        
+                            #" EG: (1,2), (1,3), (8,3), (8,2)  --> 1,5,8" % nu)   
+
     @classmethod
-    def from_length_width(cls, center, length, width, *args, **kwargs):
+    def from_length_width(cls, center=CDEF, length=RECTLEN, width=RECTWID, 
+                          *args, **kwargs):
         cx, cy = center
         half_length, half_width = rint(length / 2) , rint(width / 2)        
         
@@ -274,11 +295,11 @@ class Square(Rectangle):
     _n_unique = 2  # _validate_verts() from rectangle
     
     @classmethod
-    def from_length_width(cls, center, length, width, *args, **kwargs):
-        raise PolygonError("Square has no width parameter; please use Rectangle")
+    def from_length_width(cls, *args, **kwargs):       
+        _invalid_constructor('width', cname=cls.__name__, **kwargs)   
     
     @classmethod
-    def from_length(cls, center, length=RECTLEN, *args, **kwargs):
+    def from_length(cls, center=CDEF, length=RECTLEN, *args, **kwargs):
         """ Pass to rectangle's constructor """
         return super(Square, cls).from_length_width(center, length, length, *args, **kwargs)
 
@@ -289,13 +310,13 @@ class Line(Rectangle):
     ptype = Str('line')       
     
     @classmethod
-    def from_length(cls, center, length=RECTLEN, *args, **kwargs):
+    def from_length(cls, center=CDEF, length=LINELEN, *args, **kwargs):
         """ Use LINEWID as default width """
         return cls.from_length_width(center, length, LINEWID, 
                                      *args, **kwargs)
     
     @classmethod
-    def from_length_width(cls, center, length=RECTLEN, width=RECTWID, *args, **kwargs):
+    def from_length_width(cls, center=CDEF, length=LINELEN, width=LINEWID, *args, **kwargs):
         try:
             rect = super(Line, cls).from_length_width(center, length, width,
                                                 *args, **kwargs)
