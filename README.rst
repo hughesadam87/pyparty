@@ -1,4 +1,4 @@
-.. image:: /background/gwu.jpg
+.. image:: pyparty/data/gwu.png
    :height: 100px
    :width: 200 px
    :scale: 50 %
@@ -55,8 +55,8 @@ Please email me (hugadams@gwmail.gwu.edu) if the links are dead.  I will update 
 Goals and Background
 ==================== 
 
-Who does this benefit this?
----------------------------
+Who might benefit from pyparty?
+-------------------------------
 In short, you may consider using our package if you require any of the following:
  
    1. The ability to draw shapes/patterns on an arbitrary image.  This can be very
@@ -85,7 +85,8 @@ better separation between *particles* and *image*.
 
 Dependencies
 ============
-``pyparty`` requires **scikit-image**, **matplotlib**, **Traits** and their dependencies.  
+``pyparty`` requires **scikit-image**, **Traits** and their dependencies, which
+include many core packages such as ``numpy`` and ``matplotlib``.  
 
 ``pyparty`` uses Traits_ because it is well-suited for writing clean, type-checked
 object-oriented classes. You will not need to understand or use **Traits**
@@ -97,6 +98,29 @@ core functionality is stable.)
 Installation
 ============
 
+I would recommend using `Enthought Canopy`_ to install ``Traits`` and ``scikit-image``; however,
+``pyparty`` can also imports pip.  
+
+Pip Install
+-----------
+
+Make sure you have pip installed:
+
+    sudo apt-get install python-pip
+    
+Then:
+   
+    pip install pyparty
+    
+To install all of the dependencies, download ``pyparty`` from github, navigate
+to the base directory and type:
+
+    pip install -r requirements.txt
+
+
+Installation from source
+------------------------
+
 In the ``pyparty`` base directory run:
 
     python setup.py install
@@ -105,12 +129,16 @@ The developmental version can be cloned from github:
 
     git clone https://github.com/hugadams/pyparty.git
     
+This will not install any dependencies (see above)
+    
+    
 Related Libraries
 =================
 Interested in the Python ecosystem?   Check out some of these related libraries:
 
    - SciPy_ (Collection of core scientific libraries)
    - NumPy_ (Fundemental vectorized numerics package in Python)
+   - matplotlib_ (Defacto static plotting in Python)
    - pandas_ (Data analysis library : inspired ``pyparty``` ParticleManager API)
    - ilastik_ (Interactive Learning and Segmentation Tool)
    - Pillow_ (Python Image Library)
@@ -120,11 +148,10 @@ Interested in the Python ecosystem?   Check out some of these related libraries:
    .. _NumPy: http://www.numpy.org/
    .. _pandas: http://pandas.pydata.org/
    .. _SciPy: http://scipy.org/
+   .. _matplotlib : http://matplotlib.org/
    
 Coming Soon
 ===========
-
-
 
 About the Author
 ================
