@@ -195,8 +195,9 @@ class Canvas(HasTraits):
         if inplace:
             self._particles = pout
         else:
-            return Canvas.copy(self)
-
+            cout = Canvas.copy(self)
+            cout.particles = pout
+            return cout
 
     def patchshow(self, *args, **kwargs):
         """ ...
@@ -817,9 +818,12 @@ if __name__ == '__main__':
                
     base = c.grid.xspacing
     
-    for (cx, cy) in c.gpairs('centers'):
-        c.add('triangle', length=base, center=(cx,cy), color='orange')
-    c.show(gcolor='white')
-
+   # for (cx, cy) in c.gpairs('centers'):
+   #     c.add('triangle', length=base, center=(cx,cy), color='orange')
+   # c.show(gcolor='white')
+    
+    c.add('line', ystart=5, yend=500, xstart=5, xend=500, color='aqua')
+    c.add('line', length=200, width=5, center=(50,100))    
+    c.show()
     plt.show()
 

@@ -11,7 +11,7 @@ pyparty: Python (py) particle (party) manager
 =============================================
 
 ``pyparty`` is a library for creating, managing and measuring 
-particles in 2d images.  This library was built mainly over the excellent
+particles in 2d images.  This library was built primarily over the excellent
 image processing library, scikit-image_.
 
    .. _scikit-image: http://scikit-image.org
@@ -20,21 +20,43 @@ image processing library, scikit-image_.
 What does pyparty do, and will it be useful to me?
 --------------------------------------------------
 
-In short, you may consider using our package if you require any of the following:
- 
-   1. The ability to draw shapes/patterns on an arbitrary image.  This can be very
-      helpful for creating *intricate* test data.  Some background generation tools
-      are also provided.
-   2. Indexing/manipulating by particle attribute.  For example:
-       - return all particles that have area > 50 pixels.
-       - color ellipses in order of increasing eccentricity.
-       - remove all particles appearing in bottom half of image
-   3. Manage and manipulated labeled particles from scipy.ndimage.label, and
-      perform subsequent analysis in Python.  IO for ImageJ_ / ilastik_ particles
-      is forthcoming.
+``pyparty`` provides a simple API for particle analysis in 2d images.  Some operations
+that pyparty would be particularly suited for would be:
 
-   .. _ImageJ: http://rsb.info.nih.gov/ij/
-   .. _ilastik: http://www.ilastik.org/
+1. Counting cells in an image and measuring their eccentricity.
+
+2. Patterning a grid of hexagons over a shadowed background to test hystersis
+   thresholding algorithms (in scikit-image).
+
+3. Indexing/manipulating by particle attribute.  For example:
+
+   - return all particles that have area > 50 pixels.
+   - color ellipses in order of increasing eccentricity.
+   - remove all particles appearing in bottom half of image
+
+4. Outputing a dataset of particles as masks OR patches (matplotlib.patches) without
+   pain.
+
+Instead of storing particles as a masked array, ``pyparty`` completely separates
+particles from any image.  This allows particles to be manipulated in a pythonic API,
+and then projected onto an arbitrary background.  In addition, pyparty streamlines the
+process of ascertaining particles from an image (as labels).  Custom and builtin descriptors
+are implicitly stored on all objects.  This allows for an operation such as *label all particles
+in an image and sort them by decreasing eccentricity* a 2-line affair.  
+
+Some other important features of pyparty include:
+
+1. **Grid** classes for patterning and creating interesting backgrounds.
+2. General operations such as rotations and translations supported by ALL particle types.
+3. Completely integrated matplotlib patchcollection_ backend, ensuring that arbitrary particles 
+   can be drawn as fancier-looking matplotlib patches.
+
+In short, you may consider using ``pyparty`` if you are doing image analysis and find 
+generating, managing or labeling particles as a bottleneck.  Additionally, if you are
+generating non-trivial 2d test images, hopefully ``pyparty`` will make your life
+a little easier.
+
+   .. _patchcollection : http://matplotlib.org/examples/api/patch_collection.html
 
 
 Background
@@ -48,6 +70,8 @@ labeled particles from real images.  All of the tools already existed in scikit-
 
 I should also note that some of the inspiration can from the excellent ``Analyze Particles`` features
 in ImageJ_.
+
+   .. _ImageJ : http://rsbweb.nih.gov/ij/
 
 
 Documentation
@@ -103,7 +127,7 @@ Installation
 ============
 
 I would recommend using `Enthought Canopy`_ to install ``Traits`` and ``scikit-image``; however,
-``pyparty`` can also imports pip.  
+``pyparty`` is also registered in pip.  
 
 Pip Install
 -----------
@@ -147,7 +171,6 @@ Interested in the Python ecosystem?   Check out some of these related libraries:
    - ilastik_ (Interactive Learning and Segmentation Tool)
    - Pillow_ (Python Image Library)
 
-   
    .. _Pillow: http://python-imaging.github.io/
    .. _NumPy: http://www.numpy.org/
    .. _pandas: http://pandas.pydata.org/
@@ -156,10 +179,18 @@ Interested in the Python ecosystem?   Check out some of these related libraries:
    
 Coming Soon
 ===========
+   - More multi-particle types.
+   - More real-world examples.
 
 About the Author
 ================
 
-I'm a PhD student at GWU.  I work in biomolecule sensing and nanophotonics; you can check me out here_.  Last summer, I interened at Enthought and really enjoy software design.  As with any PhD, my time is fairly limited, especially in pursuing sofftware ventures.  As such, you may not find my code documentation up to par, and ``pyparty`` doesn't have any nosetests yet.  I know this is cardinal sin uno, but developing the iPython notebooks alongside the code helped served as a basic test platform.  If anyone feels so compelled to assist in this effort, I'd be forever in your debt.
+I'm a PhD student at GWU.  I work in biomolecule sensing and nanophotonics; you 
+can check me out on researchgate_.  Last summer, I interened at Enthought and 
+really enjoy software design.  Like any PhD student, my time is apportioned across
+many project.  As such, my source code is messy at times, and a test suite hasn't been
+developed yet.  I know this is cardinal sin uno, but developing
+the iPython notebooks alongside the code helped served as a basic test platform.  
+If anyone wants to assist in this effort, I'd be greatly indebted to you.
 
-   .. _here : https://www.researchgate.net/profile/Adam_Hughes2/?ev=hdr_xprf
+   .. _researchgate : https://www.researchgate.net/profile/Adam_Hughes2/?ev=hdr_xprf
