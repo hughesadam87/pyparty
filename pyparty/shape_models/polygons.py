@@ -93,7 +93,7 @@ class Polygon(FastOriented):
         
         if len(xneg) != 0 or len(yneg) != 0:
             raise PolygonError("Negative verticies can result in unusual behavior"
-                               "in resulting drawn indicies.  Not supported ATM")
+                               "in resulting drawn indicies.  Not currently supported")
 
     
     def _get_center(self):
@@ -181,7 +181,7 @@ class Polygon(FastOriented):
             try:
                 return getattr(cls, meth)(*args, **kwargs)
             except Exception as EXC:
-                if isinstance(EXC, PolyConstructError):
+                if isinstance(EXC, PolyConstructError) or isinstance(EXC, PolygonError):
                     logger.critical("FAILED AT METHOD %s" % meth)
                     raise EXC
                 else:
@@ -221,7 +221,7 @@ class Triangle(Polygon):
         thetas = np.deg2rad( (210, 90, -30) )
         xs = cx + (center_to_corner * np.cos(thetas))
         ys = cy + (center_to_corner * -np.sin(thetas)) #for upright orientation
-        return cls( xverts=xs, yverts=ys )
+        return cls( xverts=xs, yverts=ys, *args, **kwargs )
     
     
 class Rectangle(Polygon):

@@ -1,62 +1,25 @@
-.. image:: pyparty/data/graygeorge.png
+.. image:: pyparty/data/coverimage.png
    :height: 100px
    :width: 200 px
    :scale: 50 %
    :alt: alternate text
-   :align: right
+   :align: left
+   
    
 =============================================
 pyparty: Python (py) particle (party) manager
 =============================================
 
 ``pyparty`` is a library for creating, managing and measuring 
-particles/inclusion in images.  This library was built mainly over the excellent
+particles in 2d images.  This library was built mainly over the excellent
 image processing library, scikit-image_.
 
    .. _scikit-image: http://scikit-image.org
 
-License
-=======
 
-BSD_
+What does pyparty do, and will it be useful to me?
+--------------------------------------------------
 
-   .. _BSD : https://github.com/hugadams/pyparty/blob/master/LICENSE.txt
-
-Documentation
-=============
-
-The official documentation_ doesn't officially exist yet.  Please see **pyparty.examples.Notebooks**
-for example gallery.  For convienence, these have been linked below:
-
-   - `Basic Operations`_ (Primary Tutorial)
-   - `Manage Particles on Image`_
-   - `pyparty shapes`_
-   
-   .. _`Basic Operations`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/Analyze_Particles.ipynb?create=1
-   .. _`Manage Particles on Image`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/basictests.ipynb?create=1
-   .. _`pyparty shapes`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/basictests.ipynb?create=1
-
-Notebooks were initialized with ``pylab=inline``:
-
-   .. ipython notebook --pylab=inline
-   
-Having trouble viewing/editing notebooks?  Consider using `Enthought
-Canopy`_, which has an `iPython Notebook`_ kernel builtin.  For simply viewing,
-paste the github url of each notebook into the iPython Notebook viewer_. 
- 
-   .. _documentation: http://hugadams.github.com/pyparty/
-   .. _`iPython Notebook`: http://ipython.org/notebook.html?utm_content=buffer83c2c&utm_source=buffer&utm_medium=twitter&utm_campaign=Buffer
-   .. _`Enthought Canopy`: https://www.enthought.com/products/canopy/
-   .. _viewer: http://nbviewer.ipython.org/
-
-Please email me (hugadams@gwmail.gwu.edu) if the links are dead.  I will update them periodically.   
-   
-
-Goals and Background
-==================== 
-
-Who might benefit from pyparty?
--------------------------------
 In short, you may consider using our package if you require any of the following:
  
    1. The ability to draw shapes/patterns on an arbitrary image.  This can be very
@@ -74,14 +37,55 @@ In short, you may consider using our package if you require any of the following
    .. _ilastik: http://www.ilastik.org/
 
 
-Motivation
+Background
 ----------
 ``pyparty`` originally began at the George Washington University (2013) in an 
 effort to generate test data for SEM and AFM images of gold nanoparticles on the
-surface of optical fibers.  We really enjoyed the power of scikit-image_ and sought
-to implement it in generating test data, as well as supplant the ``Analyze Particles``
-feature in ImageJ_.  While all of this is possible in scikit-image_, we needed 
-better separation between *particles* and *image*.    
+surface of optical fibers.  We really enjoyed the design of scikit-image_ for image processing 
+and sought to implement it in generating test data.  We also wanted to provide an API for managing
+labeled particles from real images.  All of the tools already existed in scikit-image and scipy.ndimage;
+``pyparty`` merely streamlines some of the functionality.  
+
+I should also note that some of the inspiration can from the excellent ``Analyze Particles`` features
+in ImageJ_.
+
+
+Documentation
+=============
+
+The official documentation_ doesn't exist yet.  Instead, we provide a series of example notebooks 
+(`iPython Notebook`_), which cover most of the basics. Please see **pyparty.examples.Notebooks**
+for the current tutorials gallery.  For convienence, these have been linked below:
+
+   - `Basic Operations`_ (Primary Tutorial)
+   - `Manage Particles on Image`_
+   - `pyparty shapes`_
+   
+   .. _`Basic Operations`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/Analyze_Particles.ipynb?create=1
+   .. _`Manage Particles on Image`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/basictests.ipynb?create=1
+   .. _`pyparty shapes`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/basictests.ipynb?create=1
+
+Notebooks were initialized with pylab inline IE:
+
+   ipython notebook --pylab=inline
+   
+Having trouble viewing/editing notebooks?  Consider using `Enthought
+Canopy`_, which has a notebook kernel builtin, as well as a graphical package manager. 
+For simply viewing, paste the github url of each notebook into the iPython Notebook viewer_. 
+ 
+   .. _documentation: http://hugadams.github.com/pyparty/
+   .. _`iPython Notebook`: http://ipython.org/notebook.html?utm_content=buffer83c2c&utm_source=buffer&utm_medium=twitter&utm_campaign=Buffer
+   .. _`Enthought Canopy`: https://www.enthought.com/products/canopy/
+   .. _viewer: http://nbviewer.ipython.org/
+
+Please post a github issue if you notice a dead link.  I will update them periodically.   
+
+License
+=======
+
+BSD_
+
+   .. _BSD : https://github.com/hugadams/pyparty/blob/master/LICENSE.txt
 
 Dependencies
 ============

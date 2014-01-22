@@ -815,37 +815,11 @@ if __name__ == '__main__':
     from pyparty.data import lena_who
     c=Canvas()
                
-    from random import randint as intrand
-    def cran(): 
-        return (intrand(0,512), intrand(0,512))
-                
-    c.add('circle', name='top_right', radius=75, center=(400,100), color='y')
-    c.add('ellipse', name='bottom_left', center=(50,400), color='green', phi=0)
-    c.add('circle', name='topleft_corner', radius=100, center=(0,0), color=(20,30,50) )
-    c.add('circle', name='off_image', radius=50, center=(900,200), color='teal')
+    base = c.grid.xspacing
     
-    # Randomized centers
-    c.add('line', color='purple', length=200, width=10, center=cran())
-    c.add('square', length=50, color='purple', phi=10, center=cran())
-    c.add('square', color='honeydew', length=50, center=cran())
-    c.add('triangle', color='yellow', center=cran())
+    for (cx, cy) in c.gpairs('centers'):
+        c.add('triangle', length=base, center=(cx,cy), color='orange')
+    c.show(gcolor='white')
 
-    from pyparty import splot
-    ax1, ax2, ax3, ax4, ax5, ax6 = splot(2, 3)
-    
-    def colormap(p, color):
-        p.color = color
-        return p
-    
-    c.reset_background()
-    
-    c.pmap(colormap, 'r').show(ax1, title='colorstring')
-    c.pmap(colormap, '#00FF00').show(ax2, title='hex color') #green
-    c.pmap(colormap, (0, 0, 1)).show(ax3, title='rgb tuple') #blue
-    
-    # These become the same color (.5, .5, .5) ...
-    c.pmap(colormap, .5).show(ax4, title='0.5 --> (.5, .5, .5)')
-    c.pmap(colormap, 128).show(ax5, title='128 --> (.5, .5, .5)') 
-    c.pmap(colormap, (255, 255, 1)).show(ax6, title='tuple (normalized)');
     plt.show()
 
