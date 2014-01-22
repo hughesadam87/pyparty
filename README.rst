@@ -1,4 +1,4 @@
-.. image:: pyparty/data/gwu.png
+.. image:: pyparty/data/graygeorge.png
    :height: 100px
    :width: 200 px
    :scale: 50 %
