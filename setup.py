@@ -32,7 +32,8 @@ setup(
 
     # include .tex and .ipynb files
     package_data={   
-      'pyuvvis.examples.Notebooks':['*.ipynb'],
+      'pyparty.examples.Notebooks':['*.ipynb'],
+      'pyparty.data':['*']
 #      'pyuvvis.scripts':['*.png']
                  },
        
@@ -41,7 +42,7 @@ setup(
 #                       'gwureport = pyuvvis.scripts.gwu_script.gwureport:main']
 #                    },
     
-    url = 'http://pypi.python.org/pypi/PyUvVis/',
+ #   url = 'http://pypi.python.org/pypi/PyUvVis/',
     download_url = 'https://github.com/hugadams/pyparty',
     license = 'LICENSE.txt',
     description = 'Tools for patterning 2d-shapes on ndarrays',

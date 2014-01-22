@@ -68,7 +68,7 @@ YEND = 306
 BEZIERWEIGHT=1.0
 
 #POLYGONS
-XVERTS = np.array( (220, 220, 280, 280) )
+XVERTS = np.array( (220, 220, 280, 280) ) #NOT CENTERED
 YVERTS = np.array( (220, 280, 220, 280) )
 RECTLEN = 20
 RECTWID = 10 #Not used

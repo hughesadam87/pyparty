@@ -233,6 +233,11 @@ def _parse_path(path):
     path = op.expanduser(path)
     if op.exists(path):
         raise UtilsError('Path exists: "%s"' % path)    
+    
+    # PIL raises ambiguous KeyError 
+    if not op.splitext(path)[1]:
+        raise UtilsError("Please add an extension to save path")
+    
     return path
 
 

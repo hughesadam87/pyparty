@@ -104,7 +104,7 @@ class Canvas(HasTraits):
     def __init__(self, particles=None, background=None, rez=None, grid=None): #No other traits
         """ Load with optionally a background image and instance of Particle
             Manager"""
-
+        
         if not particles:
             particles = ParticleManager()
         self._particles = particles
@@ -129,6 +129,7 @@ class Canvas(HasTraits):
 
         self.rez = BGRES  #must be set first
         self._background = self.color_background        
+        self._bgstyle = 'default'
         
     def reset_grid(self):
         """ New grid of default x/y spacing; rez is optional """
@@ -680,21 +681,26 @@ class Canvas(HasTraits):
 
         if background is None:
             self._background = self.color_background
+            self._bgstyle = 'default'            
             
         elif isinstance(background, Grid):
             self._background = bgu.from_grid(background)
+            self._bgstyle = 'grid'
 
         elif isinstance(background, np.ndarray):
             self._background = background
+            self._bgstyle = 'ndarray'
 
         # colorstring or hex
         elif isinstance(background, basestring):
             self._background = bgu.from_string(background, self.rx, self.ry)
+            self._bgstyle = 'file/colorstring'            
 
         # If not array, color is assume as valid to_norm_rgb(color) arg
         # It will raise its own error if failure occurs
         else:
             self._background = bgu.from_color_res(background, self.rx, self.ry)            
+            self._bgstyle = 'color'
 
         # Float-color convert array       
         self._background = any2rgb(self._background, 'background')
@@ -733,7 +739,7 @@ class Canvas(HasTraits):
                           "canvas.image or canvas.particles")
 
     def __repr__(self):
-        _bgstyle = 'user-array' #REPLACE
+        _bgstyle = self._bgstyle #REPLACE
         res = '(%s X %s)' % (self.rx, self.ry ) 
         address = mem_address(super(Canvas, self).__repr__())
         
@@ -808,24 +814,38 @@ if __name__ == '__main__':
     from skimage.data import lena
     from pyparty.data import lena_who
     c=Canvas()
+               
+    from random import randint as intrand
+    def cran(): 
+        return (intrand(0,512), intrand(0,512))
                 
-    c.add('circle', name='top_right', radius=75, phi=100, center=(400,100), color='y')
-    c.add('line',  center=(300,300), length=200, phi=30.0)
-    c.add('rectangle', length=50, width=15, center=(200,200), phi=23.0)
-    c.add('square', length=50, center=(300,300), phi=23.0)
-
-    c.add('circle', name='bottom_right', radius=20, center=(400,400), color='red')
-    c.add('ellipse', name='bottom_left', center=(100,400), xradius=20, yradius=20, color='purple', phi=52.0)
-    c.add('ellipse', name='bottom_we', center=(200,400), xradius=20, yradius=20, color='teal', phi=0.0)
+    c.add('circle', name='top_right', radius=75, center=(400,100), color='y')
+    c.add('ellipse', name='bottom_left', center=(50,400), color='green', phi=0)
     c.add('circle', name='topleft_corner', radius=100, center=(0,0), color=(20,30,50) )
     c.add('circle', name='off_image', radius=50, center=(900,200), color='teal')
-    c.add('polygon', name='bowtie', color='orange', phi=50.0)
+    
+    # Randomized centers
+    c.add('line', color='purple', length=200, width=10, center=cran())
+    c.add('square', length=50, color='purple', phi=10, center=cran())
+    c.add('square', color='honeydew', length=50, center=cran())
+    c.add('triangle', color='yellow', center=cran())
 
-  #  c.patchshow(plt.cm.jet, gstyle='--', gunder=False, hatch='*')
     from pyparty import splot
-    from pyparty.utils import showim
-
-#    c2=c.zoom_bg(1, 1, 25,25)
-#    c2.patchshow(grid=True)
-    c.patchshow()
+    ax1, ax2, ax3, ax4, ax5, ax6 = splot(2, 3)
+    
+    def colormap(p, color):
+        p.color = color
+        return p
+    
+    c.reset_background()
+    
+    c.pmap(colormap, 'r').show(ax1, title='colorstring')
+    c.pmap(colormap, '#00FF00').show(ax2, title='hex color') #green
+    c.pmap(colormap, (0, 0, 1)).show(ax3, title='rgb tuple') #blue
+    
+    # These become the same color (.5, .5, .5) ...
+    c.pmap(colormap, .5).show(ax4, title='0.5 --> (.5, .5, .5)')
+    c.pmap(colormap, 128).show(ax5, title='128 --> (.5, .5, .5)') 
+    c.pmap(colormap, (255, 255, 1)).show(ax6, title='tuple (normalized)');
     plt.show()
+
