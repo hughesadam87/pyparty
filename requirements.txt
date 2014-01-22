@@ -1,0 +1,4 @@
+scikit-image
+traits
+#-e git+https://github.com/enthought/okonomiyaki#egg=okonomiyaki
+
