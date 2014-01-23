@@ -476,31 +476,45 @@ class ParticleManager(HasTraits):
     # Class methods
     # ------------
     @classmethod
-    def from_labels(cls, labelarray, prefix='label', colorbynum=False):
+    def from_labels(cls, labelarray, prefix='label', colorbynum=False, pmin=2,
+                    pmax=None):
         """ Create ParticleManager from output of skimage.morphology.label
         array.  Each item is written to a general Particle type."""
 
         from pyparty.shape_models.io import LabeledParticle
-
-        #Background label is 0
-        num = np.unique(labelarray)[1:]     
-       
         plist = []
+         
+        if not pmax:
+            pmax = len(labelarray.flatten())
+
+        #Background label is -1
+        num = np.unique(labelarray)    
+       
         for idx, label in enumerate(num):
+            
+            # SKIP BACKGROUND
+            if label == -1:
+                continue
+            
+            # Is label size within pixel range
+            freq = (labelarray==label).sum()
+            if freq < pmin or freq > pmax:
+                continue
+            
             name = '%s%s%s' % (prefix, NAMESEP, idx)
+                
             rr_cc = np.where(labelarray==label)
-            particle = LabeledParticle(rr_cc, label=label, ptype='nd_image')
+            particle = LabeledParticle(rr_cc, label=label, ptype='nd_label')
                         
             if colorbynum:
                 cn = label / max(num)     #Normalize to max value  
                 color = (cn, cn, 0)
-                plist.append( MetaParticle(name=name, color=color, 
-                                           particle=particle) )
-            # Use default color
             else:
-                plist.append( MetaParticle(name=name, particle=particle,
-                                           color=None) )
-      
+                #Color defaults to random
+                color = None
+
+            plist.append( MetaParticle(name=name, color=color, 
+                                       particle=particle) )
         return cls(plist=plist)      
     
 #http://stackoverflow.com/questions/9989334/create-nice-column-output-in-python               

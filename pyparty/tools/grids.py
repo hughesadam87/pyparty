@@ -324,7 +324,7 @@ class TiledGrid(Grid):
         translated = translate(cornerpairs, r, thetadiag)
         rr_cen, cc_cen = unzip_array(astype_rint(translated))
 
-        # MASK WAS DEFINED WRONG
+        # THIS IS HOW TO DEFINE 2D MASK PROPERLY
         mask = (rr_cen >= 0) & (rr_cen < rxmax) & (cc_cen > 0) & (cc_cen < rymax)
         return (rr_cen[mask], cc_cen[mask])
            

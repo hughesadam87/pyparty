@@ -37,6 +37,7 @@ GCOLOR = 'red'  #default grid color
 # Canvas
 # ------
 BGRES = (512, 512) # Default canvas background resolution
+BINDEF = 'img2bool' #Default binarization function
 
 # Grid
 # ----

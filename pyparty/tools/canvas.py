@@ -3,28 +3,27 @@ import os
 import os.path as op
 import logging 
 import copy
+import functools
 
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.collections import PatchCollection
+from traits.api import HasTraits, Array, Instance, Property, Float, Tuple, \
+     Int, Function
 
 import skimage.io
-import skimage.color as color
 import skimage.measure as measure
 import skimage.morphology as morphology
-from skimage import img_as_float, img_as_bool
+
 import pyparty.background.bg_utils as bgu
 from pyparty.shape_models.abstract_shape import ParticleError
-
-from traits.api import HasTraits, Array, Instance, Property, Float, Tuple, Int
-from manager import ParticleManager, concat_particles
-from functools import wraps
-
-# pyparty imports
+from pyparty.tools.thresholding import choose_thresh
+from pyparty.tools.manager import ParticleManager, concat_particles
+from pyparty.tools.grids import Grid, CartesianGrid
 from pyparty.utils import coords_in_image, where_is_particle, to_normrgb, \
      any2rgb, crop, _parse_ax, _parse_path, mem_address, rgb2uint
-from pyparty.config import BGCOLOR, BGRES, GRIDXSPACE, GRIDYSPACE, _PAD, GCOLOR
-from pyparty.tools.grids import Grid, CartesianGrid
+from pyparty.config import BGCOLOR, BGRES, GRIDXSPACE, GRIDYSPACE, _PAD, \
+     GCOLOR, BINDEF
 
 # Ensure colors are correctly mapped
 BGCOLOR, GCOLOR = to_normrgb(BGCOLOR), to_normrgb(GCOLOR)
@@ -95,13 +94,14 @@ class Canvas(HasTraits):
     # Background is only a property because for _set validation...
     background = Property()
     _background = Array
-    
+        
     # Use this as a listener for grid
     _resolution = Tuple(Int, Int)
 
     grid = Instance(CartesianGrid)
 
-    def __init__(self, particles=None, background=None, rez=None, grid=None): #No other traits
+    def __init__(self, particles=None, background=None, rez=None, grid=None, 
+                 _binfcn=None): #No other traits
         """ Load with optionally a background image and instance of Particle
             Manager"""
         
@@ -120,6 +120,31 @@ class Canvas(HasTraits):
             self.reset_grid()
         else:
             self.grid = grid
+            
+        # _binfcn through __init__ only really for Cavnas.copy(); not users
+        if _binfcn is None:
+            self.set_binfcn(BINDEF)
+        else:
+            self._binfcn = _binfcn
+
+    def set_binfcn(self, fcn_or_string, *args, **kwargs):
+        """ Set a binarization function. """
+        if isinstance(fcn_or_string, str):
+            # Update later
+            if args:
+                raise CanvasError('Please use keyword args for threshold function')
+            self._binfcn = choose_thresh(fcn_or_string, **kwargs)
+        else:
+            self._binfcn = functools.partial(fcn_or_string, *args, **kwargs)
+        
+    @property
+    def binfcn(self):
+        return self._binfcn
+    
+    @binfcn.setter
+    def binfcn(self):
+        raise CanvasError('Please use "set_binfcn(fcn/str, *args, **kwargs)" to set the binary '
+            'function.')
 
     # Public Methods
     # -------------              
@@ -130,13 +155,15 @@ class Canvas(HasTraits):
         self.rez = BGRES  #must be set first
         self._background = self.color_background        
         self._bgstyle = 'default'
-        
+                
+                
     def reset_grid(self):
         """ New grid of default x/y spacing; rez is optional """
         xs = ys = 0
         xe, ye = self.rez
         self.grid = CartesianGrid(ystart=ys, xstart=xs, yend=xe, xend=ye,
                               xspacing=GRIDYSPACE, yspacing = GRIDXSPACE)
+        
 
     def clear_canvas(self):
         """ Background image to default; removes ALL particles."""
@@ -180,15 +207,21 @@ class Canvas(HasTraits):
 
 #http://scikit-image.org/docs/dev/api/skimage.morphology.html#skimage.morphology.label
 #    @inplace
-    def from_labels(self, inplace=False, neighbors=4,
-                    background=None, **pmangerkwds):
-        """ """
+    def from_labels(self, inplace=False, neighbors=4, bgout=None,
+                    background=None, binary=False, **pmangerkwds):
+        """ Get morphological labels from gray or binary image. """
 
-        if background: # scikit api doesn't accept None
-            background = int(background) 
-            labels = morphology.label(self.grayimage, neighbors, background)
+        if binary:
+            image = self.binaryimage
         else:
-            labels = morphology.label(self.grayimage, neighbors)
+            image = self.grayimage
+            
+        logger.warn('Labels from grayimage can be very slow (fix coming)')
+            
+        if background is not None: # scikit api doesn't accept None
+            labels = morphology.label(image, neighbors, background)
+        else:
+            labels = morphology.label(image, neighbors)
 
         pout = ParticleManager.from_labels(labels, **pmangerkwds)
 
@@ -197,6 +230,8 @@ class Canvas(HasTraits):
         else:
             cout = Canvas.copy(self)
             cout.particles = pout
+            if bgout is not None:
+                cout.background = bgout
             return cout
 
     def patchshow(self, *args, **kwargs):
@@ -443,15 +478,15 @@ class Canvas(HasTraits):
 
     @property
     def binaryimage(self):
-        return img_as_bool(self.grayimage) # 3--1 channel reduction required
-
+        return self.binfcn(self.grayimage)
+        
     @property
     def graybackground(self):
-        return color.rgb2gray(self.background)
+        return rgb2uint(self.background)
 
     @property
     def binarybackground(self):
-        return img_as_bool(self.graybackground)
+        return self.binfcn(self.graybackground)
 
     @property
     def color_background(self):
@@ -780,7 +815,7 @@ class Canvas(HasTraits):
         """ Returns a copied canvas object. """
         newgrid = copy.copy(obj.grid)
         return cls(background=obj.background, particles=obj._particles, 
-                                  rez=obj.rez, grid=newgrid)        
+                                  rez=obj.rez, grid=newgrid, _binfcn=obj._binfcn)        
 
     
     # Extend to polygons/other circles in future
@@ -812,18 +847,27 @@ class ScaledCanvas(Canvas):
 if __name__ == '__main__':
 
    #c=Canvas()
-    from skimage.data import lena
+    from skimage.data import lena, moon, coffee
+    from skimage.color import rgb2gray
     from pyparty.data import lena_who
-    c=Canvas()
-               
-    base = c.grid.xspacing
+    c=Canvas(background=lena_who())
+    c.set_binfcn('adaptive', block_size=199, method='gaussian')
+    #c.show()
+    #plt.show() 
+    from skimage.morphology import label
+    import time
     
-   # for (cx, cy) in c.gpairs('centers'):
-   #     c.add('triangle', length=base, center=(cx,cy), color='orange')
-   # c.show(gcolor='white')
+    print c.binarybackground
     
-    c.add('line', ystart=5, yend=500, xstart=5, xend=500, color='aqua')
-    c.add('line', length=200, width=5, center=(50,100))    
-    c.show()
-    plt.show()
+#    start =time.time()    
+#    cnew = c.from_labels(binary=True, background=0, pmin=10, pmax=None,
+#                         colorbynum=False) #WORKS BETTER WITH JPEG?
+#    cnew.sortby('perimeter', inplace=True, ascending=False)
+  #  cnew.particles = cnew.particles[0:5]
 
+#    print 'done'
+
+#    cnew.show()
+    plt.imshow(c.binarybackground, plt.cm.gray)
+    plt.show()
+    
