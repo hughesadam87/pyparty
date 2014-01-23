@@ -6,73 +6,75 @@
    :align: left
    
    
-=============================================
-pyparty: Python (py) particle (party) manager
-=============================================
+======================================
+pyparty: Python (py) particles (party) 
+======================================
 
-``pyparty`` is a library for creating, managing and measuring 
+``pyparty`` is a library for drawing, labeling, patterning and manipulating 
 particles in 2d images.  This library was built primarily over the excellent
 image processing library, scikit-image_.
 
    .. _scikit-image: http://scikit-image.org
+   
+Overview and Features
+---------------------
 
+``pyparty`` provides a simple API for particle analysis in 2d images, while streamlining
+several other facets of image processing.  While it is designed with particles in mind, 
+many of its features may have broader appeal.
 
-What does pyparty do, and will it be useful to me?
---------------------------------------------------
+*Some key features include*:
 
-``pyparty`` provides a simple API for particle analysis in 2d images.  Some operations
-that pyparty would be particularly suited for would be:
+1. Pythonic **ParticleManager** for storing and manipulating particles from image 
+   labels OR builtin geometric shapes.
+
+2. A **Grid** system for patterning particles, as well as making 2d meshes for 
+   image backgrounds.
+
+3. A **Canvas** to easily integrate Grids, Particles and flexible Backgrounds.
+
+4. A congruent plotting API that supports both masks AND `matplotlib patches`_.
+
+5. Streamlines common image-processing workflow operations  such as accessing 
+   particle descriptors, mapping, changing colors and resolution, thresholding and so on...
+
+6. Flexible color types ('red', (1,0,0), 00FF00), and implicitly typed *color*, *gray* and *binary*
+   images to ensure consistency in plotting and manipulation.
+
+7. General ndarray operations such as rotations and translations supported by ALL particle types.
+
+8. iPython Notebook tutorials.
+
+In essence, ``pyparty`` uses its **Canvas**, **Grids** and **Manager** to
+integrate pre-existing plotting and image processing tools in a way that hopefully
+will help simplify many common needs, especially in regard to particle analysis.
+
+   .. _`matplotlib patches` : http://matplotlib.org/examples/api/patch_collection.html
+
+What are some use cases, and will pyparty help to me?
+-----------------------------------------------------
+
+Some operations that pyparty would be particularly suited for would be:
 
 1. Counting cells in an image and measuring their eccentricity.
 
-2. Patterning a grid of hexagons over a shadowed background to test hystersis
-   thresholding algorithms (in scikit-image).
+2. Patterning a grid of particles over a shadowed background to comparte performance
+   of thresholding algorithms.
 
-3. Indexing/manipulating by particle attribute.  For example:
+3. Manipulating particles based on descriptors.  For example:
 
-   - return all particles that have area > 50 pixels.
-   - color ellipses in order of increasing eccentricity.
-   - remove all particles appearing in bottom half of image
+   - delete all particles that have area > 50 pixels.
+   - sort and color ellipses in order of increasing eccentricity.
+   - dilate all particles appearing in bottom half of an image
 
-4. Outputing a dataset of particles as masks OR patches (matplotlib.patches) without
-   pain.
-
-Instead of storing particles as a masked array, ``pyparty`` completely separates
-particles from any image.  This allows particles to be manipulated in a pythonic API,
-and then projected onto an arbitrary background.  In addition, pyparty streamlines the
-process of ascertaining particles from an image (as labels).  Custom and builtin descriptors
-are implicitly stored on all objects.  This allows for an operation such as *label all particles
-in an image and sort them by decreasing eccentricity* a 2-line affair.  
-
-Some other important features of pyparty include:
-
-1. **Grid** classes for patterning and creating interesting backgrounds.
-2. General operations such as rotations and translations supported by ALL particle types.
-3. Completely integrated matplotlib patchcollection_ backend, ensuring that arbitrary particles 
-   can be drawn as fancier-looking matplotlib patches.
+4. Plot particles as masks, or matplotlib patches side-by-side.
 
 In short, you may consider using ``pyparty`` if you are doing image analysis and find 
 generating, managing or labeling particles as a bottleneck.  Additionally, if you are
-generating non-trivial 2d test images, hopefully ``pyparty`` will make your life
+generating non-trivial 2d test images, ``pyparty`` may make your task
 a little easier.
 
    .. _patchcollection : http://matplotlib.org/examples/api/patch_collection.html
-
-
-Background
-----------
-``pyparty`` originally began at the George Washington University (2013) in an 
-effort to generate test data for SEM and AFM images of gold nanoparticles on the
-surface of optical fibers.  We really enjoyed the design of scikit-image_ for image processing 
-and sought to implement it in generating test data.  We also wanted to provide an API for managing
-labeled particles from real images.  All of the tools already existed in scikit-image and scipy.ndimage;
-``pyparty`` merely streamlines some of the functionality.  
-
-I should also note that some of the inspiration can from the excellent ``Analyze Particles`` features
-in ImageJ_.
-
-   .. _ImageJ : http://rsbweb.nih.gov/ij/
-
 
 Documentation
 =============
@@ -89,7 +91,7 @@ for the current tutorials gallery.  For convienence, these have been linked belo
    .. _`Manage Particles on Image`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/basictests.ipynb?create=1
    .. _`pyparty shapes`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/basictests.ipynb?create=1
 
-Notebooks were initialized with pylab inline IE:
+Notebooks were initialized with ``--pylab inline``; that is:
 
    ipython notebook --pylab=inline
    
@@ -103,6 +105,19 @@ For simply viewing, paste the github url of each notebook into the iPython Noteb
    .. _viewer: http://nbviewer.ipython.org/
 
 Please post a github issue if you notice a dead link.  I will update them periodically.   
+
+History
+=======
+``pyparty`` originally began at the George Washington University (2013) in an 
+effort to generate test data for SEM and AFM images of gold nanoparticles on glass substrates.
+We really enjoyed scikit-image_ for image processing and sought to implement it in generating test data.  
+We sought to provide an API for managing labeled particles from real images.  Scikit-image draw and measure
+modules laid the groundwork to the core functionaly that ``pyparty`` attempts to streamline. 
+
+I should also note that some of the inspiration can from the excellent ``Analyze Particles`` features
+in ImageJ_.
+
+   .. _ImageJ : http://rsbweb.nih.gov/ij/
 
 License
 =======
@@ -176,10 +191,12 @@ Interested in the Python ecosystem?   Check out some of these related libraries:
    .. _pandas: http://pandas.pydata.org/
    .. _SciPy: http://scipy.org/
    .. _matplotlib : http://matplotlib.org/
+   .. _ilastik : http://www.ilastik.org/
    
 Coming Soon
 ===========
    - More multi-particle types.
+   - Individual tile operations on grids.
    - More real-world examples.
 
 About the Author
