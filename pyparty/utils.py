@@ -111,7 +111,6 @@ def any2rgb(array, name=''):
     name : str
         Name of array which will be referenced in logger messages"""
 
-
     # *****
     # Quick way to convert to float (don't use img_as_float becase we want
     # to enforce that upperlimit of 255 is checked
@@ -133,6 +132,7 @@ def any2rgb(array, name=''):
         return gray2rgb(array)
 
     raise BackgroundError('%s must be 2 or 3 dimensional array!' % name )    
+
 
 def coords_in_image(rr_cc, shape):
     """ Taken almost directly from  skimage.draw().  Decided best not to
@@ -156,6 +156,7 @@ def coords_in_image(rr_cc, shape):
     mask = (rr >= 0) & (rr < shape[0]) & (cc >= 0) & (cc < shape[1])
     return (rr[mask], cc[mask])            
 
+
 def rgb2uint(image):
     """ Returns color image as 8-bit unsigned (0-255) int.  Unsigned 8bit gray 
     values are safer to plotting; so enforced throughout pyparty."""
@@ -163,7 +164,6 @@ def rgb2uint(image):
         # Try this:
         #	print c.grayimage.max(), c.image.max() * 255, img_as_uint(lena()).max()
     return img_as_ubyte( rgb2gray(image) )
-    
     
 
 def where_is_particle(rr_cc, shape):
@@ -197,10 +197,10 @@ def where_is_particle(rr_cc, shape):
         return 'out'
     else:
         return 'edge'
+    
 
 def rr_cc_box(rr_cc, pad=0):
     """ Center the rr_cc values in a binarized box."""
-
 
     rr, cc = rr_cc
     ymin, ymax, xmin, xmax = rr.min(), rr.max(), cc.min(), cc.max()
@@ -221,6 +221,7 @@ def rr_cc_box(rr_cc, pad=0):
     rect=np.zeros( (dy+1, dx+1), dtype='uint8' ) 
     rect[rr_cc_trans] = 1
     return rect   
+
 
 def _parse_path(path):
     """ Validate a path; if None, set to cwd with timestamp."""
@@ -271,14 +272,16 @@ def _parse_ax(*args, **kwargs):
         cmap = kwargs['cmap']
         if isinstance(cmap, str):
             kwargs['cmap'] = cm.get_cmap(cmap)    
-            
         
-
     return axes, kwargs
 
 # showim(img, ax)
 def showim(image, *args, **kwargs):
     """ Similar to imshow with a few more keywords"""
+    
+    if not isinstance(image, np.ndarray):
+        raise UtilsError("First argument must be an ndarray/image, "
+            "got %s instead" % type(image))
 
     title = kwargs.pop('title', None)
     axes, kwargs = _parse_ax(*args, **kwargs)

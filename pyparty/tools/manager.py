@@ -519,6 +519,3 @@ class ParticleManager(HasTraits):
             plist.append( MetaParticle(name=name, color=color, 
                                        particle=particle) )
         return cls(plist=plist)      
-            
-if __name__ == '__main__':
-#    p=ParticleManager()

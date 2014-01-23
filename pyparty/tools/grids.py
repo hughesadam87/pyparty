@@ -67,7 +67,6 @@ class Grid(HasTraits):
     # REMOVE THIS AND MAKE POLAR GRID ITS OWN THING
     polar = Bool(False)
     
-    
     # MUST RETURN (N X N) array.  IE xx + yy, or xx.  
     zfcn = Function()
 

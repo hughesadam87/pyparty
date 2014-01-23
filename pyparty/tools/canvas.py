@@ -824,10 +824,10 @@ class Canvas(HasTraits):
         """ Returns a copied canvas object. """
         newgrid = copy.copy(obj.grid)
         return cls(background=obj.background, particles=obj._particles, 
-                                  rez=obj.rez, grid=newgrid, _threshfcn=obj._threshfcn)        
+                        rez=obj.rez, grid=newgrid, _threshfcn=obj._threshfcn)        
 
     
-    # Extend to polygons/other circles in future
+    # Extend to polygons/other partciles in future
     # May want to refactor into particle manager method actually
     @classmethod
     def random_circles(cls, n=50, rmin=5, rmax=50, background=BGCOLOR, pcolor=None):
@@ -851,7 +851,3 @@ class ScaledCanvas(Canvas):
     """ Canvas with a "scale" that maps system of coordinates from pixels
         to pre-set units."""
     NotImplemented
-
-
-if __name__ == '__main__':
-   #c=Canvas()
