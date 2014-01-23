@@ -128,21 +128,24 @@ BSD_
 
 Dependencies
 ============
-``pyparty`` requires **scikit-image**, **Traits** and their dependencies, which
+``pyparty`` requires ``scikit-image``, Traits_ and their dependencies, which
 include many core packages such as ``numpy`` and ``matplotlib``.  
 
-``pyparty`` uses Traits_ because it is well-suited for writing clean, type-checked
-object-oriented classes. You will not need to understand or use **Traits**
-unless you develop for ``pyparty``; *it is not used in the public API*.  (The **Traits** dependency may be removed in future installments after the 
+``pyparty`` uses ``Traits`` because it is well-suited for writing clean, type-checked
+object-oriented classes. You will not need to understand or use ``Traits``
+unless you develop for ``pyparty``; *it is not used in the public API*.  
+(The ``Traits`` dependency may be removed in future installments after the 
 core functionality is stable.)
 
-   .. _Traits: http://code.enthought.com/projects/traits/
+   .. _Traits : http://code.enthought.com/projects/traits/
    
 Installation
 ============
 
 I would recommend using `Enthought Canopy`_ to install ``Traits`` and ``scikit-image``; however,
-``pyparty`` is also registered in pip.  
+``pyparty`` is also registered in pip. (Checkit it out on PyPi_)
+
+   .. _PyPi : http://matplotlib.org/examples/api/patch_collection.html
 
 Pip Install
 -----------
