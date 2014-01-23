@@ -486,6 +486,9 @@ class ParticleManager(HasTraits):
          
         if not pmax:
             pmax = len(labelarray.flatten())
+            
+        if pmin < 10:
+            logger.warn("pmin < 10 may result in errors in some particle descriptors")
 
         #Background label is -1
         num = np.unique(labelarray)    

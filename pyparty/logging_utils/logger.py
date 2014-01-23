@@ -33,7 +33,7 @@ def _fmt_word(word, max_chars = 60, crop_front=True):
     return word
 
 def configure_logger(screenlog=True, logfile=None, screen_level=logging.INFO,
-                file_level=logging.DEBUG, time=True, name=None, **filekws):
+                file_level=logging.DEBUG, time=False, name=None, **filekws):
     ''' Instantiates a logger with streamhandler, filehandler or both.
         Very similar to logging.basicConfig except it allows for simultaneous
         to-screen and to-file output.

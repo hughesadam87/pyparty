@@ -23,7 +23,7 @@ from pyparty.tools.grids import Grid, CartesianGrid
 from pyparty.utils import coords_in_image, where_is_particle, to_normrgb, \
      any2rgb, crop, _parse_ax, _parse_path, mem_address, rgb2uint
 from pyparty.config import BGCOLOR, BGRES, GRIDXSPACE, GRIDYSPACE, _PAD, \
-     GCOLOR, BINDEF
+     GCOLOR, THRESHDEF
 
 # Ensure colors are correctly mapped
 BGCOLOR, GCOLOR = to_normrgb(BGCOLOR), to_normrgb(GCOLOR)
@@ -101,7 +101,7 @@ class Canvas(HasTraits):
     grid = Instance(CartesianGrid)
 
     def __init__(self, particles=None, background=None, rez=None, grid=None, 
-                 _binfcn=None): #No other traits
+                 _threshfcn=None): #No other traits
         """ Load with optionally a background image and instance of Particle
             Manager"""
         
@@ -121,29 +121,29 @@ class Canvas(HasTraits):
         else:
             self.grid = grid
             
-        # _binfcn through __init__ only really for Cavnas.copy(); not users
-        if _binfcn is None:
-            self.set_binfcn(BINDEF)
+        # _threshfcn through __init__ only really for Cavnas.copy(); not users
+        if _threshfcn is None:
+            self.set_threshfcn(THRESHDEF)
         else:
-            self._binfcn = _binfcn
+            self._threshfcn = _threshfcn
 
-    def set_binfcn(self, fcn_or_string, *args, **kwargs):
+    def set_threshfcn(self, fcn_or_string, *args, **kwargs):
         """ Set a binarization function. """
         if isinstance(fcn_or_string, str):
             # Update later
             if args:
                 raise CanvasError('Please use keyword args for threshold function')
-            self._binfcn = choose_thresh(fcn_or_string, **kwargs)
+            self._threshfcn = choose_thresh(fcn_or_string, **kwargs)
         else:
-            self._binfcn = functools.partial(fcn_or_string, *args, **kwargs)
+            self._threshfcn = functools.partial(fcn_or_string, *args, **kwargs)
         
     @property
-    def binfcn(self):
-        return self._binfcn
+    def threshfcn(self):
+        return self._threshfcn
     
-    @binfcn.setter
-    def binfcn(self):
-        raise CanvasError('Please use "set_binfcn(fcn/str, *args, **kwargs)" to set the binary '
+    @threshfcn.setter
+    def threshfcn(self):
+        raise CanvasError('Please use "set_threshfcn(fcn/str, *args, **kwargs)" to set the binary '
             'function.')
 
     # Public Methods
@@ -208,20 +208,29 @@ class Canvas(HasTraits):
 #http://scikit-image.org/docs/dev/api/skimage.morphology.html#skimage.morphology.label
 #    @inplace
     def from_labels(self, inplace=False, neighbors=4, bgout=None,
-                    background=None, binary=False, **pmangerkwds):
+                    bgexclude=None, binary=True, **pmangerkwds):
         """ Get morphological labels from gray or binary image. """
 
         if binary:
             image = self.binaryimage
         else:
             image = self.grayimage
+            logger.warn('Labels from grayimage can be very slow (fix coming)')
             
-        logger.warn('Labels from grayimage can be very slow (fix coming)')
-            
-        if background is not None: # scikit api doesn't accept None
-            labels = morphology.label(image, neighbors, background)
-        else:
+        if bgexclude is None: # scikit api doesn't accept None
             labels = morphology.label(image, neighbors)
+            
+        else:
+            # Parse various cases
+            if bgexclude == 'w' or bgexclude == 'white':
+                if binary:
+                    bgexclude = 1
+                else:
+                    bgexclude = 255                    
+            elif bgexclude == 'b' or bgexclude == 'black':
+                bgexclude = 0
+                        
+            labels = morphology.label(image, neighbors, background=bgexclude)
 
         pout = ParticleManager.from_labels(labels, **pmangerkwds)
 
@@ -478,7 +487,7 @@ class Canvas(HasTraits):
 
     @property
     def binaryimage(self):
-        return self.binfcn(self.grayimage)
+        return self.threshfcn(self.grayimage)
         
     @property
     def graybackground(self):
@@ -486,7 +495,7 @@ class Canvas(HasTraits):
 
     @property
     def binarybackground(self):
-        return self.binfcn(self.graybackground)
+        return self.threshfcn(self.graybackground)
 
     @property
     def color_background(self):
@@ -815,7 +824,7 @@ class Canvas(HasTraits):
         """ Returns a copied canvas object. """
         newgrid = copy.copy(obj.grid)
         return cls(background=obj.background, particles=obj._particles, 
-                                  rez=obj.rez, grid=newgrid, _binfcn=obj._binfcn)        
+                                  rez=obj.rez, grid=newgrid, _threshfcn=obj._threshfcn)        
 
     
     # Extend to polygons/other circles in future
@@ -851,7 +860,7 @@ if __name__ == '__main__':
     from skimage.color import rgb2gray
     from pyparty.data import lena_who
     c=Canvas(background=lena_who())
-    c.set_binfcn('adaptive', block_size=199, method='gaussian')
+    c.set_threshfcn('single', n=2, invert=True)
     #c.show()
     #plt.show() 
     from skimage.morphology import label
