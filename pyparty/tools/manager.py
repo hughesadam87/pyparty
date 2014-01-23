@@ -519,49 +519,6 @@ class ParticleManager(HasTraits):
             plist.append( MetaParticle(name=name, color=color, 
                                        particle=particle) )
         return cls(plist=plist)      
-    
-#http://stackoverflow.com/questions/9989334/create-nice-column-output-in-python               
-        
+            
 if __name__ == '__main__':
-    p=ParticleManager()
-    for i in range(5):
-        p.add(particle='circle', radius=i)
-        p.add(particle='dimer')
-        
-    print 'starting'
-    p2=ParticleManager()
-    for i in range(50):
-        p2.add(particle='circle', name='foo'+str(i), radius=i)
-    
-    print p[0:5]
-    
-    print p[0].plist[0].color
-    p[0].plist[0].color='red'
-    print p[0].plist[0].color
-    
-    p.add('circle', name='circle_2', force=True)
-    p.add('circle', name='circle_2', force=True)
-    p.add('circle', name='circle_0')
-    
-    
-    print p
-    
-    #print len(p), p
-    #print len(p2), p2
-    #pout = concat_particles(p,p2, overwrite=False, alternate=False)    
-    #print len(pout), pout
-    
-    #pminus = p2-p2
-    #print len(pminus), pminus
-    
-    #print p
-    #print ParticleManager()
-    #print 'hi'
-
-
-    #print p.name
-    #print p.perimeter, type(p.perimeter), p.perimeter.dtype
-    #print p[p.perimeter > 50]
-    #print p.plist
-    #del p[p.perimeter > 50]
-    #print p.name
+#    p=ParticleManager()

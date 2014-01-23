@@ -854,29 +854,4 @@ class ScaledCanvas(Canvas):
 
 
 if __name__ == '__main__':
-
    #c=Canvas()
-    from skimage.data import lena, moon, coffee
-    from skimage.color import rgb2gray
-    from pyparty.data import lena_who
-    c=Canvas(background=lena_who())
-    c.set_threshfcn('single', n=2, invert=True)
-    #c.show()
-    #plt.show() 
-    from skimage.morphology import label
-    import time
-    
-    print c.binarybackground
-    
-#    start =time.time()    
-#    cnew = c.from_labels(binary=True, background=0, pmin=10, pmax=None,
-#                         colorbynum=False) #WORKS BETTER WITH JPEG?
-#    cnew.sortby('perimeter', inplace=True, ascending=False)
-  #  cnew.particles = cnew.particles[0:5]
-
-#    print 'done'
-
-#    cnew.show()
-    plt.imshow(c.binarybackground, plt.cm.gray)
-    plt.show()
-    

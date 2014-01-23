@@ -392,26 +392,4 @@ class CartesianGrid(TiledGrid):
             raise GridError("Zfcn is fixed for CartesianGrid; use TiledGrid")
 
         kwargs.update({'zfcn':'fade', 'style':'d'})
-        super(CartesianGrid, self).__init__(*args, **kwargs)            
-        
-    
-if __name__ == '__main__':
-    g=Grid()
-    import matplotlib.pyplot as plt
-    plt.imshow(g.zz)
-    plt.show()
-
-# XXX SCRAP
-#-----------
-
-# Polar grid attempts; probably best to make it another class
-    
-    ## Not working either... owkring w/ matplotlib apparanelt
-    #azimuths = np.radians(np.linspace(0, 360,20))
-    #zeniths = np.arange(0, 70, 10)            
-    #return np.meshgrid(zeniths, azimuths)            
-    
-    #pairs = np.array(zip(x,y))
-    #out =array2sphere(pairs)
-    #r, theta = out.T
-#    return np.meshgrid(r, theta)
+        super(CartesianGrid, self).__init__(*args, **kwargs)
