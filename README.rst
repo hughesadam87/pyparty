@@ -83,13 +83,19 @@ The official documentation_ doesn't exist yet.  Instead, we provide a series of 
 (`iPython Notebook`_), which cover most of the basics. Please see **pyparty.examples.Notebooks**
 for the current tutorials gallery.  For convienence, these have been linked below:
 
-   - `Basic Operations`_ (Primary Tutorial)
-   - `Manage Particles on Image`_
-   - `pyparty shapes`_
+   - `Basic Operations: Primary Tutorial`_ 
+   - `Intro to Shapes`_
+   - `Intro to Grids`_
+   - `Particles from Image Labels`_
+   - `Watershedding Example Adapted`_
+   - `Matplotlib Color Maps`_
    
-   .. _`Basic Operations`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/Analyze_Particles.ipynb?create=1
-   .. _`Manage Particles on Image`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/basictests.ipynb?create=1
-   .. _`pyparty shapes`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/basictests.ipynb?create=1
+   .. _`Basic Operations: Primarty Tutorial`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/basictests.ipynb?create=1
+   .. _`Intro to Shapes`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/shapes.ipynb?create=1
+   .. _`Intro to Grids` : http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/grids.ipynb?create=1
+   .. _`Particles from Image Labels`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/Analyze_Particles.ipynb?create=1
+   .. _`Matplotlib Color Maps` : http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/shapes.ipynb?create=1
+   .. _`Watershedding Example Adapted` : http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/watershed.ipynb?create=1
 
 Notebooks were initialized with ``--pylab inline``; that is:
 
@@ -103,8 +109,6 @@ For simply viewing, paste the github url of each notebook into the iPython Noteb
    .. _`iPython Notebook`: http://ipython.org/notebook.html?utm_content=buffer83c2c&utm_source=buffer&utm_medium=twitter&utm_campaign=Buffer
    .. _`Enthought Canopy`: https://www.enthought.com/products/canopy/
    .. _viewer: http://nbviewer.ipython.org/
-
-Please post a github issue if you notice a dead link.  I will update them periodically.   
 
 History
 =======
