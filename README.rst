@@ -34,12 +34,12 @@ many of its features may have broader appeal.
    image backgrounds.
 
 3. A **Canvas** to easily integrate *Grids*, *Particles* and flexible *Backgrounds*. 
-   Canvas also provides access to:
-      - several thresholding styles
-      - matplotlib plotting
-      - colored, gray and binary reprentations of images
+   In addition, Canvas also provides simplified interfaces for:
+      - binarization / thresholding
+      - plotting
+      - pain-free access to colored, gray and binary image representations
 
-4. A plotting API that supports both *imshow()* AND `matplotlib patches`_.
+4. A plotting API that supports both *matplotlib.imshow* AND `matplotlib patches`_.
 
 5. Flexible color designations ('red', (1,0,0), 00FF00), and strict typing
    to ensure consistency in data and plots.
