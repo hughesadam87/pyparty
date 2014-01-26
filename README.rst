@@ -28,28 +28,29 @@ many of its features may have broader appeal.
 1. Pythonic **ParticleManager** for storing and manipulating particles from image 
    labels OR builtin geometric shapes.
        - All **Particle** types share quick access to descriptors as well as
-       general operations like rotations and translations.
+         general operations like rotations and translations.
 
 2. A **Grid** system for patterning particles, as well as 2d functions for 
    image backgrounds.
 
-3. A **Canvas** to easily integrate Grids, Particles and flexible Backgrounds.  Canvas also
-   provided implicit access to:
-      - thresholding
-      - plotting
+3. A **Canvas** to easily integrate *Grids*, *Particles* and flexible *Backgrounds*. 
+   Canvas also provides access to:
+      - several thresholding styles
+      - matplotlib plotting
       - colored, gray and binary reprentations of images
 
-4. A congruent plotting API supporting both masks AND `matplotlib patches`_.
+4. A plotting API that supports both *imshow()* AND `matplotlib patches`_.
 
-5. Flexible color types ('red', (1,0,0), 00FF00), images to ensure consistency in plotting and manipulation.
+5. Flexible color designations ('red', (1,0,0), 00FF00), and strict typing
+   to ensure consistency in data and plots.
 
 6. General ndarray operations such as rotations and translations supported by ALL particle types.
 
 7. iPython Notebook tutorials.
 
-In essence, ``pyparty`` uses its **Canvas**, **Grids** and **Manager** to
-integrate pre-existing plotting and image processing tools in a way that hopefully
-will help simplify many common needs, especially in regard to particle analysis.
+In essence, ``pyparty`` integrates pre-existing plotting and image processing tools 
+in a way that hopefully will help simplify many common operations, 
+especially in regard to particle analysis.
 
    .. _`matplotlib patches` : http://matplotlib.org/examples/api/patch_collection.html
 
@@ -60,7 +61,7 @@ Some operations that pyparty would be particularly suited for would be:
 
 1. Counting cells in an image and measuring their eccentricity.
 
-2. Patterning a grid of particles over a shadowed background to comparte performance
+2. Patterning a grid of particles over a shadowed background to compare performance
    of thresholding algorithms.
 
 3. Manipulating particles based on descriptors.  For example:
@@ -72,18 +73,15 @@ Some operations that pyparty would be particularly suited for would be:
 4. Plot particles as masks, or matplotlib patches side-by-side.
 
 In short, you may consider using ``pyparty`` if you are doing image analysis and find 
-generating, managing or labeling particles as a bottleneck.  Additionally, if you are
-generating non-trivial 2d test images, ``pyparty`` may make your task
-a little easier.
+generating, managing or labeling particles as a bottleneck.  
 
    .. _patchcollection : http://matplotlib.org/examples/api/patch_collection.html
 
 Documentation
 =============
 
-The official documentation_ doesn't exist yet.  Instead, we provide a series of example notebooks 
-(`iPython Notebook`_), which cover most of the basics. Please see **pyparty.examples.Notebooks**
-for the current tutorials gallery.  For convienence, these have been linked below:
+The current documtation/testing suite is a series of example notebooks 
+(`iPython Notebook`_), which cover most of the basics. These have been linked below:
 
    - `Basic Operations: Primary Tutorial`_ 
    - `Intro to Shapes`_
@@ -105,7 +103,7 @@ Notebooks were initialized with ``--pylab inline``; that is:
    
 Having trouble viewing/editing notebooks?  Consider using `Enthought
 Canopy`_, which has a notebook kernel builtin, as well as a graphical package manager. 
-For simply viewing, paste the github url of each notebook into the iPython Notebook viewer_. 
+For simple viewing, paste the github url of each notebook into the iPython Notebook viewer_. 
  
    .. _documentation: http://hugadams.github.com/pyparty/
    .. _`iPython Notebook`: http://ipython.org/notebook.html?utm_content=buffer83c2c&utm_source=buffer&utm_medium=twitter&utm_campaign=Buffer
@@ -134,24 +132,27 @@ BSD_
 
 Dependencies
 ============
-``pyparty`` requires ``scikit-image``, Traits_ and their dependencies, which
-include many core packages such as ``numpy`` and ``matplotlib``.  
+``pyparty`` requires ``scikit-image``, ``Traits`` and their dependencies, which
+include many core packages such as ``numpy`` and ``matplotlib``.  If you are new
+to Python for scientific computing, consider downloading a packaged distribution_.
 
-``pyparty`` uses ``Traits`` because it is well-suited for writing clean, type-checked
+   .. _distribution :  https://www.enthought.com/products/canopy/
+
+``pyparty`` uses Traits_ because it is well-suited for writing clean, type-checked
 object-oriented classes. You will not need to understand or use ``Traits``
-unless you develop for ``pyparty``; *it is not used in the public API*.  
-(The ``Traits`` dependency may be removed in future installments after the 
-core functionality is stable.)
+unless you develop for ``pyparty``; *it is not used in the public API*, and may be 
+removed in future installments after the core functionality is stable.
 
    .. _Traits : http://code.enthought.com/projects/traits/
    
 Installation
 ============
 
-I would recommend using `Enthought Canopy`_ to install ``Traits`` and ``scikit-image``; however,
-``pyparty`` is also registered in pip. (Checkit it out on PyPi_)
+I would recommend using `Enthought Canopy`_ and installing ``Traits`` and 
+``scikit-image`` through the package manager; however, ``pyparty`` is also 
+registered in pip. (Checkit it out on PyPi_)
 
-   .. _PyPi : http://matplotlib.org/examples/api/patch_collection.html
+   .. _PyPi : https://pypi.python.org/pypi/pyparty
 
 Pip Install
 -----------
