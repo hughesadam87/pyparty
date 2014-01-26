@@ -217,7 +217,7 @@ class SimplePattern(CenteredParticle): #FAST ORIENT
     
     ptype = Str('abstract_simple_element')    
         
-    radius_1 = Int(RADIUS_DEFAULT)
+    radius_1 = IntOrNone(RADIUS_DEFAULT)
     radius_2 = IntOrNone #defaults to None
     radius_3 = IntOrNone
     radius_4 = IntOrNone
@@ -228,6 +228,15 @@ class SimplePattern(CenteredParticle): #FAST ORIENT
     
     _offangle = Float(0.0)
     _n = Int(4)
+    
+    def __init__(self, *args, **kwargs):
+        """ Let r1, r2, r3 be shortcuts for radius1, radius 2 etc..."""
+        self.radius_1 = kwargs.pop('r1', RADIUS_DEFAULT)
+        self.radius_2 = kwargs.pop('r2', None)
+        self.radius_3 = kwargs.pop('r3', None)
+        self.radius_4 = kwargs.pop('r4', None)
+
+        super(SimplePattern, self).__init__(*args, **kwargs)
     
     def _get_unrotated_rr_cc(self):
         raise ParticleError("FastOriented does not store unrotated rr_cc")

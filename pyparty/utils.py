@@ -280,8 +280,8 @@ def showim(image, *args, **kwargs):
     """ Similar to imshow with a few more keywords"""
     
     if not isinstance(image, np.ndarray):
-        raise UtilsError("First argument must be an ndarray/image, "
-            "got %s instead" % type(image))
+        raise UtilsError("First argument to showim() must be an ndarray/image, "
+            "got %s instead." % type(image))
 
     title = kwargs.pop('title', None)
     axes, kwargs = _parse_ax(*args, **kwargs)

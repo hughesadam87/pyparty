@@ -8,7 +8,6 @@ class IntOrNone(BaseInt):
     info_text = 'an integer or None'
 
     def validate(self, object, name, value):
-        value = super(IntOrNone, self).validate(object, name, value)
         if value is None:
             return value        
 

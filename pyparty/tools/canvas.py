@@ -126,7 +126,7 @@ class Canvas(HasTraits):
             self.set_threshfcn(THRESHDEF)
         else:
             self._threshfcn = _threshfcn
-
+       
     def set_threshfcn(self, fcn_or_string, *args, **kwargs):
         """ Set a binarization function. """
         if isinstance(fcn_or_string, str):
@@ -134,12 +134,18 @@ class Canvas(HasTraits):
             if args:
                 raise CanvasError('Please use keyword args for threshold function')
             self._threshfcn = choose_thresh(fcn_or_string, **kwargs)
+            self._threshtype = fcn_or_string
         else:
             self._threshfcn = functools.partial(fcn_or_string, *args, **kwargs)
+            self._threshtype = fcn_or_string.__name__
         
     @property
     def threshfcn(self):
-        return self._threshfcn
+        return self._threshtype
+    
+    @threshfcn.setter
+    def threshfcn(self, val):
+        raise CanvasAttributeError('Please set thresh function through "set_threshfcn()*')
     
     @threshfcn.setter
     def threshfcn(self):
@@ -208,11 +214,18 @@ class Canvas(HasTraits):
 #http://scikit-image.org/docs/dev/api/skimage.morphology.html#skimage.morphology.label
 #    @inplace
     def from_labels(self, inplace=False, neighbors=4, bgout=None,
-                    bgexclude=None, binary=True, **pmangerkwds):
+                    bgexclude=None, binary=True, pbinary=True, **pmangerkwds):
         """ Get morphological labels from gray or binary image. """
 
         if binary:
-            image = self.binaryimage
+            if pbinary:
+                image = self.pbinary #PBINARY NOT BINARYIMAGE
+                if len(self.particles) == 0:
+                    logger.warn('from_labels() recieved "pbinary=True", but '
+                        'no particles are stored.  Use "pbinary=False" to '
+                        'use implicit thresholding function.')
+            else:
+                image = self.binaryimage
         else:
             image = self.grayimage
             logger.warn('Labels from grayimage can be very slow (fix coming)')
@@ -276,6 +289,17 @@ class Canvas(HasTraits):
         # GET NOT POP
         cmap = kwargs.get('cmap', None)       
         
+        # grid defaults
+        if gcolor or gunder or gstyle and not grid:
+            grid = True
+            
+        # If user enters gcolor/gstyle, assume default grid
+        if grid and not gcolor:
+            gcolor = GCOLOR       
+            
+        if grid and not gstyle:
+            gstyle = 'solid'        
+        
         # Corner case, don't touch
         if pmap and cmap and bgonly:
             bgonly = False
@@ -307,44 +331,32 @@ class Canvas(HasTraits):
                     edgecolor=edgecolor, linestyle=linestyle, linewidth=linewidth)
                    for p in in_and_edges]
 
-        if not patches:
-            raise CanvasPlotError("No patches found in the present canvas.  This"
-                " results in an unresolved bug in patchshow(); please use show(). "  
-                "Sorry for the inconvienence; fixes forthcoming...")
-
-        # Overwrite patch attributes in the Collection call
-        if pmap:
-            kwargs['cmap'] = pmap                    #BUG IF PATCHES IS NONE AND MATCH ORIGINAL
-        if 'cmap' in kwargs and not bgonly:
-            p = PatchCollection(patches, **kwargs) #cmap and Patch Args
-            p.set_array(np.arange(len(patches)))        
-
-        # Use settings passed to "patches"
-        else:                                                  #Thinking good to drop this
-            p = PatchCollection(patches, match_original=True, **kwargs) #Collection Args
+        # If no particles or grid, just pass to avoid deep mpl exceptiosn
+        if patches or grid:
+            if patches:
+                if pmap:
+                    kwargs['cmap'] = pmap               
+                if 'cmap' in kwargs and not bgonly:
+                    ppatch = PatchCollection(patches, **kwargs) #cmap and Patch Args
+                    ppatch.set_array(np.arange(len(patches)))        
         
-        # grid overlay
-        if gcolor or gunder or gstyle and not grid:
-            grid = True
-            
-        # If user enters gcolor/gstyle, assume default grid
-        if grid and not gcolor:
-            gcolor = GCOLOR       
-            
-        if grid and not gstyle:
-            gstyle = 'solid'
+                # Use settings passed to "patches"
+                else:                                                  
+                    ppatch = PatchCollection(patches, match_original=True, **kwargs) #
         
-        # Grid under particles
-        if gunder:
-            axes.add_collection(self.grid.as_patch(
-                edgecolors=gcolor, linestyles=gstyle))
-            axes.add_collection(p)
-        # Grid over particles
-        else:
-            axes.add_collection(p)          
-            if grid:
+            # Grid under particles
+            if gunder:
                 axes.add_collection(self.grid.as_patch(
-                    edgecolors=gcolor, linestyles=gstyle))    
+                    edgecolors=gcolor, linestyles=gstyle))
+                if patches:
+                    axes.add_collection(ppatch)
+            # Grid over particles
+            else:
+                if patches:
+                    axes.add_collection(ppatch)          
+                if grid:
+                    axes.add_collection(self.grid.as_patch(
+                        edgecolors=gcolor, linestyles=gstyle))    
         
         if title:
             axes.set_title(title)        
@@ -487,7 +499,7 @@ class Canvas(HasTraits):
 
     @property
     def binaryimage(self):
-        return self.threshfcn(self.grayimage)
+        return self._threshfcn(self.grayimage)
         
     @property
     def graybackground(self):
@@ -495,7 +507,7 @@ class Canvas(HasTraits):
 
     @property
     def binarybackground(self):
-        return self.threshfcn(self.graybackground)
+        return self._threshfcn(self.graybackground)
 
     @property
     def color_background(self):
@@ -563,9 +575,10 @@ class Canvas(HasTraits):
         """ Returns boolean mask of all particles IN the image, with 
             background removed."""      
         # Faster to get all coords in image at once since going to paint white
-        rr_cc = coords_in_image( self._particles.rr_cc_all, self.rez)
         out = np.zeros( self.rez, dtype=bool )
-        out[rr_cc] = True
+        if self.particles:
+            rr_cc = coords_in_image( self._particles.rr_cc_all, self.rez)
+            out[rr_cc] = True
         return out  
 
 
