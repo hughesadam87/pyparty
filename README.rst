@@ -11,7 +11,7 @@ pyparty: Python (py) particles (party)
 ======================================
 
 ``pyparty`` is a library for drawing, labeling, patterning and manipulating 
-particles in 2d images.  This library was built primarily over the excellent
+particles in 2d images.  ``pyparty`` was built primarily over the excellent
 image processing library, scikit-image_.
 
    .. _scikit-image: http://scikit-image.org
@@ -27,23 +27,25 @@ many of its features may have broader appeal.
 
 1. Pythonic **ParticleManager** for storing and manipulating particles from image 
    labels OR builtin geometric shapes.
+       - All **Particle** types share quick access to descriptors as well as
+       general operations like rotations and translations.
 
-2. A **Grid** system for patterning particles, as well as making 2d meshes for 
+2. A **Grid** system for patterning particles, as well as 2d functions for 
    image backgrounds.
 
-3. A **Canvas** to easily integrate Grids, Particles and flexible Backgrounds.
+3. A **Canvas** to easily integrate Grids, Particles and flexible Backgrounds.  Canvas also
+   provided implicit access to:
+      - thresholding
+      - plotting
+      - colored, gray and binary reprentations of images
 
-4. A congruent plotting API that supports both masks AND `matplotlib patches`_.
+4. A congruent plotting API supporting both masks AND `matplotlib patches`_.
 
-5. Streamlines common image-processing workflow operations  such as accessing 
-   particle descriptors, mapping, changing colors and resolution, thresholding and so on...
+5. Flexible color types ('red', (1,0,0), 00FF00), images to ensure consistency in plotting and manipulation.
 
-6. Flexible color types ('red', (1,0,0), 00FF00), and implicitly typed *color*, *gray* and *binary*
-   images to ensure consistency in plotting and manipulation.
+6. General ndarray operations such as rotations and translations supported by ALL particle types.
 
-7. General ndarray operations such as rotations and translations supported by ALL particle types.
-
-8. iPython Notebook tutorials.
+7. iPython Notebook tutorials.
 
 In essence, ``pyparty`` uses its **Canvas**, **Grids** and **Manager** to
 integrate pre-existing plotting and image processing tools in a way that hopefully
