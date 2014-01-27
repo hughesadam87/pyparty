@@ -2,6 +2,7 @@ from __future__ import division
 import logging
 import numpy as np
 import math
+from operator import itemgetter
 
 from traits.api import HasTraits, Int, Bool, Function
 from matplotlib.patches import Path, PathPatch
@@ -328,15 +329,44 @@ class TiledGrid(Grid):
         return (rr_cen[mask], cc_cen[mask])
            
     
+    def _tiles_diags(self, style='tiles'):
+        """ Returns tiles, diagonals or negative diagonals.  Boilerplate 
+        reduction; all are based on center coordinates."""
+        
+        zz = self.zz
+        xhalf = self.xspacing / 2.
+        yhalf = self.yspacing / 2.
+        
+        out = {}
+        for idx, (cx, cy) in enumerate( sorted(self.pairs('centers')) ):
+            xl, xr = int(cx - xhalf), int(cx + xhalf)
+            yl, yr = int(cy - yhalf), int(cy + yhalf)
+                
+            if style == 'tiles':
+                out[idx] = ( np.meshgrid( range(xl,xr), range(yl,yr) ) )
+            elif style == 'dlines':
+                out[idx] = ( range(xl,xr), range(yl,yr) )
+            elif style == 'dlines_neg':
+                out[idx] = ( range(xl,xr), range(yl,yr)[::-1] )
+            else:                
+                raise GridError('%s style not understood' % style)
+
+        return out        
+        
+        
     @property
     def tiles(self):
-        area = self.zz.shape[0] * self.zz.shape[1]
-        # ROUNDS DOWN
-        squaresize = self.xspacing * self.yspacing
-        numsquares = rint(area / squaresize)
-        raise NotImplementedError
-
-
+        return self._tiles_diags('tiles')
+    
+    @property
+    def dlines(self):
+        return self._tiles_diags('dlines')
+    
+    @property
+    def dlines_neg(self):
+        return self._tiles_diags('dlines_neg')    
+                
+                
     def pairs(self, attr):
         """ Return pairs of attributes that are typically stored as len(2) 
         tuple, indicies.  Valid attr include corners, centers, etc..."""

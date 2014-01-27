@@ -864,3 +864,14 @@ class ScaledCanvas(Canvas):
     """ Canvas with a "scale" that maps system of coordinates from pixels
         to pre-set units."""
     NotImplemented
+
+if __name__ == '__main__':
+    import matplotlib.pyplot as plt
+    c=Canvas()
+    c.grid.xdiv=5
+    gt = c.grid.dlines
+    img = c.image
+    for key in gt.keys()[::2]:
+        img[ gt[key] ] = 255
+    plt.imshow(img)
+    plt.show()
