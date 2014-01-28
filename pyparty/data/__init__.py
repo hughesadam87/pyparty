@@ -9,7 +9,9 @@ from pyparty import data_dir
 
 __all__ = ['gwu', 
            'spectrum',
-           'lena_who'
+           'lena_who',
+	   'nanogold',
+           'nanolabels'
            ]
 
 def load(f):
@@ -29,10 +31,24 @@ def load(f):
 
 
 def gwu():
+    """ New George Washington University Logo """
     return load("gwu.png")
 
 def spectrum():
+    """ 3d Spectrum : original image by pyparty author """
     return load("spectrum.jpg")
 
 def lena_who():
+    """ Yound lady, released with her full permission """
     return load("lena_who.jpg")
+
+def nanogold():
+    """ Scanning electron image of Gold Nanoparticles 100,000 X 
+    magnification.  Original image is property of Adam Hughes, 
+    Reeves Cond. Matter Physics Group, and released for public
+    distribution."""
+    return load("nanogold.tif")
+
+def nanolabels():
+    """ size-segmented (nanogold); see nanogold description"""
+    return load("nanolabels.tif")
