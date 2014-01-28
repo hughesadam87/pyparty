@@ -802,15 +802,16 @@ class Canvas(HasTraits):
         address = mem_address(super(Canvas, self).__repr__())
         
         g=self.grid
-        gridstring = "%sxygrid     -->  (%sp X %sp) : (%.1f X %.1f) [pix/tile]" \
-            % (_PAD, g.xdiv, g.ydiv, g.xspacing, g.yspacing)
+        xd, yd = g.xdiv, g.ydiv 
+        gridstring = "%sxygrid[%s] -->  (%sp X %sp) : (%.1f X %.1f) [pix/tile]" \
+            % (_PAD, xd*yd, xd, yd, g.xspacing, g.yspacing)
         
                                                          # For sublcassing
         outstring = "%s at %s:\n" % (self.__class__.__name__, address)
 
-        outstring += "%sbackground -->  %s : %s\n" % (_PAD, res, _bgstyle) 
+        outstring += "%sbackground  -->  %s : %s\n" % (_PAD, res, _bgstyle) 
 
-        outstring += "%sparticles  -->  %s particles : %s types\n" % (_PAD, \
+        outstring += "%sparticles   -->  %s particles : %s types\n" % (_PAD, \
             len(self._particles), len(self._particles.ptype_count))
         outstring += gridstring
         
@@ -882,8 +883,7 @@ if __name__ == '__main__':
         #else:
             #img[tile] = (0,1,0)
 
-    for d in gt:
-        img[d] = (0,0,1)
+    print c
         
     #for d in c.grid.dlines_neg:
         #img[d] = (1,0,0)
