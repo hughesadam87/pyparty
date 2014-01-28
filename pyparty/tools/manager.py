@@ -17,6 +17,19 @@ from pyparty.config import NAMESEP, PADDING, ALIGN, MAXOUT, \
 
 logger = logging.getLogger(__name__) 
 
+# Particle Manager Exceptions
+# ---------------------------
+
+class ManagerError(Exception):
+    """ Particle Manager general Exception """
+    
+class KeyErrorManager(KeyError):
+    """ Particle Manager dictionary interface Exception """   
+    
+
+# Particle Manager Utilities
+# --------------------------
+
 def concat_particles(p1, p2, alternate=False, overwrite=False):
     """ Joins two instances of particle manager.
     
@@ -59,11 +72,13 @@ def concat_particles(p1, p2, alternate=False, overwrite=False):
             
     return ParticleManager(plist=pout)
 
+
 def subtract_particles(p1, p2):
     p1_temp = copy.copy(p1)
     shared = [name for name in p1.names if name in p2.names]    
     p1_temp.plist[:] = [p for p in p1 if p.name not in shared]
     return p1_temp            
+
 
 def summarize_particles(obj):
     """ Return a summarized printout for Paticle Manager object.
@@ -91,6 +106,7 @@ def summarize_particles(obj):
         
     return ('<< %s /%s at %s >>' %(countstring, ptypestring, obj.mem_address ) )   
 
+
 def _attr_mapper(obj, attr):
     """ Helper to format particles for string-formatting.  Adds ??? for
     missing attributes; handles colors specially..."""   
@@ -106,6 +122,7 @@ def _attr_mapper(obj, attr):
         return str(round(val, 2))
 
     return str(val)    
+
 
 def format_particles(obj, align='l', padding=3, attrs=('name')):
     """ Output column-delimted representation of a ParticleManager instance.
@@ -143,20 +160,14 @@ def format_particles(obj, align='l', padding=3, attrs=('name')):
     return  '\n'.join( [ padding.join((just_fcn(val,width) for val, width 
                     in zip(row, widths))) for row in outrows] )
 
+
 def overlapping_particles(p1, p2):
     """ Return all of the particles in p1, who are touching 1 or more particles
     in p2.  Returns name such as:
     
     (p1 [circle0] : p2 [dimer3, dimer5] : (rr_cc03, rr_cc05)) """
         
-class ManagerError(Exception):
-    """ Particle Manager general Exception """
-    
-class KeyErrorManager(KeyError):
-    """ Particle Manager dictionary interface Exception """   
 
-        
-        
 class ParticleManager(HasTraits):
     """ Container class for creating, storing, managing particles;
         provides API used by higher-level objects.  Provides a property

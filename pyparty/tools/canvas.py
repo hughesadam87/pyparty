@@ -866,12 +866,45 @@ class ScaledCanvas(Canvas):
     NotImplemented
 
 if __name__ == '__main__':
+    from skimage import draw 
     import matplotlib.pyplot as plt
+    
     c=Canvas()
-    c.grid.xdiv=5
-    gt = c.grid.dlines
+    gt = c.grid.tiles
+    gt1d = c.grid.as_tiles(key='flat')
+    gt2d = c.grid.as_tiles(key='2d')
     img = c.image
-    for key in gt.keys()[::2]:
-        img[ gt[key] ] = 255
+
+    #for key, tile in gt1d.items():
+        #print key, key%3
+        #if not key%3:
+            #img[tile] = (1,0,0)
+        #else:
+            #img[tile] = (0,1,0)
+
+    for d in gt:
+        img[d] = (0,0,1)
+        
+    #for d in c.grid.dlines_neg:
+        #img[d] = (1,0,0)
+
+    #for key, tile in gt2d.items():
+        #kx, ky = key
+        #if kx%2:
+            #if ky%2:
+                #img[tile] = (1,0,0)
+            #else:
+                #img[tile] = (0,1,0)
+        #else:
+            #img[tile]=(0,0,1)
+
+
+    
+    #for key in gt.keys()[::2]:
+        #img[ gt[key] ] = 255
+        
+#    for l in c.grid.dlines:
+#        img[ l ] = 255
+
     plt.imshow(img)
     plt.show()

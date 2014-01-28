@@ -19,6 +19,9 @@ def rint(x): return int(round(x,0))
 class GridError(Exception):
     """ """
 
+class GridImportError(GridError):
+    """ """
+
 def ztrig(xx, yy):
     """ Example of returning a trig function applied on grid """
     return np.cos(xx) + np.sin(yy)
@@ -213,12 +216,6 @@ class Grid(HasTraits):
         
         return outstring
     
-    ## useful?
-    #@classmethod
-    #def copy(cls, obj):
-        #""" Return a new grid with copied attributes. """
-        #return cls()
-        
     
 class TiledGrid(Grid):
     """ Provide tiled grid by rounding reslution to integers.  Stores boolean 
@@ -329,7 +326,7 @@ class TiledGrid(Grid):
         return (rr_cen[mask], cc_cen[mask])
            
     
-    def _tiles_diags(self, style='tiles'):
+    def _diags(self, style='tiles'):
         """ Returns tiles, diagonals or negative diagonals.  Boilerplate 
         reduction; all are based on center coordinates."""
         
@@ -337,34 +334,108 @@ class TiledGrid(Grid):
         xhalf = self.xspacing / 2.
         yhalf = self.yspacing / 2.
         
-        out = {}
+        out = []
         for idx, (cx, cy) in enumerate( sorted(self.pairs('centers')) ):
             xl, xr = int(cx - xhalf), int(cx + xhalf)
             yl, yr = int(cy - yhalf), int(cy + yhalf)
                 
-            if style == 'tiles':
-                out[idx] = ( np.meshgrid( range(xl,xr), range(yl,yr) ) )
-            elif style == 'dlines':
-                out[idx] = ( range(xl,xr), range(yl,yr) )
+            xs = range(xl,xr) 
+           
+            if style == 'dlines':
+                ys = range(yl,yr)
+            
             elif style == 'dlines_neg':
-                out[idx] = ( range(xl,xr), range(yl,yr)[::-1] )
+                ys = range(yl,yr)[::-1]
+                
             else:                
                 raise GridError('%s style not understood' % style)
+            
+            out.append( (xs, ys) )
 
-        return out        
+        return out     
         
         
     @property
     def tiles(self):
-        return self._tiles_diags('tiles')
+        return self.as_tiles(key=None, sort=False)
+
     
+    def as_tiles(self, key=None, sort=True):
+        """ Return tiles as list of xs, ys or as dictionary.
+
+        Attributes
+        ----------
+        key : None, True, 'flat', '2d'
+            If None, list is returns (same as self.tiles)
+            If True or 'flat', dicionary keyed by index corresponding
+            to iterating over self.centers
+            If '2d', dict keyed by (I, J) indicies, corresponding to 2d 
+            index pairs in range (0-self.xdiv, 0-self.ydiv)
+            
+        sort : bool
+            On dictionary return, OrderedDict will be returned
+        
+        """
+        
+        validkeys = [None, True, 'flat', '2d']
+        if key not in validkeys:
+            raise GridError('as_tiles() key must be "%s";'
+                ' recieved %s' % ('","'.join(validkeys), key) )        
+        
+        zz = self.zz
+        xhalf = self.xspacing / 2.
+        yhalf = self.yspacing / 2.
+        
+            
+        tiles = []
+        for (cx, cy) in sorted(self.pairs('centers')):
+                    
+            xl, xr = int(cx - xhalf), int(cx + xhalf)
+            yl, yr = int(cy - yhalf), int(cy + yhalf)
+                
+            tiles.append( np.meshgrid( range(xl,xr), range(yl,yr) ) )
+
+        if not key:
+            return tiles
+
+        tiles = enumerate(tiles)
+            
+        if sort:
+            try:
+                from collections import OrderedDict
+            except ImportError:
+                raise GridImportError('Tile sorting requires OrderedDict form '
+                    'python.collection package; package is standard in 2.7 and '
+                    'higher')
+
+            tiledict = OrderedDict(tiles)
+            tiles2d = OrderedDict()
+
+        else:
+            tiledict = dict(tiles)
+            toles2d = {}
+
+        # Key == flat
+        if key == True or key == 'flat':
+            return tiledict
+
+        # Key == 2d
+        idx = 0
+        for i in range(self.xdiv):
+            for j in range(self.ydiv):
+
+                tiles2d[(i,j)] = tiledict.pop(idx)
+                idx += 1
+                        
+        return tiles2d
+            
     @property
     def dlines(self):
-        return self._tiles_diags('dlines')
+        return self._diags('dlines')
     
     @property
     def dlines_neg(self):
-        return self._tiles_diags('dlines_neg')    
+        return self._diags('dlines_neg')    
                 
                 
     def pairs(self, attr):
