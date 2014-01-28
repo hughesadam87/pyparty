@@ -2,9 +2,10 @@ from __future__ import division
 import logging
 import numpy as np
 import math
+import functools
 from operator import itemgetter
 
-from traits.api import HasTraits, Int, Bool, Function
+from traits.api import HasTraits, Int, Bool
 from matplotlib.patches import Path, PathPatch
 from matplotlib.collections import PatchCollection, PathCollection
 from pyparty.utils import mem_address, rgb2uint, crop
@@ -19,7 +20,11 @@ def rint(x): return int(round(x,0))
 class GridError(Exception):
     """ """
 
+# XXX : Should these subclass from multiple parents?
 class GridImportError(GridError):
+    """ """
+    
+class GridAttributeError(GridError):
     """ """
 
 def ztrig(xx, yy):
@@ -41,7 +46,7 @@ def fade(xx, yy, style='h', reverse = False, fadefcn=None):
         out = xx + yy
     else:
         raise GridError('invalid style "%s".  '
-            'Choose form ("side", "top", "corner".')
+            'Choose form ("side", "top", "corner")')
     if fadefcn:
         return fadefcn(out)
     return out
@@ -71,26 +76,42 @@ class Grid(HasTraits):
     # REMOVE THIS AND MAKE POLAR GRID ITS OWN THING
     polar = Bool(False)
     
-    # MUST RETURN (N X N) array.  IE xx + yy, or xx.  
-    zfcn = Function()
-
     def __init__(self, *args, **kwargs):
+        """ Default zfcn = fade fcn.  Other functions must go through set_zfcn().
+        may extent to general zfcn initializations in future"""
 
-        # Still bad; need a general way to pop fcn args!
-        zfcn = kwargs.pop('zfcn', fade) #Default is left fade
-        if zfcn == 'fade':
-            style = kwargs.pop('style', None)
-            reverse = kwargs.pop('reverse', None)
-            fadefcn = kwargs.pop('fadefcn', None)
-            
-            def _fade(xx, yy, style=style, reverse=reverse, fadefcn=fadefcn):
-                return fade(xx, yy, style, reverse, fadefcn)
-            zfcn = _fade
-        
-        self.zfcn = zfcn
+        style = kwargs.pop('style', 'h')
+        reverse = kwargs.pop('reverse', False)
+        fadefcn = kwargs.pop('fadefcn', None)
+
         super(Grid, self).__init__(*args, **kwargs)
-            
+        self._set_zfcn(fade, style=style, reverse=reverse, fadefcn=fadefcn)
+        
+    def set_zfcn(self, fcn_or_string, *args, **kwargs):
+        return self._set_zfcn(fcn_or_string, *args, **kwargs)
+                    
+    def _set_zfcn(self, fcn_or_string, *args, **kwargs):
+        """ Private method to allow overloading of set_zfcn"""
+        if isinstance(fcn_or_string, str):
+            if fcn_or_string != 'fade':
+                raise GridError('"fade" is the only implicit zfcn passable via'
+                    'string.  Please pass a python function instead.')
+            # Setup a dictionary like threshfcn soon
+            self._zfcn = functools.partial(fade, *args, **kwargs)
+            self._zfcntype = fcn_or_string
+        else:
+            self._zfcn = functools.partial(fcn_or_string, *args, **kwargs)
+            self._zfcntype = fcn_or_string.__name__
+        
+    @property
+    def zfcn(self):
+        return self._zfcntype
 
+    @zfcn.setter
+    def zfcn(self, val):
+        raise GridAttributeError('Please refer to "set_zfcn()')
+        
+        
     def empty_bool(self):
         """ Return False boolean array; used in many related methods """
         return np.zeros(self.shape).astype(bool)
@@ -177,7 +198,7 @@ class Grid(HasTraits):
         
     @property
     def zz(self):
-        return self.zfcn(self.xx, self.yy) 
+        return self._zfcn(self.xx, self.yy) 
     
     @property
     def shape(self):
@@ -188,8 +209,7 @@ class Grid(HasTraits):
     def midpoint(self):
         """ (xmid, ymid) ; useful for meancentering operations """
         return ( rint( (self.xend-self.xstart) / 2), 
-                 rint( (self.yend-self.ystart) / 2) 
-               ) 
+                 rint( (self.yend-self.ystart) / 2) ) 
     
     @property
     def gradient(self):
@@ -487,9 +507,16 @@ class CartesianGrid(TiledGrid):
     that is constant; hence, it's easy to make a cartesian grid."""
 
     ## Setting zfcn is not allowed in tiled grid as it is used for gradient
-    def __init__(self, *args, **kwargs):
-        if 'zfcn' in kwargs:
-            raise GridError("Zfcn is fixed for CartesianGrid; use TiledGrid")
-
-        kwargs.update({'zfcn':'fade', 'style':'d'})
+    def __init__(self, *args, **kwargs):  
+        """ Force diagonal style fadefcn """
+        kwargs.update({'style':'d', 
+                       'reverse':False, 
+                       'fadefcn':None})
         super(CartesianGrid, self).__init__(*args, **kwargs)
+        
+    def set_zfcn(fcn_or_str, *args, **kwargs):
+        raise GridError("Zfcn is fixed for CartesianGrid; use TiledGrid")
+
+if __name__ == '__main__':
+    tg1 = TiledGrid()
+    

@@ -144,13 +144,9 @@ class Canvas(HasTraits):
         return self._threshtype
     
     @threshfcn.setter
-    def threshfcn(self, val):
-        raise CanvasAttributeError('Please set thresh function through "set_threshfcn()*')
-    
-    @threshfcn.setter
     def threshfcn(self):
-        raise CanvasError('Please use "set_threshfcn(fcn/str, *args, **kwargs)" to set the binary '
-            'function.')
+        raise CanvasAttributeError('Please use "set_threshfcn(fcn/str, *args, '
+                                   '**kwargs)" to set the binary function.')
 
     # Public Methods
     # -------------              
@@ -906,5 +902,4 @@ if __name__ == '__main__':
 #    for l in c.grid.dlines:
 #        img[ l ] = 255
 
-    plt.imshow(img)
-    plt.show()
+    c=Canvas.random_circles(n=15, background='honeydew', pcolor='random')
