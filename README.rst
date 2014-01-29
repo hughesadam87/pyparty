@@ -216,12 +216,9 @@ issue_ with the appropriate label.
 About the Author
 ================
 
-I'm a PhD student at GWU.  I work in biomolecule sensing and nanophotonics; you 
-can check me out on researchgate_.  Last summer, I interened at Enthought and 
-really enjoy software design.  Like any PhD student, my time is apportioned across
-many project.  As such, my source code is messy at times, and a test suite hasn't been
-developed yet.  I know this is cardinal sin uno, but developing
-the iPython notebooks alongside the code helped served as a basic test platform.  
-If anyone wants to assist in this effort, I'd be greatly indebted to you.
+I'm a PhD student at GWU (check me out on researchgate_).  I work in biomolecule sensing and nanophotonics.  
+Last summer, I interened at Enthought and really enjoy software design.  Like any PhD student, my time is stretched across
+many projects.  As such, the ``pyparty`` source code may is messy in places, and a test suite has yet to be
+developed yet.  Developing the iPython notebook tutorials alongside the code helped served as a basic test platform.  
 
    .. _researchgate : https://www.researchgate.net/profile/Adam_Hughes2/?ev=hdr_xprf
