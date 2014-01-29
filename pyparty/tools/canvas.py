@@ -209,13 +209,41 @@ class Canvas(HasTraits):
 
 #http://scikit-image.org/docs/dev/api/skimage.morphology.html#skimage.morphology.label
 #    @inplace
-    def from_labels(self, inplace=False, neighbors=4, bgout=None,
-                    bgexclude=None, binary=True, pbinary=True, **pmangerkwds):
-        """ Get morphological labels from gray or binary image. """
+    def from_labels(self, bgout=None, exclude=None, binary=True, pbinary=True,
+                    inplace=False, neighbors=4, **pmangerkwds):
+        """ Get morphological labels from gray or binary image. 
+
+        Parameters
+        ----------
+        exclude : 0, 1, 255, 'w', 'b'
+            Exclude white, black or specified integer from labels.  For example,
+            'b' will prevent black pixels from being labeled.
+
+        bgout : Valid canvas array/color
+            Background image of resulting canvas.  If exclude, then there will
+            be unlabled regions.  bgout='r' will overlay the labels onto a red
+            background.  By default, self.background is used.
+
+        binary : bool
+            Use binary image; else use grayimage.  
+            
+        pbinary : bool
+            Use self.pbinary to generate thresholded image; else, use 
+            self.threshfcn (implicit thresholding function) to binarize.
+            Only valid if binary = True
+
+        Notes
+        -----
+        Use binary=False with caution.  Many grayimages would lead to tends of
+        thousands of labels due to minute color changes in each pixel.  Whitle
+        skimage.label can handle this, pyparty will slow down severaly trying
+        to make so many particles from labels.
+                    
+        """
 
         if binary:
             if pbinary:
-                image = self.pbinary #PBINARY NOT BINARYIMAGE
+                image = self.pbinary #PBINARY NOT self.binaryimage
                 if len(self.particles) == 0:
                     logger.warn('from_labels() recieved "pbinary=True", but '
                         'no particles are stored.  Use "pbinary=False" to '
@@ -226,20 +254,20 @@ class Canvas(HasTraits):
             image = self.grayimage
             logger.warn('Labels from grayimage can be very slow (fix coming)')
             
-        if bgexclude is None: # scikit api doesn't accept None
+        if exclude is None: # scikit api doesn't accept None
             labels = morphology.label(image, neighbors)
             
         else:
             # Parse various cases
-            if bgexclude == 'w' or bgexclude == 'white':
+            if exclude == 'w' or exclude == 'white':
                 if binary:
-                    bgexclude = 1
+                    exclude = 1
                 else:
-                    bgexclude = 255                    
-            elif bgexclude == 'b' or bgexclude == 'black':
-                bgexclude = 0
+                    exclude = 255                    
+            elif exclude == 'b' or exclude == 'black':
+                exclude = 0
                         
-            labels = morphology.label(image, neighbors, background=bgexclude)
+            labels = morphology.label(image, neighbors, background=exclude)
 
         pout = ParticleManager.from_labels(labels, **pmangerkwds)
 
@@ -866,40 +894,9 @@ if __name__ == '__main__':
     from skimage import draw 
     import matplotlib.pyplot as plt
     
-    c=Canvas()
-    gt = c.grid.tiles
-    gt1d = c.grid.as_tiles(key='flat')
-    gt2d = c.grid.as_tiles(key='2d')
-    img = c.image
-
-    #for key, tile in gt1d.items():
-        #print key, key%3
-        #if not key%3:
-            #img[tile] = (1,0,0)
-        #else:
-            #img[tile] = (0,1,0)
-
-    print c
-        
-    #for d in c.grid.dlines_neg:
-        #img[d] = (1,0,0)
-
-    #for key, tile in gt2d.items():
-        #kx, ky = key
-        #if kx%2:
-            #if ky%2:
-                #img[tile] = (1,0,0)
-            #else:
-                #img[tile] = (0,1,0)
-        #else:
-            #img[tile]=(0,0,1)
-
-
+    from pyparty.utils import auto_mask
+    from pyparty.data import lena_who, nanolabels
     
-    #for key in gt.keys()[::2]:
-        #img[ gt[key] ] = 255
-        
-#    for l in c.grid.dlines:
-#        img[ l ] = 255
-
-    c=Canvas.random_circles(n=15, background='honeydew', pcolor='random')
+    ad = auto_mask(nanolabels())
+    print ad[0.0]
+    

@@ -206,8 +206,13 @@ Interested in the Python ecosystem?   Check out some of these related libraries:
 Coming Soon
 ===========
    - More multi-particle types.
-   - Individual tile operations on grids.
-   - More real-world examples.
+   - Better control of color shading of labels.
+   - More examples.
+   
+Have a feature request, or want to report a bug?  Please fill out a github
+issue_ with the appropriate label.	
+
+.. _issue : https://github.com/hugadams/pyparty/issues
 
 About the Author
 ================
