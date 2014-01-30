@@ -5,18 +5,18 @@ from setuptools import setup, find_packages
 
 NAME = 'pyparty'
 
-# Python >= 2.7 ?
+# Python >= 2.7 
 # -------
-user_py = sys.version_info
-if user_py < (2, 7):
-    raise SystemExit('%s requires python 2.7 or higher (%s found).' % \
-                    (NAME, '.'.join(str(x) for x in user_py[0:3])))
+#user_py = sys.version_info
+#if user_py < (2, 7):
+#    raise SystemExit('%s requires python 2.7 or higher (%s found).' % \
+#                    (NAME, '.'.join(str(x) for x in user_py[0:3])))
     
 # For now, most of these are in here for testing.  Dependency version 
 #requirements can probably be relaxed, especially chaco.
 setup(
     name = NAME,
-    version = '0.1.1-1', 
+    version = '0.1', 
     author = 'Adam Hughes',
     maintainer = 'Adam Hughes',
     maintainer_email = 'hughesadam87@gmail.com',
