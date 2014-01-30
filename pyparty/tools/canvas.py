@@ -890,13 +890,3 @@ class ScaledCanvas(Canvas):
         to pre-set units."""
     NotImplemented
 
-if __name__ == '__main__':
-    from skimage import draw 
-    import matplotlib.pyplot as plt
-    
-    from pyparty.utils import auto_mask
-    from pyparty.data import lena_who, nanolabels
-    
-    ad = auto_mask(nanolabels())
-    print ad[0.0]
-    

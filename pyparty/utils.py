@@ -437,29 +437,3 @@ def mem_address(obj):
                          "Recieved following message: %s" % E.message)
     else:
         return out.strip("'").strip('>')
-    
-# Add bg exclude?
-def auto_mask(ndarray, *masks):
-    """ Return dictionary of boolean masks corresponding to bins of colors
-    in an image. """
-    
-    if ndarray.ndim == 3:
-        ndarray = rgb2uint(ndarray)
-        logger.warn('auto_mask() converting 3-channel to 256 color')
-
-    unique = np.unique(ndarray)    
-    out = {}
-    
-    if masks:
-        if len(masks) != len(unique):
-            logger.warn('Mismatch in unique colors (%s) and provided masks (%s)'
-                        % (len(unique), len(masks)) )
-    
-    for idx, value in enumerate(unique):
-        try:
-            key = masks[idx]
-        except IndexError:
-            key = value
-
-        out[key] = (ndarray == unique[idx])        
-    return out

@@ -95,7 +95,7 @@ class Grid(HasTraits):
         if isinstance(fcn_or_string, str):
             if fcn_or_string != 'fade':
                 raise GridError('"fade" is the only implicit zfcn passable via'
-                    'string.  Please pass a python function instead.')
+                    'string.  Please pass a function instead.')
             # Setup a dictionary like threshfcn soon
             self._zfcn = functools.partial(fade, *args, **kwargs)
             self._zfcntype = fcn_or_string
@@ -516,7 +516,3 @@ class CartesianGrid(TiledGrid):
         
     def set_zfcn(fcn_or_str, *args, **kwargs):
         raise GridError("Zfcn is fixed for CartesianGrid; use TiledGrid")
-
-if __name__ == '__main__':
-    tg1 = TiledGrid()
-    
