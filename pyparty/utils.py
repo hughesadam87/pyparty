@@ -48,13 +48,13 @@ def rand_color(style=None):
         r = lambda: random.random()
         return  ( r(), r(), r() )
     
-        
-
+    
 def _pix_norm(value, imax=CBITS):
     """ Normalize pixel intensity to colorbit """
     if value > imax:
         raise ColorError("Pixel intensity cannot exceed %s" % imax)
     return float(value) / imax
+
 
 def to_normrgb(color):
     """ Returns an rgb len(3) tuple on range 0.0-1.0 with several input styles; 
@@ -271,7 +271,8 @@ def _parse_ax(*args, **kwargs):
     if 'cmap' in kwargs:
         cmap = kwargs['cmap']
         if isinstance(cmap, str):
-            kwargs['cmap'] = cm.get_cmap(cmap)    
+            if cmap != 'pbinary' and cmap != 'pbinary_r': #special canvas word
+                kwargs['cmap'] = cm.get_cmap(cmap)    
         
     return axes, kwargs
 

@@ -24,7 +24,6 @@ from pyparty.utils import coords_in_image, where_is_particle, to_normrgb, \
      any2rgb, crop, _parse_ax, _parse_path, mem_address, rgb2uint
 from pyparty.config import BGCOLOR, BGRES, GRIDXSPACE, GRIDYSPACE, _PAD, \
      GCOLOR, THRESHDEF
-
 # Ensure colors are correctly mapped
 BGCOLOR, GCOLOR = to_normrgb(BGCOLOR), to_normrgb(GCOLOR)
 
@@ -414,12 +413,21 @@ class Canvas(HasTraits):
         gunder = kwargs.pop('gunder', False)
         gstyle = kwargs.pop('gstyle', None) #NOT USED
         
+        if gstyle:
+            raise CanvasPlotError('"gstyle" only valid for patchshow()')
+        
         if 'pmap' in kwargs:
             raise CanvasPlotError('"pmap" is only valid for patchshow() method')
         
+        PBINARY = False
+        if 'cmap' in kwargs:
+            if kwargs['cmap'] == 'pbinary' or kwargs['cmap'] == 'pbinary_r':
+                PBINARY = kwargs['cmap']
+                del kwargs['cmap']
+        
         # Get the background
         if bgonly: 
-            if not kwargs['cmap']:
+            if 'cmap' not in kwargs:
                 raise CanvasPlotError('"bgonly" is only valid when a colormap is' 
                 ' passed.')
             bg = kwargs['cmap'](self.graybackground)[... , :3]
@@ -427,6 +435,11 @@ class Canvas(HasTraits):
 
         else:
             bg = self.background
+            if PBINARY:
+                if PBINARY == 'pbinary_r':
+                    bg = np.ones(bg.shape).astype(bool)
+                else:
+                    bg = np.zeros(bg.shape).astype(bool)
                               
         # grid overlay
         if gcolor or gunder and not grid:
@@ -453,17 +466,17 @@ class Canvas(HasTraits):
                     % grid)            
             gcolor = to_normrgb(gcolor)
                                   
-        #Draw grid over or under?
+        #Draw grid over or under?            
         if gunder:
             bg[gattr] = gcolor
-            image = self._draw_particles(bg)
+            image = self._draw_particles(bg, force_binary=PBINARY)
         else:
-            image = self._draw_particles(bg)
+            image = self._draw_particles(bg, force_binary=PBINARY)
             image[gattr] = gcolor
-            
+                        
         # GRAY CONVERT
         if 'cmap' in kwargs:
-            image = rgb2uint(image)
+            image = rgb2uint(image)           
             
         # Matplotlib
         if axes:
@@ -481,10 +494,22 @@ class Canvas(HasTraits):
                         
         return axes 
 
-    def _draw_particles(self, image):
-        """ Draws particles over any image (ie background, background+grid """
-        for p in self._particles:
-            rr_cc, color = p.particle.rr_cc, p.color 
+    def _draw_particles(self, image, force_binary=False):
+        """ Draws particles over any image (ie background, background+grid.
+        force_binary is a hack to allow for drawing binary particles, useful
+        for canvas.show(cmap=pbinary)"""
+        for p in self._particles:   
+            rr_cc = p.particle.rr_cc
+
+            # Lot of crap!  Need it this way or grid color will be inverted too
+            if force_binary:
+                if force_binary == 'pbinary_r':
+                    color = False
+                else:
+                    color = True
+            else:
+                color = p.color
+                
             rr_cc = coords_in_image(rr_cc, image.shape)
             image[rr_cc] = color
         return image 
