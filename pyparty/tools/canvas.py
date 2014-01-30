@@ -312,6 +312,9 @@ class Canvas(HasTraits):
         # GET NOT POP
         cmap = kwargs.get('cmap', None)       
         
+        if cmap in ['pbinary', 'pbinary_r']:
+            raise CanvasPlotError('"pbinary(_r)" color map only valid for .show()')
+        
         # grid defaults
         if gcolor or gunder or gstyle and not grid:
             grid = True
