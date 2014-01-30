@@ -312,6 +312,7 @@ class Canvas(HasTraits):
         # GET NOT POP
         cmap = kwargs.get('cmap', None)       
         
+        # Implement later
         if cmap in ['pbinary', 'pbinary_r']:
             raise CanvasPlotError('"pbinary(_r)" color map only valid for .show()')
         

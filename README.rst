@@ -25,10 +25,13 @@ common operations in the image processing pipeline.
 *Some key features include*:
 
 1. Pythonic **ParticleManager** for storing and manipulating particles from image 
-   labels OR builtin shapes.
-       - All **Particles** share quick access to descriptors as well as
-         general operations like rotations and translations.
-
+   labels OR builtin shapes.  Some highlights of **Particles** include:
+       - A common datastructure for array operations like rotations and 
+         translations.
+       - ``skimage`` descriptors promoted as primary attributes.
+       - Mapping and logical indexing (numpy style) on particle attributes, including
+         descriptors. 
+         
 2. A **Grid** system for patterning particles, as well as mesh utilities for creating 
    image backgrounds.
 
@@ -224,3 +227,14 @@ iPython notebook tutorials alongside the code helped served as a basic test
 platform.  
 
    .. _researchgate : https://www.researchgate.net/profile/Adam_Hughes2/?ev=hdr_xprf
+
+Acknowledgements
+================
+Thank you scikit-image team for their patience and assistance with us on the 
+mailing list, and for putting together a great library for the community.
+
+Thank you countless developers who have patiently answered hundreds of 
+my questions on too many mailing lists and sites to list.
+
+Thank you Zhaowen Liu for all of your help with this project, our 
+other projects and for your unwaivering encourgement.  And for the panda.
