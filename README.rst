@@ -59,7 +59,7 @@ especially in regard to particle analysis.
 What are some use cases, and will pyparty help to me?
 -----------------------------------------------------
 
-Some operations that pyparty would be particularly suited for would be:
+Some operations that ``pyparty`` would be particularly suited for would be:
 
 1. Counting cells in an image and measuring their eccentricity.
 
@@ -82,13 +82,14 @@ generating, managing or labeling particles as a bottleneck.
 Documentation
 =============
 
-The current documtation/testing suite is a series of example notebooks 
+The current documentation (and in-a-pinch test suite) is a series of example notebooks 
 (`iPython Notebook`_), which cover most of the basics. These have been linked below:
 
    - `Basic Operations: Primary Tutorial`_ 
    - `Intro to Shapes`_
    - `Intro to Grids`_
    - `Particles from Image Labels`_
+   - `Dimers / Trimers: Multi-Group Labels`_
    - `Watershedding Example Adapted`_
    - `Matplotlib Color Maps`_
    
@@ -96,6 +97,7 @@ The current documtation/testing suite is a series of example notebooks
    .. _`Intro to Shapes`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/shapes.ipynb?create=1
    .. _`Intro to Grids` : http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/grids.ipynb?create=1
    .. _`Particles from Image Labels`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/Analyze_Particles.ipynb?create=1
+   .. _`Dimers / Trimers: Multi-Group Labels` :  http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/groups_of_labels.ipynb?create=1
    .. _`Matplotlib Color Maps` : http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/gwu_maps.ipynb?create=1
    .. _`Watershedding Example Adapted` : http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/watershed.ipynb?create=1
 
@@ -118,7 +120,7 @@ History
 effort to generate test data for SEM and AFM images of gold nanoparticles on glass substrates.
 We really enjoyed scikit-image_ for image processing and sought to implement it in generating test data.  
 We sought to provide an API for managing labeled particles from real images.  Scikit-image draw and measure
-modules laid the groundwork to the core functionaly that ``pyparty`` attempts to streamline. 
+modules laid the groundwork to the core functionality that ``pyparty`` attempts to streamline. 
 
 I should also note that some of the inspiration can from the excellent ``Analyze Particles`` features
 in ImageJ_.
@@ -237,4 +239,4 @@ Thank you countless developers who have patiently answered hundreds of
 my questions on too many mailing lists and sites to list.
 
 Thank you Zhaowen Liu for all of your help with this project, our 
-other projects and for your unwaivering encourgement.  And for the panda.
+other projects and for your unwaivering encouragement.  And for the panda.
