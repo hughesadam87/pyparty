@@ -26,6 +26,7 @@ setup(
     # include .tex and .ipynb files
     package_data={   
       'pyparty.examples.Notebooks':['*.ipynb'],
+      'pyparty.bundled':['*.css'],
       'pyparty.data':['*'],
                  },
        

@@ -10,7 +10,7 @@ from pyparty import data_dir
 __all__ = ['gwu', 
            'spectrum',
            'lena_who',
-	   'nanogold',
+	       'nanogold',
            'nanolabels'
            ]
 
