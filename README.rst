@@ -221,7 +221,7 @@ issue_ with the appropriate label.
 About the Author
 ================
 
-I'm a PhD student at GWU (check me out on researchgate_) and former Enthought intern. 
+I'm a PhD student at GWU (check me out on researchgate_ and Linkedin_) and former Enthought intern. 
 I work in biomolecule sensing and nanophotonics.   Like any PhD student, my time 
 is stretched across many projects.  As such, the ``pyparty`` source code may is 
 messy in places, and a test suite has yet to be developed yet.  Developing the 
@@ -229,6 +229,7 @@ iPython notebook tutorials alongside the code helped served as a basic test
 platform.  
 
    .. _researchgate : https://www.researchgate.net/profile/Adam_Hughes2/?ev=hdr_xprf
+   .. _Linkedin : http://www.linkedin.com/profile/view?id=121484744&goback=%2Enmp_*1_*1_*1_*1_*1_*1_*1_*1_*1_*1_*1&trk=spm_pic
 
 Acknowledgements
 ================
