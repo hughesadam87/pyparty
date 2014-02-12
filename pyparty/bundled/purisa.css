@@ -1,0 +1,59 @@
+#notebook_panel { /* main background */
+     background-image: url('http://static02.mediaite.com/geekosystem/uploads/2013/12/doge.jpg'); 
+     background-size: 400px 200px; 
+}
+
+div #notebook { /* centre the content */
+    background: #fff;
+    opacity:0.8;
+    color: #333;
+    width: 115ex;
+    margin: auto;
+    padding-left: 1em;
+    padding-right: 1em;
+    padding-top: 2ex;
+}
+
+
+
+div.text_cell {
+    width: 105ex; /* instead of 100%, */
+}
+
+div.input {
+    width: 105ex; /* about 80 chars + buffer */
+}
+
+
+div.text_cell_render {
+    /*font-family: "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;*/
+    font-family: "Purisa", purisa; /* Make non-code text serif. */
+    line-height: 145%; /* added for some line spacing of text. */
+    width: 105ex; /* instead of 'inherit' for shorter lines */
+}
+
+
+/* Set the size of the headers */
+div.text_cell_render h1 {
+   font-family: 'Purisa';
+   font-size: 18pt;
+   text-shadow: 4px 4px 4px #aaa;
+   color: orange;
+}
+
+
+/* Header color is purple */
+div.text_cell_render h2 {
+   font-size: 14pt;
+   color: purple;
+}
+
+div.prompt { /* remove In/Out prompt */
+    display: none;
+}
+
+/* Set font of coding cells */
+.CodeMirror {
+   font-family: purisa
+   ; 
+}
