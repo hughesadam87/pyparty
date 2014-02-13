@@ -77,12 +77,46 @@ class Grid(HasTraits):
     polar = Bool(False)
     
     def __init__(self, *args, **kwargs):
-        """ Default zfcn = fade fcn.  Other functions must go through set_zfcn().
-        may extent to general zfcn initializations in future"""
-
+        """ Smooth grid; object to wrap ZZ 2d fucntion.  Default function
+        is a smooth gradient (fadefcn) that can be easily accessed through
+        keywords.
+        
+        Parameters
+        ----------
+        rez : (int, int)
+            Shortcut for setting grid start, end values.  Note that to be
+            consistent with plotting, rez[0] sets yend.
+            
+        negative_y : bool (True)
+            If rez passed, this will reverse xend and yend to be consistent
+            with imshow().  If y-axis looks backwards, make this False.
+            
+        fadefcnargs 
+            Valid arguments to fade().  Eg reverse, style.  Only use if 
+            Grid is to be instantied with a fade/gradient 
+        
+        Notes
+        -----
+        Only fade() is supported at initalization.  Other functions can be
+        set using Grid.set_zfcn().
+        """
+        
         style = kwargs.pop('style', 'h')
         reverse = kwargs.pop('reverse', False)
         fadefcn = kwargs.pop('fadefcn', None)
+        
+        rez = kwargs.pop('rez', None)
+        negative_y = kwargs.pop('negative_y', True)
+        if rez:
+            kwargs['xstart']=0
+            kwargs['yend']=0
+            # REVERSED
+            if negative_y:
+                kwargs['xend']= rez[1]
+                kwargs['yend']= rez[0]
+            else:
+                kwargs['xend']= rez[0]
+                kwargs['yend']= rez[1]                
 
         super(Grid, self).__init__(*args, **kwargs)
         self._set_zfcn(fade, style=style, reverse=reverse, fadefcn=fadefcn)

@@ -160,9 +160,7 @@ class Canvas(HasTraits):
                 
     def reset_grid(self):
         """ New grid of default x/y spacing; rez is optional """
-        xs = ys = 0
-        xe, ye = self.rez
-        self.grid = CartesianGrid(ystart=ys, xstart=xs, yend=xe, xend=ye,
+        self.grid = CartesianGrid(rez=self.rez, negative_y=True,
                               xspacing=GRIDYSPACE, yspacing = GRIDXSPACE)
         
 

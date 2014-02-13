@@ -38,7 +38,7 @@ def multicolor(img, coverage=DEFAULT_COVERAGE):
     return img
 
 @copyarray
-def color(img, coverage=DEFAULT_COVERAGE, intensity='red',):
+def color(img, coverage=DEFAULT_COVERAGE, intensity='yellow'):
     """Noise of arbitrary intensity/color added to img at coverage.
     Defaults to red."""
     

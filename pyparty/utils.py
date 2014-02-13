@@ -66,6 +66,7 @@ def copyarray(fcn):
         return fcn(*args, **kwargs)
     return wrapper
 
+
 def to_normrgb(color):
     """ Returns an rgb len(3) tuple on range 0.0-1.0 with several input styles; 
         wraps matplotlib.color.ColorConvert.  If None, returns config.PCOLOR by
