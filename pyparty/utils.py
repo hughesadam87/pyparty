@@ -4,6 +4,7 @@ import math
 import random 
 import os
 import os.path as op
+import functools
 
 import numpy as np
 import matplotlib.colors as colors
@@ -55,6 +56,15 @@ def _pix_norm(value, imax=CBITS):
         raise ColorError("Pixel intensity cannot exceed %s" % imax)
     return float(value) / imax
 
+
+def copyarray(fcn):
+    """ Decorator to return copy of an array. ARRAY MUST BE FIRST ARG!! """
+    @functools.wraps(fcn)
+    def wrapper(*args, **kwargs): #why aren't kwargs found?
+        args=list(args)
+        args[0] = np.copy(args[0])
+        return fcn(*args, **kwargs)
+    return wrapper
 
 def to_normrgb(color):
     """ Returns an rgb len(3) tuple on range 0.0-1.0 with several input styles; 
