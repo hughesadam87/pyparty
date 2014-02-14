@@ -99,7 +99,7 @@ class Canvas(HasTraits):
 
     grid = Instance(CartesianGrid)
 
-    def __init__(self, particles=None, background=None, rez=BGRES, grid=None, 
+    def __init__(self, particles=None, background=None, rez=None, grid=None, 
                  _threshfcn=None): #No other traits
         """ Load with optionally a background image and instance of Particle
             Manager"""
@@ -107,13 +107,11 @@ class Canvas(HasTraits):
         if not particles:
             particles = ParticleManager()
         self._particles = particles
-
-        # Set bg before resolution
-        if rez:
-            self._resolution = rez
             
-        if background is None and rez==BGRES:
+        if background is None and rez is None:
             self.reset_background() #sets default color/resolution    
+        elif background is not None and rez is None:
+            self.set_bg(background, keepres=False, inplace=True)
         else:
             self.set_bg(background, keepres=rez, inplace=True) 
             
