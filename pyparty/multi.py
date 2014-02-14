@@ -68,15 +68,29 @@ def multi_mask(img, *names, **kwargs):
     
     return dict(out)
           
-def multi_labels(masksdict, as_canvas=True, prefix=None, neighbors=4, **pmankwargs):
-        
-    # SUPPOSED TO HANDLE LIST AS WELL    
-        
-    # Should out be dict, or ordered dict...
-    outfcn = type(masksdict)
+def multi_labels(masks, as_canvas=True, prefix=None, neighbors=4, **pmankwargs):
+    """ Masks can be lists of masked array corresponding to labels from 
+    multimask, or the dict returned directly from multi_mask().
+    
+    Notes:
+    ------
+    Masks beings list or dict adds a lot of wonkyness.  For example, if list,
+    a temporary key value structure is created w/ keys "foo" which are just 
+    ignored anyway upon output."""
+    
+    # Are masks a list, dict or ordered dict?
+    try:
+        masks.items()
+    except AttributeError:
+        #Make a temp dict for iterating, faux keys
+        outfcn = list
+        masks_iter = (('foo', mask) for mask in masks)
+    else:
+        outfcn = type(masks)
+        masks_iter = masks.items()
     
     out = []
-    for key, mask in masksdict.items():
+    for key, mask in masks_iter:
 
         labels = morphology.label(mask, neighbors, background=False)                
         
@@ -92,5 +106,8 @@ def multi_labels(masksdict, as_canvas=True, prefix=None, neighbors=4, **pmankwar
             out.append( (key, canvas) )
         else:
             out.append( (key, particles) )
+            
+    if outfcn is list:
+        out = (v for k,v in out)
 
     return outfcn(out)    
