@@ -1,6 +1,6 @@
 # Import sample data.  This import structure was taken directly from skimages
 # data import style:
-   # https://github.com/scikit-image/scikit-image
+    # https://github.com/scikit-image/scikit-image
 
 import os.path as op
 from skimage.io import imread
@@ -10,8 +10,9 @@ from pyparty import data_dir
 __all__ = ['gwu', 
            'spectrum',
            'lena_who',
-	       'nanogold',
-           'nanolabels'
+           'nanogold',
+           'nanolabels',
+           'nanobinary',
            ]
 
 def load(f):
@@ -52,3 +53,7 @@ def nanogold():
 def nanolabels():
     """ size-segmented (nanogold); see nanogold description"""
     return load("nanolabels.tif")
+
+def nanobinary():
+    """ binarized nanogold using trainable pixel classification """
+    return load("nanobinary.tif")

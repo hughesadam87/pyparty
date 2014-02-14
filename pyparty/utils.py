@@ -24,7 +24,7 @@ CTYPE, CBITS = COLORTYPE
 
 ERRORMESSAGE = 'Valid color arguments include color names ("aqua"), ' +  \
     'rgb-tuples (.2, .4, 0.), ints/floats (0-%s) or (0.0-1.0) or' % CBITS + \
-    'hexcolorstrings (#00FFFF).' 
+    ' hexcolorstrings (#00FFFF).' 
 
 #http://matplotlib.org/api/colors_api.html#matplotlib.colors.ColorConverter            
 _rgb_from_string = colors.ColorConverter().to_rgb
@@ -90,7 +90,7 @@ def to_normrgb(color):
 
         else:
             raise ColorError("Multi-channel color style ambiguous. (r, g, b)"
-                             " elements must all be < 1 or all > 1 (normalized to %s pixels)" 
+                " elements must all be < 1 or all > 1 (normalized to %s pixels)" 
                              % CBITS)
 
     if isinstance(color, str):
