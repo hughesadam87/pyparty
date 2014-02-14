@@ -8,7 +8,7 @@ y=[0.023, 0.017, 0.014]  #BSA per square nm assuming spheres, converted x--> are
 cov=[60.0, 44.0, 36.0] #Coverage percentage corresponding to bsa/per square nm (y)
 
 def bsa_count(diams, style='single'):
-    ''' Returns bsa molecules per unit surface area given a diameter of a particle,
+    ''' Returns bsa molecules per unit surface area given a particle diameter,
     and a fitting style.  Essentially just returns the y value of a fit curve
     given x (diamter).'''
 
@@ -16,8 +16,7 @@ def bsa_count(diams, style='single'):
         z=np.polyfit(x, y, 1)  
         p=np.poly1d(z)        
         return p(diams)
-        
-                
+                        
     elif style=='dual':
         dout=[]
 
@@ -44,5 +43,6 @@ def bsa_count(diams, style='single'):
 
 # IS THIS ACTUALLY IN USE
 def _map_cov(bsa_area):
-    ''' Given bsa surface area, map this to percent coverage using the fact that 0.0386nm-2 is 100% coverage'''
+    ''' Given bsa surface area, map this to percent coverage using the fact
+    that 0.0386nm-2 is 100% coverage'''
     return 100.0* ( bsa_area / 0.0386)
