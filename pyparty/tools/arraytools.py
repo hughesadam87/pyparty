@@ -119,3 +119,9 @@ def array2sphere(xyz_array):
     else:
         raise ArrayUtilsError("xyz_array must be of shape (N,2) or (N,3) (ie "
             "rows of xy or xyz vectors), recived: %s" % str(xyz_array.shape))
+    
+def nearest(array, value):
+    '''Find nearest value in an array, return index and array value'''
+    idx=(np.abs(array-value)).argmin()
+    return idx, array[idx]  
+    
