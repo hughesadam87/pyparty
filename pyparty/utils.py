@@ -14,6 +14,9 @@ import matplotlib.cm as cm
 from matplotlib.axes import Subplot
 from skimage import img_as_float, img_as_ubyte
 from skimage.color import gray2rgb, rgb2gray
+from skimage.util.dtype import dtype_range #imghist()
+from skimage import exposure
+
 
 from pyparty.config import PCOLOR, COLORTYPE
 
@@ -168,13 +171,22 @@ def coords_in_image(rr_cc, shape):
     return (rr[mask], cc[mask])            
 
 
-def rgb2uint(image):
+def rgb2uint(image, warnmsg=False):
     """ Returns color image as 8-bit unsigned (0-255) int.  Unsigned 8bit gray 
     values are safer to plotting; so enforced throughout pyparty."""
      # img 127 --> ubyte of 123... 
         # Try this:
         #	print c.grayimage.max(), c.image.max() * 255, img_as_uint(lena()).max()
-    return img_as_ubyte( rgb2gray(image) )
+
+    # DOES NOT CHECK IMAGE DIMENSIONS; LEAVES THAT TO CALLING OBJECT
+    grayimg = img_as_ubyte( rgb2gray(image) )
+    if warnmsg:
+        print 'in warning'
+        if isinstance(warnmsg, str):
+            logger.warn(warnmsg)
+        else:
+            logger.warn("3-Channel image converted to 1-channel gray.")
+    return grayimg    
     
 
 def where_is_particle(rr_cc, shape):
@@ -449,3 +461,84 @@ def mem_address(obj):
                          "Recieved following message: %s" % E.message)
     else:
         return out.strip("'").strip('>')
+    
+    
+def grayhist(img, *args, **histkwargs):
+    """Plot an image along with its histogram and cumulative histogram.
+    
+    ADAPTED FROM SCIKIT IMAGE GALLERY
+    http://scikit-image.org/docs/dev/auto_examples/plot_local_equalize.html
+    
+    Returns
+    -------
+    tuple : (n, bins, patches) or ([n0, n1, ...], bins, [patches0, patches1,...])
+
+    Notes
+    -----
+    See matplotlib hist API for all plt.hist() parameters.
+    http://matplotlib.org/api/pyplot_api.html
+    """
+    
+    if img.ndim == 3:
+        img = rgb2uint(img, warnmsg = True)
+    
+    # Histogram plotting kwargs
+    bins = histkwargs.pop('bins', 256) #used several places
+    cdf = histkwargs.pop('cdf', False)
+    histkwargs.setdefault('color', 'black')
+    histkwargs.setdefault('alpha', 0.5)
+    histkwargs.setdefault('orientation', 'vertical')
+    
+    # CDF line plotting kwargs
+    lcolor = histkwargs.pop('lcolor', 'red')
+    lw = histkwargs.pop('lw', 2)    
+    ls = histkwargs.pop('ls', '-')
+
+    if histkwargs['orientation'] == 'horizontal':
+        raise UtilsError("Horiz. orientation not supported for grayhist")
+    
+    axes, kwargs = _parse_ax(*args, **histkwargs)    
+    
+    # Matplotlib
+    if not axes:
+        fig, axes = plt.subplots()
+    
+    # Display histogram
+    histout = axes.hist(img.ravel(), bins=bins, **histkwargs)
+    axes.ticklabel_format(axis='y', style='scientific', scilimits=(0, 0))
+    axes.set_xlabel('Pixel intensity')
+    
+    # Display cumulative distribution
+    if cdf:
+        ax_cdf = axes.twinx()
+        img_cdf, bins = exposure.cumulative_distribution(img, bins)
+        ax_cdf.plot(bins, img_cdf, color=lcolor, lw=lw, ls=ls)
+    
+    # Set the range based on scikit image dtype range 
+    # (not quite right for rgb)
+    xmin, xmax = dtype_range[img.dtype.type]
+    axes.set_xlim(xmin, xmax)
+
+
+    return 
+    
+    
+def rgbhist(img, *args, **kwargs):
+    """ See imagej version """
+    if img.ndim == 2:
+        img = gray2rgb(img) 
+        logger.warn("Converting 1-channel gray image to rgb")
+
+    bins = histkwargs.pop('bins', 256) #used several places
+    cdf = histkwargs.pop('cdf', False)
+        
+    axes, kwargs = _parse_ax(*args, **histkwargs) 
+    if not axes:
+        fig, axes = plt.subplots()    
+        
+    # MAYBE STILL USE DTYPE FROM SKIMAGE IN CASE USERS PASS THEIR OWN RGB
+    # IMAGE IN HERE OUTISDE OF PYPARTY?
+    xmin, xmax = 0, 1
+        
+    # Can probably just call histograam 3 times w/ color arg
+    raise NotImplementedError
