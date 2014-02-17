@@ -203,18 +203,32 @@ class ParticleManager(HasTraits):
             """
         return dict( (pobj.name, idx) for idx, pobj in enumerate(self.plist))    
             
-    def add(self, particle, name='', color=None, force=False, *pargs, **pkwargs):
+
+    def add(self, particle, *pargs, **pkwargs):
         """ If color not passed, default color is used
             If not idx, put in last entry 
 
             Attributes
             ----------
             
-            *pargs : valid Particle constructor positionals
+            particle : Name of valid pyparty particle (eg 'circle')
+            
+            name : Particle name
+            
+            color : Str or None
+                Color of particle; defaults to Config specification
+            
+            force : Bool (False)
+                ???             
+            *pargs : Particle constructor args
+            
+            **pkwargs : Particle constructor kwargs
             """
+        
+        name = pkwargs.pop('name', '')
+        force = pkwargs.pop('force', False)
+        color = pkwargs.pop('color', None)  
      
-    
-        # Make particle from name and arguments
         if isinstance(particle, basestring):
             particle = self._make_particle(particle, *pargs, **pkwargs)
 

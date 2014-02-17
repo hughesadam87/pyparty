@@ -14,10 +14,7 @@ import matplotlib.cm as cm
 from matplotlib.axes import Subplot
 from skimage import img_as_float, img_as_ubyte
 from skimage.color import gray2rgb, rgb2gray
-from skimage.util.dtype import dtype_range #imghist()
 from skimage import exposure
-
-
 from pyparty.config import PCOLOR, COLORTYPE
 
 logger = logging.getLogger(__name__) 
@@ -181,7 +178,6 @@ def rgb2uint(image, warnmsg=False):
     # DOES NOT CHECK IMAGE DIMENSIONS; LEAVES THAT TO CALLING OBJECT
     grayimg = img_as_ubyte( rgb2gray(image) )
     if warnmsg:
-        print 'in warning'
         if isinstance(warnmsg, str):
             logger.warn(warnmsg)
         else:
@@ -469,6 +465,16 @@ def grayhist(img, *args, **histkwargs):
     ADAPTED FROM SCIKIT IMAGE GALLERY
     http://scikit-image.org/docs/dev/auto_examples/plot_local_equalize.html
     
+    Parameters
+    ----------
+    bins : (Number bins, defaults to 256)
+
+    cdf : bool(False) 
+        Plot cumulative distribution function over histogram.
+        
+    xlim : Set xlimits of histogram.
+        Very common to histogram so decided to promote it.
+    
     Returns
     -------
     tuple : (n, bins, patches) or ([n0, n1, ...], bins, [patches0, patches1,...])
@@ -493,9 +499,11 @@ def grayhist(img, *args, **histkwargs):
     lcolor = histkwargs.pop('lcolor', 'red')
     lw = histkwargs.pop('lw', 2)    
     ls = histkwargs.pop('ls', '-')
+    
+    xlim = histkwargs.pop('xlim', None)
 
     if histkwargs['orientation'] == 'horizontal':
-        raise UtilsError("Horiz. orientation not supported for grayhist")
+        raise UtilsError("horizontal orientation not supported.")
     
     axes, kwargs = _parse_ax(*args, **histkwargs)    
     
@@ -516,11 +524,18 @@ def grayhist(img, *args, **histkwargs):
     
     # Set the range based on scikit image dtype range 
     # (not quite right for rgb)
-    xmin, xmax = dtype_range[img.dtype.type]
+    xmin, xmax = pp_dtype_range(img)
+
+    if xlim:
+        rmin, rmax = xlim
+        if rmin < xmin or rmax > xmax:
+            raise UtilsError("Range %s out of bounds (%s, %s)" %
+                             (xlim, xmin, xmax))
+        else:
+            xmin, xmax = xlim
     axes.set_xlim(xmin, xmax)
 
-
-    return 
+    return histout
     
     
 def rgbhist(img, *args, **kwargs):
@@ -542,3 +557,14 @@ def rgbhist(img, *args, **kwargs):
         
     # Can probably just call histograam 3 times w/ color arg
     raise NotImplementedError
+
+def pp_dtype_range(img):
+    """ Similar to skimage.utils.dtype_range, returns upper and lower limits
+    on image of 1-channel and 3-channel.  Can't use skimage because it
+    allows for negative floats, which we avoid in 3-channel images."""
+    
+    if img.ndim == 2:
+        xmin, xmax = 0, 255
+    elif img.ndim == 3:
+        xmin, xmax =  (0,0,0), (1,1,1) 
+    return xmin, xmax

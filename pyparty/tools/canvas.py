@@ -113,6 +113,7 @@ class Canvas(HasTraits):
         elif background is not None and rez is None:
             self.set_bg(background, keepres=False, inplace=True)
         else:
+            self._resolution = rez
             self.set_bg(background, keepres=rez, inplace=True) 
             
         if not grid:
@@ -148,7 +149,12 @@ class Canvas(HasTraits):
                                    '**kwargs)" to set the binary function.')
 
     # Public Methods
-    # -------------              
+    # -------------      
+    def add(self, particle, *args, **kwargs):
+        """ Can't rely on __getattr__ because want *args to pass; only
+        kwargs pass correctly; and wrapper was more pain than worth. """
+        return self._particles.add(particle, *args, **kwargs)
+    
     def reset_background(self):
         """ Restore default background image; restores default RES, redraws
             particles over it."""
@@ -161,7 +167,7 @@ class Canvas(HasTraits):
     def reset_grid(self):
         """ New grid of default x/y spacing; rez is optional """
         self.grid = CartesianGrid(rez=self.rez, negative_y=True,
-                              xspacing=GRIDYSPACE, yspacing = GRIDXSPACE)
+                              xspacing=GRIDYSPACE, yspacing=GRIDXSPACE)
         
 
     def clear_canvas(self):
@@ -276,6 +282,7 @@ class Canvas(HasTraits):
             if bgout is not None:
                 cout.background = bgout
             return cout
+        
 
     def patchshow(self, *args, **kwargs):
         """ ...
@@ -833,14 +840,28 @@ class Canvas(HasTraits):
     def __setitem__(self, key, particle):
         return self._particles.__setitem__(key, particles)
 
+    def create(self, attr, *args, **kwargs):
+        print 'hi'
+        return getattr(self._particles, attr)(*args, **kwargs)
+
     def __getattr__(self, attr):
-        """ Defaults to particle manager """
+        """ Look for missing attributes on particle manager.
+        
+        Notes
+        -----
+        *args are NOT passed to called methods; kwargs are.  If absolutely
+        need ARGS, see how I handled add.  Could not get wrapper
+        to work correctly because it generally wanted to return a function
+        but sometimes this returns objects, lists etc... not just functions
+        so doing for example c.plist would try to give c.plist() and so on.
+        """
+        
         try:
-            return getattr(self._particles, attr)
+            return getattr(self._particles, attr)       
         except ParticleError:
             raise CanvasAttributeError('"%s" could not be found on %s, '
                 'underlying manager, or on one-or multiple of the '
-                'Particles' % (attr, self.__class__.__name__) )
+                'Particles' % (attr, self.__class__.__name__) )             
 
     def __iter__(self):
         """ Iteration is blocked """
@@ -911,9 +932,15 @@ class Canvas(HasTraits):
         # Use default resolution and grid
         return cls(background=background, particles=particles)
 
-
 class ScaledCanvas(Canvas):
     """ Canvas with a "scale" that maps system of coordinates from pixels
         to pre-set units."""
     NotImplemented
-
+    
+    
+if __name__ == '__main__':
+    c=Canvas()
+    #c.add('tetramer', 3, center=(250, 250), color=(1,0,0))
+    #c.add('trimer', r1=30, center=(100,100), color=(.2,.2,.2))
+    c.add('tetramer', radius_1=20, center=(400, 400), color=(0, .5, 0))    
+    print c.names
