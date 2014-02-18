@@ -111,6 +111,7 @@ class Canvas(HasTraits):
         if background is None and rez is None:
             self.reset_background() #sets default color/resolution    
         elif background is not None and rez is None:
+            self._resolution = BGRES
             self.set_bg(background, keepres=False, inplace=True)
         else:
             self._resolution = rez
