@@ -1,0 +1,521 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>shape_models Package &mdash; pyparty 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="pyparty 0.2 documentation" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">pyparty 0.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">shape_models Package</a><ul>
+<li><a class="reference internal" href="#module-pyparty.shape_models.abstract_shape"><tt class="docutils literal"><span class="pre">abstract_shape</span></tt> Module</a><ul>
+<li><a class="reference internal" href="#shape-models-api">Shape Models API</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-pyparty.shape_models.api"><tt class="docutils literal"><span class="pre">api</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-pyparty.shape_models.basic"><tt class="docutils literal"><span class="pre">basic</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-pyparty.shape_models.io"><tt class="docutils literal"><span class="pre">io</span></tt> Module</a><ul>
+<li><a class="reference internal" href="#id1">Shape Models API</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-pyparty.shape_models.multi"><tt class="docutils literal"><span class="pre">multi</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-pyparty.shape_models.polygons"><tt class="docutils literal"><span class="pre">polygons</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/API/pyparty.shape_models.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="shape-models-package">
+<h1>shape_models Package<a class="headerlink" href="#shape-models-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-pyparty.shape_models.abstract_shape">
+<span id="abstract-shape-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">abstract_shape</span></tt> Module<a class="headerlink" href="#module-pyparty.shape_models.abstract_shape" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="shape-models-api">
+<h3>Shape Models API<a class="headerlink" href="#shape-models-api" title="Permalink to this headline">¶</a></h3>
+<p>This module stores abstract base classes for Particle models.</p>
+<dl class="class">
+<dt id="pyparty.shape_models.abstract_shape.CenteredParticle">
+<em class="property">class </em><tt class="descclassname">pyparty.shape_models.abstract_shape.</tt><tt class="descname">CenteredParticle</tt><a class="reference internal" href="../_modules/pyparty/shape_models/abstract_shape.html#CenteredParticle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.abstract_shape.CenteredParticle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyparty.shape_models.abstract_shape.Particle" title="pyparty.shape_models.abstract_shape.Particle"><tt class="xref py py-class docutils literal"><span class="pre">pyparty.shape_models.abstract_shape.Particle</span></tt></a></p>
+<p>Base class for particles whose center values are set by user (circle,
+ellipse, etc...); thus unrotated_rr_cc depends on cx, cy rather than other way round.
+Cx, Cy translations also become trivial.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="pyparty.shape_models.abstract_shape.FastOriented">
+<em class="property">class </em><tt class="descclassname">pyparty.shape_models.abstract_shape.</tt><tt class="descname">FastOriented</tt><a class="reference internal" href="../_modules/pyparty/shape_models/abstract_shape.html#FastOriented"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.abstract_shape.FastOriented" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyparty.shape_models.abstract_shape.Particle" title="pyparty.shape_models.abstract_shape.Particle"><tt class="xref py py-class docutils literal"><span class="pre">pyparty.shape_models.abstract_shape.Particle</span></tt></a></p>
+<p>Base calss for particles that can modify orientiaion before drawing.
+For example, a square can be drawn first by rotating the corner verticies,
+rather than the slower operation of drawning the full array and rotating it.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="pyparty.shape_models.abstract_shape.Particle">
+<em class="property">class </em><tt class="descclassname">pyparty.shape_models.abstract_shape.</tt><tt class="descname">Particle</tt><a class="reference internal" href="../_modules/pyparty/shape_models/abstract_shape.html#Particle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.abstract_shape.Particle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">traits.has_traits.HasTraits</span></tt></p>
+<dl class="docutils">
+<dt>Abstract class for storing particles as light objects which return</dt>
+<dd>rr and cc indicies for ndarray indexing (see skimage.draw)</dd>
+</dl>
+<dl class="docutils">
+<dt>ptype <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>Descriptor, used by ParticleManager and other classes
+to segregate out particle types.</dd>
+</dl>
+<p>Only traits in the contstructor (eg &#8216;foo&#8217; vs. Str(&#8216;foo&#8217;) and public 
+and public methods (eg foo() vs. _foo()) will be recognized when 
+implementation is enforced.</p>
+<dl class="method">
+<dt id="pyparty.shape_models.abstract_shape.Particle.as_patch">
+<tt class="descname">as_patch</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/shape_models/abstract_shape.html#Particle.as_patch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.abstract_shape.Particle.as_patch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return matplotlib PathPatch.  Subclasses may overwrite for optimized
+shapes (ie circle &#8212;&gt; CirclePatch.).  PathPatch is generated by perimeter
+indicies returned by an outline function, then sorted by angle.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyparty.shape_models.abstract_shape.Particle.auto_init">
+<em class="property">classmethod </em><tt class="descname">auto_init</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/shape_models/abstract_shape.html#Particle.auto_init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.abstract_shape.Particle.auto_init" title="Permalink to this definition">¶</a></dt>
+<dd><p>For Particles with multiple constructors (eg polygons), this method
+will infer which constructor to call based on the keywords.  For classes
+with only one constructor (ie __init__), doesn&#8217;t do anything.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyparty.shape_models.abstract_shape.Particle.boxed">
+<tt class="descname">boxed</tt><big>(</big><em>pad=0</em><big>)</big><a class="reference internal" href="../_modules/pyparty/shape_models/abstract_shape.html#Particle.boxed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.abstract_shape.Particle.boxed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a minimal bounding box with object inside</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.shape_models.abstract_shape.Particle.outline">
+<tt class="descname">outline</tt><a class="reference internal" href="../_modules/pyparty/shape_models/abstract_shape.html#Particle.outline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.abstract_shape.Particle.outline" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyparty.shape_models.abstract_shape.Particle.ski_descriptor">
+<tt class="descname">ski_descriptor</tt><big>(</big><em>attr</em><big>)</big><a class="reference internal" href="../_modules/pyparty/shape_models/abstract_shape.html#Particle.ski_descriptor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.abstract_shape.Particle.ski_descriptor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return scikit image descriptor.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyparty.shape_models.abstract_shape.ParticleError">
+<em class="property">exception </em><tt class="descclassname">pyparty.shape_models.abstract_shape.</tt><tt class="descname">ParticleError</tt><a class="reference internal" href="../_modules/pyparty/shape_models/abstract_shape.html#ParticleError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.abstract_shape.ParticleError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="pyparty.shape_models.abstract_shape.Segment">
+<em class="property">class </em><tt class="descclassname">pyparty.shape_models.abstract_shape.</tt><tt class="descname">Segment</tt><a class="reference internal" href="../_modules/pyparty/shape_models/abstract_shape.html#Segment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.abstract_shape.Segment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyparty.shape_models.abstract_shape.Particle" title="pyparty.shape_models.abstract_shape.Particle"><tt class="xref py py-class docutils literal"><span class="pre">pyparty.shape_models.abstract_shape.Particle</span></tt></a></p>
+<p>Base class to reduce boiler plate in BezierCurve and Line</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyparty.shape_models.abstract_shape.ShapeError">
+<em class="property">exception </em><tt class="descclassname">pyparty.shape_models.abstract_shape.</tt><tt class="descname">ShapeError</tt><a class="reference internal" href="../_modules/pyparty/shape_models/abstract_shape.html#ShapeError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.abstract_shape.ShapeError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyparty.shape_models.abstract_shape.ParticleError" title="pyparty.shape_models.abstract_shape.ParticleError"><tt class="xref py py-class docutils literal"><span class="pre">pyparty.shape_models.abstract_shape.ParticleError</span></tt></a></p>
+<p>Specific to when drawing of a shape fails</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="pyparty.shape_models.abstract_shape.SimplePattern">
+<em class="property">class </em><tt class="descclassname">pyparty.shape_models.abstract_shape.</tt><tt class="descname">SimplePattern</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/shape_models/abstract_shape.html#SimplePattern"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.abstract_shape.SimplePattern" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyparty.shape_models.abstract_shape.CenteredParticle" title="pyparty.shape_models.abstract_shape.CenteredParticle"><tt class="xref py py-class docutils literal"><span class="pre">pyparty.shape_models.abstract_shape.CenteredParticle</span></tt></a></p>
+<p>This should also derive from FastOrient, but due to multiple inheritance
+headaches, just copy-pased the _get_unrotated method</p>
+<p>Base class to wrap patterns.elements.simple.  Mainly implemented to reduce
+boilderplate.  _offangle is the angle between a line conncecting particle 
+centers vs. a line connecting the center of a paritcle to the center of the 
+object.  For a dimer, obviously, this is 0 (ie the same).  The cosine 
+between them is important for ensuring the partciles are not touching unless
+overlap is specificed.</p>
+<dl class="method">
+<dt id="pyparty.shape_models.abstract_shape.SimplePattern.draw_skeleton">
+<tt class="descname">draw_skeleton</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/pyparty/shape_models/abstract_shape.html#SimplePattern.draw_skeleton"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.abstract_shape.SimplePattern.draw_skeleton" title="Permalink to this definition">¶</a></dt>
+<dd><p>Would like to draw lines connecting verticies returned from skeleton.
+From center.  So line(center, r1) line(center, r2)</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pyparty.shape_models.abstract_shape.rint">
+<tt class="descclassname">pyparty.shape_models.abstract_shape.</tt><tt class="descname">rint</tt><big>(</big><em>x</em><big>)</big><a class="reference internal" href="../_modules/pyparty/shape_models/abstract_shape.html#rint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.abstract_shape.rint" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+<div class="section" id="module-pyparty.shape_models.api">
+<span id="api-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">api</span></tt> Module<a class="headerlink" href="#module-pyparty.shape_models.api" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-pyparty.shape_models.basic">
+<span id="basic-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">basic</span></tt> Module<a class="headerlink" href="#module-pyparty.shape_models.basic" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pyparty.shape_models.basic.BezierCurve">
+<em class="property">class </em><tt class="descclassname">pyparty.shape_models.basic.</tt><tt class="descname">BezierCurve</tt><a class="reference internal" href="../_modules/pyparty/shape_models/basic.html#BezierCurve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.basic.BezierCurve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyparty.shape_models.abstract_shape.Segment" title="pyparty.shape_models.abstract_shape.Segment"><tt class="xref py py-class docutils literal"><span class="pre">pyparty.shape_models.abstract_shape.Segment</span></tt></a></p>
+<p>skimage.draw bezier curves</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="pyparty.shape_models.basic.Circle">
+<em class="property">class </em><tt class="descclassname">pyparty.shape_models.basic.</tt><tt class="descname">Circle</tt><a class="reference internal" href="../_modules/pyparty/shape_models/basic.html#Circle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.basic.Circle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyparty.shape_models.abstract_shape.CenteredParticle" title="pyparty.shape_models.abstract_shape.CenteredParticle"><tt class="xref py py-class docutils literal"><span class="pre">pyparty.shape_models.abstract_shape.CenteredParticle</span></tt></a></p>
+<p>skimage.draw.circle wrapper</p>
+<dl class="method">
+<dt id="pyparty.shape_models.basic.Circle.as_patch">
+<tt class="descname">as_patch</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/shape_models/basic.html#Circle.as_patch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.basic.Circle.as_patch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyparty.shape_models.basic.Ellipse">
+<em class="property">class </em><tt class="descclassname">pyparty.shape_models.basic.</tt><tt class="descname">Ellipse</tt><a class="reference internal" href="../_modules/pyparty/shape_models/basic.html#Ellipse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.basic.Ellipse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyparty.shape_models.abstract_shape.CenteredParticle" title="pyparty.shape_models.abstract_shape.CenteredParticle"><tt class="xref py py-class docutils literal"><span class="pre">pyparty.shape_models.abstract_shape.CenteredParticle</span></tt></a></p>
+<p>skimage.draw.ellipse wrapper</p>
+<dl class="method">
+<dt id="pyparty.shape_models.basic.Ellipse.as_patch">
+<tt class="descname">as_patch</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/shape_models/basic.html#Ellipse.as_patch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.basic.Ellipse.as_patch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyparty.shape_models.basic.LineSegment">
+<em class="property">class </em><tt class="descclassname">pyparty.shape_models.basic.</tt><tt class="descname">LineSegment</tt><a class="reference internal" href="../_modules/pyparty/shape_models/basic.html#LineSegment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.basic.LineSegment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyparty.shape_models.abstract_shape.Segment" title="pyparty.shape_models.abstract_shape.Segment"><tt class="xref py py-class docutils literal"><span class="pre">pyparty.shape_models.abstract_shape.Segment</span></tt></a></p>
+<p>Line with width</p>
+<dl class="attribute">
+<dt id="pyparty.shape_models.basic.LineSegment.slope">
+<tt class="descname">slope</tt><a class="reference internal" href="../_modules/pyparty/shape_models/basic.html#LineSegment.slope"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.basic.LineSegment.slope" title="Permalink to this definition">¶</a></dt>
+<dd><p>The slope in degrees</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.shape_models.basic.LineSegment.theta_perp_slope">
+<tt class="descname">theta_perp_slope</tt><a class="reference internal" href="../_modules/pyparty/shape_models/basic.html#LineSegment.theta_perp_slope"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.basic.LineSegment.theta_perp_slope" title="Permalink to this definition">¶</a></dt>
+<dd><p>Angle of a line perpendicular to the slope</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pyparty.shape_models.io">
+<span id="io-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">io</span></tt> Module<a class="headerlink" href="#module-pyparty.shape_models.io" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id1">
+<h3>Shape Models API<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p>Stores Particle models from reading from external sources</p>
+<dl class="class">
+<dt id="pyparty.shape_models.io.LabeledParticle">
+<em class="property">class </em><tt class="descclassname">pyparty.shape_models.io.</tt><tt class="descname">LabeledParticle</tt><big>(</big><em>unrotated_rr_cc</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/shape_models/io.html#LabeledParticle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.io.LabeledParticle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyparty.shape_models.abstract_shape.Particle" title="pyparty.shape_models.abstract_shape.Particle"><tt class="xref py py-class docutils literal"><span class="pre">pyparty.shape_models.abstract_shape.Particle</span></tt></a></p>
+<p>Any particles whose unrotated_rr_cc is directly passed in at __init__</p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="module-pyparty.shape_models.multi">
+<span id="multi-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">multi</span></tt> Module<a class="headerlink" href="#module-pyparty.shape_models.multi" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pyparty.shape_models.multi.Dimer">
+<em class="property">class </em><tt class="descclassname">pyparty.shape_models.multi.</tt><tt class="descname">Dimer</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/shape_models/multi.html#Dimer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.multi.Dimer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyparty.shape_models.abstract_shape.SimplePattern" title="pyparty.shape_models.abstract_shape.SimplePattern"><tt class="xref py py-class docutils literal"><span class="pre">pyparty.shape_models.abstract_shape.SimplePattern</span></tt></a></p>
+<p>Two adjacent circles around center coordinate</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="pyparty.shape_models.multi.Tetramer">
+<em class="property">class </em><tt class="descclassname">pyparty.shape_models.multi.</tt><tt class="descname">Tetramer</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/shape_models/multi.html#Tetramer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.multi.Tetramer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyparty.shape_models.abstract_shape.SimplePattern" title="pyparty.shape_models.abstract_shape.SimplePattern"><tt class="xref py py-class docutils literal"><span class="pre">pyparty.shape_models.abstract_shape.SimplePattern</span></tt></a></p>
+<p>Four adjacent circles around center coordinates.  Default shape is
+square-like (but can&#8217;t name class &#8220;Square&#8221; due to conflicts)</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="pyparty.shape_models.multi.Trimer">
+<em class="property">class </em><tt class="descclassname">pyparty.shape_models.multi.</tt><tt class="descname">Trimer</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/shape_models/multi.html#Trimer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.multi.Trimer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyparty.shape_models.abstract_shape.SimplePattern" title="pyparty.shape_models.abstract_shape.SimplePattern"><tt class="xref py py-class docutils literal"><span class="pre">pyparty.shape_models.abstract_shape.SimplePattern</span></tt></a></p>
+<p>Three adjacent circles around center coordinate</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pyparty.shape_models.polygons">
+<span id="polygons-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">polygons</span></tt> Module<a class="headerlink" href="#module-pyparty.shape_models.polygons" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pyparty.shape_models.polygons.Line">
+<em class="property">class </em><tt class="descclassname">pyparty.shape_models.polygons.</tt><tt class="descname">Line</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/shape_models/polygons.html#Line"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.polygons.Line" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyparty.shape_models.polygons.Rectangle" title="pyparty.shape_models.polygons.Rectangle"><tt class="xref py py-class docutils literal"><span class="pre">pyparty.shape_models.polygons.Rectangle</span></tt></a></p>
+<p>Line is just a thin rectangle</p>
+<dl class="classmethod">
+<dt id="pyparty.shape_models.polygons.Line.from_length">
+<em class="property">classmethod </em><tt class="descname">from_length</tt><big>(</big><em>center=(256</em>, <em>256)</em>, <em>length=50</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/shape_models/polygons.html#Line.from_length"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.polygons.Line.from_length" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use LINEWID as default width</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyparty.shape_models.polygons.Line.from_length_width">
+<em class="property">classmethod </em><tt class="descname">from_length_width</tt><big>(</big><em>center=(256</em>, <em>256)</em>, <em>length=50</em>, <em>width=1</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/shape_models/polygons.html#Line.from_length_width"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.polygons.Line.from_length_width" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyparty.shape_models.polygons.PolyConstructError">
+<em class="property">exception </em><tt class="descclassname">pyparty.shape_models.polygons.</tt><tt class="descname">PolyConstructError</tt><a class="reference internal" href="../_modules/pyparty/shape_models/polygons.html#PolyConstructError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.polygons.PolyConstructError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyparty.shape_models.polygons.PolygonError" title="pyparty.shape_models.polygons.PolygonError"><tt class="xref py py-class docutils literal"><span class="pre">pyparty.shape_models.polygons.PolygonError</span></tt></a></p>
+<p>Raised when a polygon has a bad-constructor call and wants to alert user
+instead of going to the next call.  For example, calling square with
+from_length_width()</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="pyparty.shape_models.polygons.Polygon">
+<em class="property">class </em><tt class="descclassname">pyparty.shape_models.polygons.</tt><tt class="descname">Polygon</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/shape_models/polygons.html#Polygon"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.polygons.Polygon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyparty.shape_models.abstract_shape.FastOriented" title="pyparty.shape_models.abstract_shape.FastOriented"><tt class="xref py py-class docutils literal"><span class="pre">pyparty.shape_models.abstract_shape.FastOriented</span></tt></a></p>
+<p>General CLOSED polygon which uses only verticies to wrap 
+skimage.draw.polygon.  Closed is enforced through _validate_verts() and
+is used in call to mpatch.Polygon</p>
+<dl class="docutils">
+<dt>_yverts <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>Y-coords of verticies of polygon</dd>
+<dt>_xverts <span class="classifier-delimiter">:</span> <span class="classifier">array</span></dt>
+<dd>X-coords of verticies of polygon</dd>
+</dl>
+<p>Polygon verticies ARE order dependent.  In this manner, interesting shapes
+like bowties can be drawn; however, providing verticies in the wrong order
+can result in null output, and otherwise confusing drawings.  Thus, various
+subclasses for common shapes (SQUARE, RECTANGLE) are available.</p>
+<p>There are several constructors for polygons, instead of relying on the need
+to pass</p>
+<dl class="method">
+<dt id="pyparty.shape_models.polygons.Polygon.as_patch">
+<tt class="descname">as_patch</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/shape_models/polygons.html#Polygon.as_patch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.polygons.Polygon.as_patch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Explictly rotate vertex coords for patch.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyparty.shape_models.polygons.Polygon.auto_init">
+<em class="property">classmethod </em><tt class="descname">auto_init</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/shape_models/polygons.html#Polygon.auto_init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.polygons.Polygon.auto_init" title="Permalink to this definition">¶</a></dt>
+<dd><p>For Particles with multiple constructors (eg polygons), this method
+will infer which constructor to call based on the keywords.  For classes
+with only one constructor (ie __init__), doesn&#8217;t do anything.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyparty.shape_models.polygons.Polygon.from_length">
+<em class="property">classmethod </em><tt class="descname">from_length</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/shape_models/polygons.html#Polygon.from_length"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.polygons.Polygon.from_length" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="pyparty.shape_models.polygons.Polygon.from_length_width">
+<em class="property">classmethod </em><tt class="descname">from_length_width</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/shape_models/polygons.html#Polygon.from_length_width"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.polygons.Polygon.from_length_width" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="pyparty.shape_models.polygons.Polygon.from_verts">
+<em class="property">classmethod </em><tt class="descname">from_verts</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/shape_models/polygons.html#Polygon.from_verts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.polygons.Polygon.from_verts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="pyparty.shape_models.polygons.Polygon.from_xypairs">
+<em class="property">classmethod </em><tt class="descname">from_xypairs</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/shape_models/polygons.html#Polygon.from_xypairs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.polygons.Polygon.from_xypairs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set verticies from list of (x, y) pairs</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.shape_models.polygons.Polygon.xverts">
+<tt class="descname">xverts</tt><a class="reference internal" href="../_modules/pyparty/shape_models/polygons.html#Polygon.xverts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.polygons.Polygon.xverts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.shape_models.polygons.Polygon.xymatrix">
+<tt class="descname">xymatrix</tt><a class="reference internal" href="../_modules/pyparty/shape_models/polygons.html#Polygon.xymatrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.polygons.Polygon.xymatrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>N, 2 array, columns are x and y arrays</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.shape_models.polygons.Polygon.xysets">
+<tt class="descname">xysets</tt><a class="reference internal" href="../_modules/pyparty/shape_models/polygons.html#Polygon.xysets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.polygons.Polygon.xysets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Array of (x,y) pairs; can be passed directly into rotation.  
+Note that unzipping is just zip(<a href="#id2"><span class="problematic" id="id3">*</span></a>(pairs) )</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.shape_models.polygons.Polygon.yverts">
+<tt class="descname">yverts</tt><a class="reference internal" href="../_modules/pyparty/shape_models/polygons.html#Polygon.yverts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.polygons.Polygon.yverts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyparty.shape_models.polygons.PolygonError">
+<em class="property">exception </em><tt class="descclassname">pyparty.shape_models.polygons.</tt><tt class="descname">PolygonError</tt><a class="reference internal" href="../_modules/pyparty/shape_models/polygons.html#PolygonError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.polygons.PolygonError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="pyparty.shape_models.polygons.Rectangle">
+<em class="property">class </em><tt class="descclassname">pyparty.shape_models.polygons.</tt><tt class="descname">Rectangle</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/shape_models/polygons.html#Rectangle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.polygons.Rectangle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyparty.shape_models.polygons.Polygon" title="pyparty.shape_models.polygons.Polygon"><tt class="xref py py-class docutils literal"><span class="pre">pyparty.shape_models.polygons.Polygon</span></tt></a></p>
+<p>Longest axis is considered length</p>
+<dl class="attribute">
+<dt id="pyparty.shape_models.polygons.Rectangle.diagonal">
+<tt class="descname">diagonal</tt><a class="reference internal" href="../_modules/pyparty/shape_models/polygons.html#Rectangle.diagonal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.polygons.Rectangle.diagonal" title="Permalink to this definition">¶</a></dt>
+<dd><p>diagonal length</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyparty.shape_models.polygons.Rectangle.from_length_width">
+<em class="property">classmethod </em><tt class="descname">from_length_width</tt><big>(</big><em>center=(256</em>, <em>256)</em>, <em>length=20</em>, <em>width=10</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/shape_models/polygons.html#Rectangle.from_length_width"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.polygons.Rectangle.from_length_width" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.shape_models.polygons.Rectangle.length">
+<tt class="descname">length</tt><a class="reference internal" href="../_modules/pyparty/shape_models/polygons.html#Rectangle.length"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.polygons.Rectangle.length" title="Permalink to this definition">¶</a></dt>
+<dd><p>longest side</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="pyparty.shape_models.polygons.Rectangle.long_small">
+<em class="property">static </em><tt class="descname">long_small</tt><big>(</big><em>a</em>, <em>b</em><big>)</big><a class="reference internal" href="../_modules/pyparty/shape_models/polygons.html#Rectangle.long_small"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.polygons.Rectangle.long_small" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find longest value separtion in pairs.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.shape_models.polygons.Rectangle.width">
+<tt class="descname">width</tt><a class="reference internal" href="../_modules/pyparty/shape_models/polygons.html#Rectangle.width"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.polygons.Rectangle.width" title="Permalink to this definition">¶</a></dt>
+<dd><p>shortest side</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyparty.shape_models.polygons.Square">
+<em class="property">class </em><tt class="descclassname">pyparty.shape_models.polygons.</tt><tt class="descname">Square</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/shape_models/polygons.html#Square"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.polygons.Square" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyparty.shape_models.polygons.Rectangle" title="pyparty.shape_models.polygons.Rectangle"><tt class="xref py py-class docutils literal"><span class="pre">pyparty.shape_models.polygons.Rectangle</span></tt></a></p>
+<dl class="classmethod">
+<dt id="pyparty.shape_models.polygons.Square.from_length">
+<em class="property">classmethod </em><tt class="descname">from_length</tt><big>(</big><em>center=(256</em>, <em>256)</em>, <em>length=20</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/shape_models/polygons.html#Square.from_length"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.polygons.Square.from_length" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pass to rectangle&#8217;s constructor</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyparty.shape_models.polygons.Square.from_length_width">
+<em class="property">classmethod </em><tt class="descname">from_length_width</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/shape_models/polygons.html#Square.from_length_width"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.polygons.Square.from_length_width" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyparty.shape_models.polygons.Triangle">
+<em class="property">class </em><tt class="descclassname">pyparty.shape_models.polygons.</tt><tt class="descname">Triangle</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/shape_models/polygons.html#Triangle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.polygons.Triangle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyparty.shape_models.polygons.Polygon" title="pyparty.shape_models.polygons.Polygon"><tt class="xref py py-class docutils literal"><span class="pre">pyparty.shape_models.polygons.Polygon</span></tt></a></p>
+<p>Not very restrictive; only imposes 3-coordinates.</p>
+<dl class="classmethod">
+<dt id="pyparty.shape_models.polygons.Triangle.from_length">
+<em class="property">classmethod </em><tt class="descname">from_length</tt><big>(</big><em>center=(256</em>, <em>256)</em>, <em>length=20</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/shape_models/polygons.html#Triangle.from_length"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.polygons.Triangle.from_length" title="Permalink to this definition">¶</a></dt>
+<dd><p>Equilateral triangle!</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pyparty.shape_models.polygons.rint">
+<tt class="descclassname">pyparty.shape_models.polygons.</tt><tt class="descname">rint</tt><big>(</big><em>x</em><big>)</big><a class="reference internal" href="../_modules/pyparty/shape_models/polygons.html#rint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.shape_models.polygons.rint" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">pyparty 0.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Adam Hughes.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

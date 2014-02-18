@@ -1,0 +1,185 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>patterns Package &mdash; pyparty 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="pyparty 0.2 documentation" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">pyparty 0.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">patterns Package</a><ul>
+<li><a class="reference internal" href="#module-pyparty.patterns.elements"><tt class="docutils literal"><span class="pre">elements</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/API/pyparty.patterns.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="patterns-package">
+<h1>patterns Package<a class="headerlink" href="#patterns-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-pyparty.patterns.elements">
+<span id="elements-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">elements</span></tt> Module<a class="headerlink" href="#module-pyparty.patterns.elements" title="Permalink to this headline">¶</a></h2>
+<dl class="exception">
+<dt id="pyparty.patterns.elements.PatternError">
+<em class="property">exception </em><tt class="descclassname">pyparty.patterns.elements.</tt><tt class="descname">PatternError</tt><a class="reference internal" href="../_modules/pyparty/patterns/elements.html#PatternError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.patterns.elements.PatternError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyparty.patterns.elements.hexagonal">
+<tt class="descclassname">pyparty.patterns.elements.</tt><tt class="descname">hexagonal</tt><big>(</big><em>cx</em>, <em>cy</em>, <em>d_pp</em>, <em>phi=0.0</em><big>)</big><a class="reference internal" href="../_modules/pyparty/patterns/elements.html#hexagonal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.patterns.elements.hexagonal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a hexagonal skeleton (7 point honeycomb).</p>
+<dl class="docutils">
+<dt>cx, cy <span class="classifier-delimiter">:</span> <span class="classifier">int, int</span></dt>
+<dd>Center coordinates in pixels</dd>
+<dt>d_pp <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>Particle-particle center distance.</dd>
+</dl>
+<p>n : int (2-4)</p>
+<dl class="docutils">
+<dt>phi <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>Phase angle in degrees for orientation.</dd>
+</dl>
+<dl class="docutils">
+<dt>coordinates <span class="classifier-delimiter">:</span> <span class="classifier">tuple (n7)</span></dt>
+<dd>Center coordinate (cx, cy) followed by hexagon verticies drawn a distance
+d_pp away.</dd>
+</dl>
+<p>From center coordnate (cx, cy), goes out a distance d, returns c1.  Goes
+out a distance d dot 60 degrees, returns next point on hexagon.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyparty.patterns.elements.simple">
+<tt class="descclassname">pyparty.patterns.elements.</tt><tt class="descname">simple</tt><big>(</big><em>cx</em>, <em>cy</em>, <em>ds</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/patterns/elements.html#simple"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.patterns.elements.simple" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dimer, Trimer, Square grid</p>
+<dl class="docutils">
+<dt>cx, cy <span class="classifier-delimiter">:</span> <span class="classifier">int, int</span></dt>
+<dd>Center coordinates in pixels</dd>
+<dt>ds <span class="classifier-delimiter">:</span> <span class="classifier">iterable</span></dt>
+<dd>Particle distance from centers</dd>
+<dt>phi <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>Phase angle in degrees for orientation.</dd>
+</dl>
+<dl class="docutils">
+<dt>x &#8211; x     x      x-x</dt>
+<dd>x - x    x-x</dd>
+</dl>
+<p>Verticies of dimer, trimer or square.</p>
+<p>Center coordinate is not returned, unlike hexagonal element which does
+return its center coordinate.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyparty.patterns.elements.simple_old">
+<tt class="descclassname">pyparty.patterns.elements.</tt><tt class="descname">simple_old</tt><big>(</big><em>cx</em>, <em>cy</em>, <em>d_pp</em>, <em>n=2</em>, <em>phi=0.0</em><big>)</big><a class="reference internal" href="../_modules/pyparty/patterns/elements.html#simple_old"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.patterns.elements.simple_old" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dimer, Trimer, Square grid</p>
+<dl class="docutils">
+<dt>cx, cy <span class="classifier-delimiter">:</span> <span class="classifier">int, int</span></dt>
+<dd>Center coordinates in pixels</dd>
+<dt>d_pp <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>Particle-particle center distance.</dd>
+</dl>
+<p>n : int (2-4)</p>
+<dl class="docutils">
+<dt>phi <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>Phase angle in degrees for orientation.</dd>
+</dl>
+<dl class="docutils">
+<dt>x &#8211; x     x      x-x</dt>
+<dd>x - x    x-x</dd>
+</dl>
+<p>Verticies of dimer, trimer or square.</p>
+<p>Center coordinate is not returned, unlike hexagonal element which does
+return its center coordinate.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">pyparty 0.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Adam Hughes.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,647 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyparty.tools.grids &mdash; pyparty 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="pyparty 0.2 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">pyparty 0.2 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pyparty.tools.grids</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">from</span> <span class="nn">operator</span> <span class="kn">import</span> <span class="n">itemgetter</span>
+
+<span class="kn">from</span> <span class="nn">traits.api</span> <span class="kn">import</span> <span class="n">HasTraits</span><span class="p">,</span> <span class="n">Int</span><span class="p">,</span> <span class="n">Bool</span>
+<span class="kn">from</span> <span class="nn">matplotlib.patches</span> <span class="kn">import</span> <span class="n">Path</span><span class="p">,</span> <span class="n">PathPatch</span>
+<span class="kn">from</span> <span class="nn">matplotlib.collections</span> <span class="kn">import</span> <span class="n">PatchCollection</span><span class="p">,</span> <span class="n">PathCollection</span>
+<span class="kn">from</span> <span class="nn">pyparty.utils</span> <span class="kn">import</span> <span class="n">mem_address</span><span class="p">,</span> <span class="n">rgb2uint</span><span class="p">,</span> <span class="n">crop</span>
+<span class="kn">from</span> <span class="nn">pyparty.config</span> <span class="kn">import</span> <span class="n">_PAD</span>
+<span class="kn">from</span> <span class="nn">pyparty.tools.arraytools</span> <span class="kn">import</span> <span class="n">array2sphere</span><span class="p">,</span> <span class="n">column_array</span><span class="p">,</span> <span class="n">translate</span><span class="p">,</span> \
+     <span class="n">rotate</span><span class="p">,</span> <span class="n">astype_rint</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span> 
+
+<div class="viewcode-block" id="rint"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.rint">[docs]</a><span class="k">def</span> <span class="nf">rint</span><span class="p">(</span><span class="n">x</span><span class="p">):</span> <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="GridError"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.GridError">[docs]</a><span class="k">class</span> <span class="nc">GridError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
+
+<span class="c"># XXX : Should these subclass from multiple parents?</span></div>
+<div class="viewcode-block" id="GridImportError"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.GridImportError">[docs]</a><span class="k">class</span> <span class="nc">GridImportError</span><span class="p">(</span><span class="n">GridError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
+    </div>
+<div class="viewcode-block" id="GridAttributeError"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.GridAttributeError">[docs]</a><span class="k">class</span> <span class="nc">GridAttributeError</span><span class="p">(</span><span class="n">GridError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
+</div>
+<div class="viewcode-block" id="ztrig"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.ztrig">[docs]</a><span class="k">def</span> <span class="nf">ztrig</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="n">yy</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Example of returning a trig function applied on grid &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">xx</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">yy</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="fade"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.fade">[docs]</a><span class="k">def</span> <span class="nf">fade</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="n">yy</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s">&#39;h&#39;</span><span class="p">,</span> <span class="n">reverse</span> <span class="o">=</span> <span class="bp">False</span><span class="p">,</span> <span class="n">fadefcn</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Mesh with a constant fade.  Can be hoirzonal, vertical or diagonal.</span>
+<span class="sd">    If reverse, fade direction flips (ie right to left).  Optional fadefcn</span>
+<span class="sd">    will apply a function AFTER the the fading.&quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">reverse</span><span class="p">:</span>
+        <span class="n">xx</span><span class="p">,</span> <span class="n">yy</span> <span class="o">=</span> <span class="o">-</span><span class="n">xx</span><span class="p">,</span> <span class="o">-</span><span class="n">yy</span>
+    <span class="k">if</span> <span class="n">style</span> <span class="o">==</span> <span class="s">&#39;h&#39;</span> <span class="ow">or</span> <span class="n">style</span> <span class="o">==</span> <span class="s">&#39;horizontal&#39;</span><span class="p">:</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">xx</span>
+    <span class="k">elif</span> <span class="n">style</span> <span class="o">==</span> <span class="s">&#39;v&#39;</span> <span class="ow">or</span> <span class="n">style</span> <span class="o">==</span> <span class="s">&#39;vertical&#39;</span><span class="p">:</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">yy</span>
+    <span class="k">elif</span> <span class="n">style</span> <span class="o">==</span> <span class="s">&#39;d&#39;</span> <span class="ow">or</span> <span class="n">style</span> <span class="o">==</span> <span class="s">&#39;diagonal&#39;</span><span class="p">:</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">xx</span> <span class="o">+</span> <span class="n">yy</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">GridError</span><span class="p">(</span><span class="s">&#39;invalid style &quot;</span><span class="si">%s</span><span class="s">&quot;.  &#39;</span>
+            <span class="s">&#39;Choose form (&quot;side&quot;, &quot;top&quot;, &quot;corner&quot;)&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">fadefcn</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">fadefcn</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span>
+</div>
+<div class="viewcode-block" id="unzip_array"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.unzip_array">[docs]</a><span class="k">def</span> <span class="nf">unzip_array</span><span class="p">(</span><span class="n">ndarray</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Inverse operation of arraytools.unzip_array.  Make sure that is not in</span>
+<span class="sd">    use and then replace&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ndarray</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Grid"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.Grid">[docs]</a><span class="k">class</span> <span class="nc">Grid</span><span class="p">(</span><span class="n">HasTraits</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Wraps np.meshgrid; main purpose in pyparty is to create and map functions</span>
+<span class="sd">    to images.  I would not use this for quantitative 2d functions as I&#39;ve chosen</span>
+<span class="sd">    initial parameters based on if they produce the correct behavior when plotted</span>
+<span class="sd">    with imshow(); this may not mean they are numerically veritable as imshow()</span>
+<span class="sd">    is somewhat liberal in its own normalization schema.&quot;&quot;&quot;</span>
+    
+    <span class="c"># 0 should work with these!</span>
+    <span class="n">xstart</span> <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">ystart</span> <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    
+    <span class="n">xend</span> <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="mi">512</span><span class="p">)</span>
+    <span class="n">yend</span> <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="mi">512</span><span class="p">)</span>
+    
+    <span class="n">xdiv</span> <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">ydiv</span> <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+    
+    <span class="c"># REMOVE THIS AND MAKE POLAR GRID ITS OWN THING</span>
+    <span class="n">polar</span> <span class="o">=</span> <span class="n">Bool</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Smooth grid; object to wrap ZZ 2d fucntion.  Default function</span>
+<span class="sd">        is a smooth gradient (fadefcn) that can be easily accessed through</span>
+<span class="sd">        keywords.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        rez : (int, int)</span>
+<span class="sd">            Shortcut for setting grid start, end values.  Note that to be</span>
+<span class="sd">            consistent with plotting, rez[0] sets yend.</span>
+<span class="sd">            </span>
+<span class="sd">        negative_y : bool (True)</span>
+<span class="sd">            If rez passed, this will reverse xend and yend to be consistent</span>
+<span class="sd">            with imshow().  If y-axis looks backwards, make this False.</span>
+<span class="sd">            </span>
+<span class="sd">        fadefcnargs </span>
+<span class="sd">            Valid arguments to fade().  Eg reverse, style.  Only use if </span>
+<span class="sd">            Grid is to be instantied with a fade/gradient </span>
+<span class="sd">        </span>
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        Only fade() is supported at initalization.  Other functions can be</span>
+<span class="sd">        set using Grid.set_zfcn().</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">style</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;style&#39;</span><span class="p">,</span> <span class="s">&#39;h&#39;</span><span class="p">)</span>
+        <span class="n">reverse</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;reverse&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="n">fadefcn</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;fadefcn&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        
+        <span class="n">rez</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;rez&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">negative_y</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;negative_y&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">rez</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;xstart&#39;</span><span class="p">]</span><span class="o">=</span><span class="mi">0</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;yend&#39;</span><span class="p">]</span><span class="o">=</span><span class="mi">0</span>
+            <span class="c"># REVERSED</span>
+            <span class="k">if</span> <span class="n">negative_y</span><span class="p">:</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;xend&#39;</span><span class="p">]</span><span class="o">=</span> <span class="n">rez</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;yend&#39;</span><span class="p">]</span><span class="o">=</span> <span class="n">rez</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;xend&#39;</span><span class="p">]</span><span class="o">=</span> <span class="n">rez</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;yend&#39;</span><span class="p">]</span><span class="o">=</span> <span class="n">rez</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>                
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">Grid</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_zfcn</span><span class="p">(</span><span class="n">fade</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="n">reverse</span><span class="p">,</span> <span class="n">fadefcn</span><span class="o">=</span><span class="n">fadefcn</span><span class="p">)</span>
+        
+<div class="viewcode-block" id="Grid.set_zfcn"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.Grid.set_zfcn">[docs]</a>    <span class="k">def</span> <span class="nf">set_zfcn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fcn_or_string</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_zfcn</span><span class="p">(</span><span class="n">fcn_or_string</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                    </div>
+    <span class="k">def</span> <span class="nf">_set_zfcn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fcn_or_string</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Private method to allow overloading of set_zfcn&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fcn_or_string</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">fcn_or_string</span> <span class="o">!=</span> <span class="s">&#39;fade&#39;</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">GridError</span><span class="p">(</span><span class="s">&#39;&quot;fade&quot; is the only implicit zfcn passable via&#39;</span>
+                    <span class="s">&#39;string.  Please pass a function instead.&#39;</span><span class="p">)</span>
+            <span class="c"># Setup a dictionary like threshfcn soon</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_zfcn</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">fade</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_zfcntype</span> <span class="o">=</span> <span class="n">fcn_or_string</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_zfcn</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">fcn_or_string</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_zfcntype</span> <span class="o">=</span> <span class="n">fcn_or_string</span><span class="o">.</span><span class="n">__name__</span>
+        
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">zfcn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_zfcntype</span>
+
+    <span class="nd">@zfcn.setter</span>
+<div class="viewcode-block" id="Grid.zfcn"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.Grid.zfcn">[docs]</a>    <span class="k">def</span> <span class="nf">zfcn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">GridAttributeError</span><span class="p">(</span><span class="s">&#39;Please refer to &quot;set_zfcn()&#39;</span><span class="p">)</span>
+        
+        </div>
+<div class="viewcode-block" id="Grid.empty_bool"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.Grid.empty_bool">[docs]</a>    <span class="k">def</span> <span class="nf">empty_bool</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return False boolean array; used in many related methods &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
+</div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">xspacing</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xend</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">xstart</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">xdiv</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">yspacing</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">yend</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">ystart</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">ydiv</span>   
+    
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Grid.diagonalspacing"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.Grid.diagonalspacing">[docs]</a>    <span class="k">def</span> <span class="nf">diagonalspacing</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xspacing</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">yspacing</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+    </div>
+    <span class="nd">@xspacing.setter</span>
+<div class="viewcode-block" id="Grid.xspacing"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.Grid.xspacing">[docs]</a>    <span class="k">def</span> <span class="nf">xspacing</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xsp</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xdiv</span> <span class="o">=</span> <span class="n">rint</span><span class="p">(</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xend</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">xstart</span><span class="p">)</span> <span class="o">/</span> <span class="n">xsp</span> <span class="p">)</span>
+    </div>
+    <span class="nd">@yspacing.setter</span>
+<div class="viewcode-block" id="Grid.yspacing"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.Grid.yspacing">[docs]</a>    <span class="k">def</span> <span class="nf">yspacing</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ysp</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ydiv</span> <span class="o">=</span> <span class="n">rint</span><span class="p">(</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">yend</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">ystart</span><span class="p">)</span> <span class="o">/</span> <span class="n">ysp</span> <span class="p">)</span>
+   
+    <span class="c"># This would be good property to caches</span></div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Grid.mesh"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.Grid.mesh">[docs]</a>    <span class="k">def</span> <span class="nf">mesh</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; [XX, YY] (each 512, 512)&quot;&quot;&quot;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xstart</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xdiv</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xend</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ystart</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ydiv</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">yend</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">polar</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span> <span class="c">#XX, YY      </span>
+                
+</div>
+<div class="viewcode-block" id="Grid.rotate"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.Grid.rotate">[docs]</a>    <span class="k">def</span> <span class="nf">rotate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Theta in degrees.  Problem is that rotating grid result in negative </span>
+<span class="sd">        indicies in rr, cc.  Therefore, don&#39;t want to do image[rr,cc].  Returns </span>
+<span class="sd">        (2,N) indicies.&quot;&quot;&quot;</span>
+        <span class="n">newgrid</span> <span class="o">=</span> <span class="n">rotate</span><span class="p">(</span><span class="n">column_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="p">),</span> <span class="n">theta</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">midpoint</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Rotations will lead to astry indicies&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">unzip_array</span><span class="p">(</span><span class="n">astype_rint</span><span class="p">(</span><span class="n">newgrid</span><span class="p">))</span>        
+    
+</div>
+<div class="viewcode-block" id="Grid.blend_bg"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.Grid.blend_bg">[docs]</a>    <span class="k">def</span> <span class="nf">blend_bg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bg</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mf">0.5</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">weight</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">weight</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">GridError</span><span class="p">(</span><span class="s">&quot;weight must be between 0 and 1&quot;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">bg</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">bg</span> <span class="o">=</span> <span class="n">rgb2uint</span><span class="p">(</span><span class="n">bg</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&#39;3-channel image convert to 8-bit uint&#39;</span><span class="p">)</span>
+            
+        <span class="k">if</span> <span class="n">bg</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+            <span class="n">xf</span><span class="p">,</span> <span class="n">yf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">bg</span> <span class="o">=</span> <span class="n">crop</span><span class="p">(</span><span class="n">bg</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">xf</span><span class="p">,</span> <span class="n">yf</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">E</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">GridError</span><span class="p">(</span><span class="s">&#39;bg shape </span><span class="si">%s</span><span class="s"> did not match grid shape </span><span class="si">%s</span><span class="s"> and &#39;</span>
+                    <span class="s">&#39;cropping failed with: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">bg</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">E</span><span class="o">.</span><span class="n">message</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;bg image cropped to grid dimensions </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    
+        <span class="c"># Normalize the values to balance weight sum</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="n">bg</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">zz</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="n">zzout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">zz</span> <span class="o">*</span> <span class="n">scale</span> 
+        <span class="n">alpha</span> <span class="o">=</span> <span class="mi">1</span><span class="o">-</span><span class="n">weight</span>
+    
+        <span class="k">return</span> <span class="p">(</span><span class="n">weight</span> <span class="o">*</span> <span class="n">zzout</span> <span class="o">+</span> <span class="p">(</span> <span class="n">alpha</span>  <span class="o">*</span> <span class="n">bg</span><span class="p">)</span> <span class="p">)</span> <span class="c">#/ scale </span>
+        </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Grid.meshindex"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.Grid.meshindex">[docs]</a>    <span class="k">def</span> <span class="nf">meshindex</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Indicies of meshgrid: not sure if useful atm &quot;&quot;&quot;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xstart</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xdiv</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xend</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ystart</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ydiv</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">yend</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s">&#39;ij&#39;</span><span class="p">)</span>   
+    
+        </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Grid.xx"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.Grid.xx">[docs]</a>    <span class="k">def</span> <span class="nf">xx</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>          
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+   </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Grid.yy"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.Grid.yy">[docs]</a>    <span class="k">def</span> <span class="nf">yy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Grid.zz"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.Grid.zz">[docs]</a>    <span class="k">def</span> <span class="nf">zz</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_zfcn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">yy</span><span class="p">)</span> 
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Grid.shape"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.Grid.shape">[docs]</a>    <span class="k">def</span> <span class="nf">shape</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; For convienence; forget to always check zz&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">zz</span><span class="o">.</span><span class="n">shape</span>     
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Grid.midpoint"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.Grid.midpoint">[docs]</a>    <span class="k">def</span> <span class="nf">midpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; (xmid, ymid) ; useful for meancentering operations &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span> <span class="n">rint</span><span class="p">(</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xend</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">xstart</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span> 
+                 <span class="n">rint</span><span class="p">(</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">yend</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">ystart</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="p">)</span> 
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Grid.gradient"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.Grid.gradient">[docs]</a>    <span class="k">def</span> <span class="nf">gradient</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; X and Y components of gradient.  gx+gy for net grad field &quot;&quot;&quot;</span>
+        <span class="n">gx</span><span class="p">,</span> <span class="n">gy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">gradient</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">zz</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">gx</span><span class="p">,</span> <span class="n">gy</span>
+            
+</div>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;   </span>
+<span class="sd">        Grid (512 X 512) at 0x359da10:</span>
+<span class="sd">           X --&gt; 10 divisions (51.1 pixels / div)</span>
+<span class="sd">           Y --&gt; 10 divisions (51.1 pixels / div)</span>
+<span class="sd">         &quot;&quot;&quot;</span>
+        <span class="n">address</span> <span class="o">=</span> <span class="n">mem_address</span><span class="p">(</span><span class="nb">super</span><span class="p">(</span><span class="n">Grid</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__repr__</span><span class="p">())</span>
+        <span class="n">outstring</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s"> (</span><span class="si">%s</span><span class="s"> X </span><span class="si">%s</span><span class="s">) at </span><span class="si">%s</span><span class="s">:</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> 
+            <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">address</span><span class="p">)</span>
+
+        <span class="n">outstring</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">X --&gt; </span><span class="si">%s</span><span class="s"> divisions (</span><span class="si">%.1f</span><span class="s"> pixels / div)</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">_PAD</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xdiv</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xspacing</span> <span class="p">)</span>
+
+        <span class="n">outstring</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">Y --&gt; </span><span class="si">%s</span><span class="s"> divisions (</span><span class="si">%.1f</span><span class="s"> pixels / div)&quot;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">_PAD</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ydiv</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">yspacing</span> <span class="p">)</span>       
+        
+        <span class="k">return</span> <span class="n">outstring</span>
+    
+    </div>
+<div class="viewcode-block" id="TiledGrid"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.TiledGrid">[docs]</a><span class="k">class</span> <span class="nc">TiledGrid</span><span class="p">(</span><span class="n">Grid</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Provide tiled grid by rounding reslution to integers.  Stores boolean </span>
+<span class="sd">    array corresponding to edges, corners and centers.</span>
+<span class="sd">    </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Edges, corners, centers are returned as len(2) tuples of indicies, the same</span>
+<span class="sd">    primitive as rr_cc in Particles.  This facilitates easy indexing </span>
+<span class="sd">    (eg image[corners]=1) as well as compatibility with utils and arraytools.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; DO NOT REMOVE OR SUBLCASSES WILL NOT INITIALIZE CORRECTLY&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">TiledGrid</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    
+     
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="TiledGrid.xx"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.TiledGrid.xx">[docs]</a>    <span class="k">def</span> <span class="nf">xx</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>          <span class="c"># 0, XPOINTS, RES  (MAYBE RENAME XPONITS)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+   </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="TiledGrid.yy"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.TiledGrid.yy">[docs]</a>    <span class="k">def</span> <span class="nf">yy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+     </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="TiledGrid.hlines"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.TiledGrid.hlines">[docs]</a>    <span class="k">def</span> <span class="nf">hlines</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        
+        <span class="n">gx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gradient</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">gx</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="c"># Mask every other column</span>
+        
+        <span class="c"># if odd, iterate one more</span>
+        <span class="n">itermax</span> <span class="o">=</span> <span class="n">gx</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">itermax</span> <span class="o">%</span> <span class="mi">2</span><span class="p">:</span>  <span class="c">#IF EVEN PASS; IF ODD, ADD ONE</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">itermax</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+                <span class="n">out</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">gx</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span>
+                
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">itermax</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+                <span class="n">out</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">gx</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span>            
+
+        <span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">,:]</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="k">return</span> <span class="n">out</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>       
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="TiledGrid.vlines"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.TiledGrid.vlines">[docs]</a>    <span class="k">def</span> <span class="nf">vlines</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">gy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gradient</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">gy</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        
+        <span class="c"># if even, iterate one more</span>
+        <span class="n">itermax</span> <span class="o">=</span> <span class="n">gy</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">itermax</span> <span class="o">%</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">itermax</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+                <span class="n">out</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">gy</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">itermax</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+                <span class="n">out</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">gy</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span>
+
+        <span class="c">#FILL LEFT EDGE</span>
+        <span class="n">out</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>                
+        <span class="k">return</span> <span class="n">out</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="TiledGrid.grid"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.TiledGrid.grid">[docs]</a>    <span class="k">def</span> <span class="nf">grid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; X and Y edges as boolean&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hlines</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">vlines</span><span class="p">)</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="TiledGrid.quadrants"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.TiledGrid.quadrants">[docs]</a>    <span class="k">def</span> <span class="nf">quadrants</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return 4-qudrants of grid &quot;&quot;&quot;</span>
+        <span class="n">cx</span><span class="p">,</span> <span class="n">cy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">midpoint</span>
+        <span class="c"># Is it possible to do this all in one step?</span>
+        <span class="n">boolarray</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">empty_bool</span><span class="p">()</span>  
+        <span class="n">boolarray</span><span class="p">[</span><span class="n">cx</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">boolarray</span><span class="p">[:,</span> <span class="n">cy</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>        
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">boolarray</span><span class="p">)</span>
+    
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="TiledGrid.corners"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.TiledGrid.corners">[docs]</a>    <span class="k">def</span> <span class="nf">corners</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Default corners: bottom-left corners &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hlines</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">vlines</span><span class="p">)</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="TiledGrid.centers"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.TiledGrid.centers">[docs]</a>    <span class="k">def</span> <span class="nf">centers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; For now, returns indicies (IE TUPLE) instead of matrix.  Still is</span>
+<span class="sd">        indexable with Image[cx, cy].  Takes atan2(x,y) relative to top left</span>
+<span class="sd">        corner, result in a vector facing down, right.  Instead, we translate </span>
+<span class="sd">        opposite this (up, left), and then cut out centers that are negative.</span>
+<span class="sd">        In short, we compute the vector from topleft corner to center, then </span>
+<span class="sd">        translate in opposite direction.&quot;&quot;&quot;</span>
+
+        <span class="n">rxmax</span><span class="p">,</span> <span class="n">rymax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span>
+
+        <span class="c"># Vector from top left corner facing down/right to center</span>
+        <span class="n">thetadiag</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">atan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xspacing</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">yspacing</span><span class="p">))</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="o">.</span><span class="mi">5</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">diagonalspacing</span>
+        <span class="c"># Translate towards up/left direction.</span>
+        <span class="n">thetadiag</span> <span class="o">=</span> <span class="n">thetadiag</span> <span class="o">+</span> <span class="mi">180</span>
+               
+        <span class="n">cornerpairs</span> <span class="o">=</span> <span class="n">column_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">corners</span><span class="p">)</span>
+        <span class="n">translated</span> <span class="o">=</span> <span class="n">translate</span><span class="p">(</span><span class="n">cornerpairs</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">thetadiag</span><span class="p">)</span>
+        <span class="n">rr_cen</span><span class="p">,</span> <span class="n">cc_cen</span> <span class="o">=</span> <span class="n">unzip_array</span><span class="p">(</span><span class="n">astype_rint</span><span class="p">(</span><span class="n">translated</span><span class="p">))</span>
+
+        <span class="c"># THIS IS HOW TO DEFINE 2D MASK PROPERLY</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">rr_cen</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">rr_cen</span> <span class="o">&lt;</span> <span class="n">rxmax</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">cc_cen</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">cc_cen</span> <span class="o">&lt;</span> <span class="n">rymax</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">rr_cen</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span> <span class="n">cc_cen</span><span class="p">[</span><span class="n">mask</span><span class="p">])</span>
+           
+    </div>
+    <span class="k">def</span> <span class="nf">_diags</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s">&#39;tiles&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns tiles, diagonals or negative diagonals.  Boilerplate </span>
+<span class="sd">        reduction; all are based on center coordinates.&quot;&quot;&quot;</span>
+        
+        <span class="n">zz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">zz</span>
+        <span class="n">xhalf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xspacing</span> <span class="o">/</span> <span class="mf">2.</span>
+        <span class="n">yhalf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">yspacing</span> <span class="o">/</span> <span class="mf">2.</span>
+        
+        <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="p">(</span><span class="n">cx</span><span class="p">,</span> <span class="n">cy</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pairs</span><span class="p">(</span><span class="s">&#39;centers&#39;</span><span class="p">))</span> <span class="p">):</span>
+            <span class="n">xl</span><span class="p">,</span> <span class="n">xr</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">cx</span> <span class="o">-</span> <span class="n">xhalf</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">cx</span> <span class="o">+</span> <span class="n">xhalf</span><span class="p">)</span>
+            <span class="n">yl</span><span class="p">,</span> <span class="n">yr</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">cy</span> <span class="o">-</span> <span class="n">yhalf</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">cy</span> <span class="o">+</span> <span class="n">yhalf</span><span class="p">)</span>
+                
+            <span class="n">xs</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">xl</span><span class="p">,</span><span class="n">xr</span><span class="p">)</span> 
+           
+            <span class="k">if</span> <span class="n">style</span> <span class="o">==</span> <span class="s">&#39;dlines&#39;</span><span class="p">:</span>
+                <span class="n">ys</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">yl</span><span class="p">,</span><span class="n">yr</span><span class="p">)</span>
+            
+            <span class="k">elif</span> <span class="n">style</span> <span class="o">==</span> <span class="s">&#39;dlines_neg&#39;</span><span class="p">:</span>
+                <span class="n">ys</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">yl</span><span class="p">,</span><span class="n">yr</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                
+            <span class="k">else</span><span class="p">:</span>                
+                <span class="k">raise</span> <span class="n">GridError</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> style not understood&#39;</span> <span class="o">%</span> <span class="n">style</span><span class="p">)</span>
+            
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">)</span> <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">out</span>     
+        
+        
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="TiledGrid.tiles"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.TiledGrid.tiles">[docs]</a>    <span class="k">def</span> <span class="nf">tiles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">as_tiles</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+    </div>
+<div class="viewcode-block" id="TiledGrid.as_tiles"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.TiledGrid.as_tiles">[docs]</a>    <span class="k">def</span> <span class="nf">as_tiles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return tiles as list of xs, ys or as dictionary.</span>
+
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        key : None, True, &#39;flat&#39;, &#39;2d&#39;</span>
+<span class="sd">            If None, list is returns (same as self.tiles)</span>
+<span class="sd">            If True or &#39;flat&#39;, dicionary keyed by index corresponding</span>
+<span class="sd">            to iterating over self.centers</span>
+<span class="sd">            If &#39;2d&#39;, dict keyed by (I, J) indicies, corresponding to 2d </span>
+<span class="sd">            index pairs in range (0-self.xdiv, 0-self.ydiv)</span>
+<span class="sd">            </span>
+<span class="sd">        sort : bool</span>
+<span class="sd">            On dictionary return, OrderedDict will be returned</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">validkeys</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="s">&#39;flat&#39;</span><span class="p">,</span> <span class="s">&#39;2d&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">validkeys</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">GridError</span><span class="p">(</span><span class="s">&#39;as_tiles() key must be &quot;</span><span class="si">%s</span><span class="s">&quot;;&#39;</span>
+                <span class="s">&#39; recieved </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="s">&#39;&quot;,&quot;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">validkeys</span><span class="p">),</span> <span class="n">key</span><span class="p">)</span> <span class="p">)</span>        
+        
+        <span class="n">zz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">zz</span>
+        <span class="n">xhalf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xspacing</span> <span class="o">/</span> <span class="mf">2.</span>
+        <span class="n">yhalf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">yspacing</span> <span class="o">/</span> <span class="mf">2.</span>
+        
+            
+        <span class="n">tiles</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">cx</span><span class="p">,</span> <span class="n">cy</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pairs</span><span class="p">(</span><span class="s">&#39;centers&#39;</span><span class="p">)):</span>
+                    
+            <span class="n">xl</span><span class="p">,</span> <span class="n">xr</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">cx</span> <span class="o">-</span> <span class="n">xhalf</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">cx</span> <span class="o">+</span> <span class="n">xhalf</span><span class="p">)</span>
+            <span class="n">yl</span><span class="p">,</span> <span class="n">yr</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">cy</span> <span class="o">-</span> <span class="n">yhalf</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">cy</span> <span class="o">+</span> <span class="n">yhalf</span><span class="p">)</span>
+                
+            <span class="n">tiles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span> <span class="nb">range</span><span class="p">(</span><span class="n">xl</span><span class="p">,</span><span class="n">xr</span><span class="p">),</span> <span class="nb">range</span><span class="p">(</span><span class="n">yl</span><span class="p">,</span><span class="n">yr</span><span class="p">)</span> <span class="p">)</span> <span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">key</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">tiles</span>
+
+        <span class="n">tiles</span> <span class="o">=</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tiles</span><span class="p">)</span>
+            
+        <span class="k">if</span> <span class="n">sort</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+            <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">GridImportError</span><span class="p">(</span><span class="s">&#39;Tile sorting requires OrderedDict form &#39;</span>
+                    <span class="s">&#39;python.collection package; package is standard in 2.7 and &#39;</span>
+                    <span class="s">&#39;higher&#39;</span><span class="p">)</span>
+
+            <span class="n">tiledict</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="n">tiles</span><span class="p">)</span>
+            <span class="n">tiles2d</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">tiledict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">tiles</span><span class="p">)</span>
+            <span class="n">toles2d</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c"># Key == flat</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="bp">True</span> <span class="ow">or</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;flat&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">tiledict</span>
+
+        <span class="c"># Key == 2d</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xdiv</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ydiv</span><span class="p">):</span>
+
+                <span class="n">tiles2d</span><span class="p">[(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">)]</span> <span class="o">=</span> <span class="n">tiledict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+                <span class="n">idx</span> <span class="o">+=</span> <span class="mi">1</span>
+                        
+        <span class="k">return</span> <span class="n">tiles2d</span>
+            </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="TiledGrid.dlines"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.TiledGrid.dlines">[docs]</a>    <span class="k">def</span> <span class="nf">dlines</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_diags</span><span class="p">(</span><span class="s">&#39;dlines&#39;</span><span class="p">)</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="TiledGrid.dlines_neg"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.TiledGrid.dlines_neg">[docs]</a>    <span class="k">def</span> <span class="nf">dlines_neg</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_diags</span><span class="p">(</span><span class="s">&#39;dlines_neg&#39;</span><span class="p">)</span>    
+                
+                </div>
+<div class="viewcode-block" id="TiledGrid.pairs"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.TiledGrid.pairs">[docs]</a>    <span class="k">def</span> <span class="nf">pairs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return pairs of attributes that are typically stored as len(2) </span>
+<span class="sd">        tuple, indicies.  Valid attr include corners, centers, etc...&quot;&quot;&quot;</span>
+        <span class="n">valid</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;grid&#39;</span><span class="p">,</span> <span class="s">&#39;centers&#39;</span><span class="p">,</span> <span class="s">&#39;corners&#39;</span><span class="p">,</span> <span class="s">&#39;hlines&#39;</span><span class="p">,</span> <span class="s">&#39;vlines&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">attr</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">valid</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">GridError</span><span class="p">(</span><span class="s">&#39;Invalid grid argument, &quot;</span><span class="si">%s</span><span class="s">&quot;.  Choose from:  &#39;</span>
+                <span class="s">&#39;True, &quot;grid&quot;, &quot;centers&quot;, &quot;corners&quot;, &quot;xlines&quot;, &quot;vlines&quot;&#39;</span> <span class="p">)</span>
+        
+        <span class="n">rr_attr</span><span class="p">,</span> <span class="n">cc_attr</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+        <span class="c"># REVERSED X, Y ORDERING</span>
+        <span class="k">return</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">cc_attr</span><span class="p">,</span> <span class="n">rr_attr</span><span class="p">))</span>
+    
+    
+    </div>
+<div class="viewcode-block" id="TiledGrid.as_patch"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.TiledGrid.as_patch">[docs]</a>    <span class="k">def</span> <span class="nf">as_patch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; matplotlib pathpatch for hlines and vlines</span>
+<span class="sd">        </span>
+<span class="sd">        **pathkwds : any valid PathCollection keyword (linestyle, edgecolor)</span>
+<span class="sd">        </span>
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        First, finds coordinates of hlines, vlines.  Then, it it finds</span>
+<span class="sd">        the x, y coords of each line; it extracts the points corresponding to</span>
+<span class="sd">        each isoline, and makes a path for each of these.&quot;&quot;&quot;</span>
+        
+        <span class="n">hlines</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hlines</span><span class="p">))</span>
+        <span class="n">vlines</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vlines</span><span class="p">))</span>
+        
+        <span class="n">xunique</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">hlines</span><span class="p">])</span>
+        <span class="n">yunique</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">y</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">vlines</span><span class="p">])</span>
+
+        <span class="n">hpaths</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">vpaths</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="c"># REVERSE PATHS FOR SAKE OF PLOT (y,x) !!</span>
+        <span class="k">for</span> <span class="n">xun</span> <span class="ow">in</span> <span class="n">xunique</span><span class="p">:</span>
+            <span class="n">hpaths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Path</span><span class="p">([(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span> <span class="ow">in</span> <span class="n">hlines</span> <span class="k">if</span> <span class="n">x</span><span class="o">==</span><span class="n">xun</span><span class="p">]))</span>
+            
+        <span class="k">for</span> <span class="n">yun</span> <span class="ow">in</span> <span class="n">yunique</span><span class="p">:</span>
+            <span class="n">vpaths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Path</span><span class="p">([(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span> <span class="ow">in</span> <span class="n">vlines</span> <span class="k">if</span> <span class="n">y</span><span class="o">==</span><span class="n">yun</span><span class="p">]))</span>            
+            
+        <span class="k">return</span> <span class="n">PathCollection</span><span class="p">(</span><span class="n">hpaths</span> <span class="o">+</span> <span class="n">vpaths</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="CartesianGrid"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.CartesianGrid">[docs]</a><span class="k">class</span> <span class="nc">CartesianGrid</span><span class="p">(</span><span class="n">TiledGrid</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; A tiled grid with a left-right fade mesh.  This results in a gradient</span>
+<span class="sd">    that is constant; hence, it&#39;s easy to make a cartesian grid.&quot;&quot;&quot;</span>
+
+    <span class="c">## Setting zfcn is not allowed in tiled grid as it is used for gradient</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  
+        <span class="sd">&quot;&quot;&quot; Force diagonal style fadefcn &quot;&quot;&quot;</span>
+        <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s">&#39;style&#39;</span><span class="p">:</span><span class="s">&#39;d&#39;</span><span class="p">,</span> 
+                       <span class="s">&#39;reverse&#39;</span><span class="p">:</span><span class="bp">False</span><span class="p">,</span> 
+                       <span class="s">&#39;fadefcn&#39;</span><span class="p">:</span><span class="bp">None</span><span class="p">})</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">CartesianGrid</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        
+<div class="viewcode-block" id="CartesianGrid.set_zfcn"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.grids.CartesianGrid.set_zfcn">[docs]</a>    <span class="k">def</span> <span class="nf">set_zfcn</span><span class="p">(</span><span class="n">fcn_or_str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">GridError</span><span class="p">(</span><span class="s">&quot;Zfcn is fixed for CartesianGrid; use TiledGrid&quot;</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">pyparty 0.2 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Adam Hughes.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

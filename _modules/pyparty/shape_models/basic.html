@@ -1,0 +1,204 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyparty.shape_models.basic &mdash; pyparty 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="pyparty 0.2 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">pyparty 0.2 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pyparty.shape_models.basic</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">math</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.patches</span> <span class="kn">as</span> <span class="nn">mpatch</span>
+<span class="kn">import</span> <span class="nn">skimage.draw</span> <span class="kn">as</span> <span class="nn">draw</span>
+<span class="kn">from</span> <span class="nn">traits.api</span> <span class="kn">import</span> <span class="n">HasTraits</span><span class="p">,</span> <span class="n">Property</span><span class="p">,</span> <span class="n">Int</span><span class="p">,</span> <span class="n">Array</span><span class="p">,</span>\
+     <span class="n">Float</span><span class="p">,</span> <span class="n">Str</span><span class="p">,</span> <span class="n">cached_property</span>
+
+<span class="kn">from</span> <span class="nn">abstract_shape</span> <span class="kn">import</span> <span class="n">Particle</span><span class="p">,</span> <span class="n">CenteredParticle</span><span class="p">,</span> <span class="n">Segment</span>
+<span class="kn">from</span> <span class="nn">pyparty.config</span> <span class="kn">import</span> <span class="n">RADIUS_DEFAULT</span><span class="p">,</span> <span class="n">CENTER_DEFAULT</span><span class="p">,</span> <span class="n">XRADIUS</span><span class="p">,</span> <span class="n">YRADIUS</span><span class="p">,</span> \
+     <span class="n">XMID</span><span class="p">,</span> <span class="n">YMID</span><span class="p">,</span> <span class="n">BEZIERWEIGHT</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span> 
+
+<div class="viewcode-block" id="Circle"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.basic.Circle">[docs]</a><span class="k">class</span> <span class="nc">Circle</span><span class="p">(</span><span class="n">CenteredParticle</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; skimage.draw.circle wrapper</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    &quot;&quot;&quot;</span>    
+    <span class="n">ptype</span> <span class="o">=</span> <span class="n">Str</span><span class="p">(</span><span class="s">&#39;circle&#39;</span><span class="p">)</span>
+    <span class="n">radius</span> <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="n">RADIUS_DEFAULT</span><span class="p">)</span> <span class="c">#in pixels (&lt;2 causes errors w/ properties)</span>
+    <span class="n">unrotated_rr_cc</span> <span class="o">=</span> <span class="n">Property</span><span class="p">(</span><span class="n">Array</span><span class="p">,</span> <span class="n">depends_on</span><span class="o">=</span><span class="s">&#39;center, radius&#39;</span><span class="p">)</span>    
+    
+    <span class="c">#http://scikit-image.org/docs/dev/api/skimage.draw.html#circle</span>
+    <span class="k">def</span> <span class="nf">_get_unrotated_rr_cc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">draw</span><span class="o">.</span><span class="n">circle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cy</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">radius</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_get_rr_cc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Overload to prevent rotating a symmetric circle &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">unrotated_rr_cc</span>
+    
+<div class="viewcode-block" id="Circle.as_patch"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.basic.Circle.as_patch">[docs]</a>    <span class="k">def</span> <span class="nf">as_patch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">mpatch</span><span class="o">.</span><span class="n">Circle</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">cx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cy</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">radius</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        
+</div></div>
+<div class="viewcode-block" id="Ellipse"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.basic.Ellipse">[docs]</a><span class="k">class</span> <span class="nc">Ellipse</span><span class="p">(</span><span class="n">CenteredParticle</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; skimage.draw.ellipse wrapper &quot;&quot;&quot;</span>
+
+    <span class="n">ptype</span><span class="o">=</span><span class="n">Str</span><span class="p">(</span><span class="s">&#39;ellipse&#39;</span><span class="p">)</span>    
+
+    <span class="n">yradius</span> <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="n">YRADIUS</span><span class="p">)</span>
+    <span class="n">xradius</span> <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="n">XRADIUS</span><span class="p">)</span>
+    
+    <span class="n">unrotated_rr_cc</span> <span class="o">=</span> <span class="n">Property</span><span class="p">(</span><span class="n">Array</span><span class="p">,</span> <span class="n">depends_on</span><span class="o">=</span><span class="s">&#39;center, xradius, yradius&#39;</span><span class="p">)</span>    
+
+    <span class="k">def</span> <span class="nf">_get_unrotated_rr_cc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">draw</span><span class="o">.</span><span class="n">ellipse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cy</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">yradius</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xradius</span><span class="p">)</span>   
+    
+<div class="viewcode-block" id="Ellipse.as_patch"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.basic.Ellipse.as_patch">[docs]</a>    <span class="k">def</span> <span class="nf">as_patch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">mpatch</span><span class="o">.</span><span class="n">Ellipse</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">cx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cy</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">xradius</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">yradius</span><span class="p">,</span>
+                              <span class="n">angle</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">phi</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>    
+
+</div></div>
+<div class="viewcode-block" id="LineSegment"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.basic.LineSegment">[docs]</a><span class="k">class</span> <span class="nc">LineSegment</span><span class="p">(</span><span class="n">Segment</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Line with width &quot;&quot;&quot;</span>
+ 
+    <span class="n">ptype</span> <span class="o">=</span> <span class="n">Str</span><span class="p">(</span><span class="s">&#39;line&#39;</span><span class="p">)</span>
+    <span class="n">width</span> <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span> <span class="c">#line width in pixels</span>
+    
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="LineSegment.slope"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.basic.LineSegment.slope">[docs]</a>    <span class="k">def</span> <span class="nf">slope</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; The slope in degrees &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">math</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">atan</span><span class="p">(</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">yend</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">ystart</span><span class="p">)</span> <span class="o">/</span> 
+                             <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xend</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">xstart</span><span class="p">)</span> <span class="p">)</span> <span class="p">)</span>  </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="LineSegment.theta_perp_slope"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.basic.LineSegment.theta_perp_slope">[docs]</a>    <span class="k">def</span> <span class="nf">theta_perp_slope</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Angle of a line perpendicular to the slope&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">slope</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">slope</span>
+        <span class="k">except</span> <span class="ne">ZeroDivisionError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">0.0</span>
+        
+        <span class="k">if</span> <span class="n">slope</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">slope</span> <span class="o">+</span> <span class="mf">90.0</span>
+        <span class="k">return</span> <span class="n">slope</span> <span class="o">-</span> <span class="mi">90</span>
+    </div>
+    <span class="k">def</span> <span class="nf">_get_unrotated_rr_cc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c">#return draw.line(self.ystart, self.xstart, self.yend, self.xend)</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">theta</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">theta_perp_slope</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">):</span>
+            <span class="n">xs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xstart</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span> <span class="mi">0</span><span class="p">))</span>
+            <span class="n">ys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ystart</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span> <span class="mi">0</span><span class="p">))</span>
+            <span class="n">xe</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xend</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span> <span class="mi">0</span><span class="p">))</span>
+            <span class="n">ye</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">yend</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span> <span class="mi">0</span><span class="p">))</span>            
+            
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">draw</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">xe</span><span class="p">,</span> <span class="n">ye</span><span class="p">))</span>
+        <span class="n">rr</span><span class="p">,</span> <span class="n">cc</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">l</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">))</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">rr</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">cc</span><span class="p">))</span>    
+    
+</div>
+<div class="viewcode-block" id="BezierCurve"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.basic.BezierCurve">[docs]</a><span class="k">class</span> <span class="nc">BezierCurve</span><span class="p">(</span><span class="n">Segment</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; skimage.draw bezier curves &quot;&quot;&quot;</span>
+
+    <span class="n">ptype</span><span class="o">=</span><span class="n">Str</span><span class="p">(</span><span class="s">&#39;bezier&#39;</span><span class="p">)</span>   
+    
+    <span class="n">ymid</span> <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="n">YMID</span><span class="p">)</span>
+    <span class="n">xmid</span> <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="n">XMID</span><span class="p">)</span>
+    <span class="n">weight</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span> <span class="c">#Middle control point weight (sensible default value?)    </span>
+    
+    <span class="n">unrotated_rr_cc</span> <span class="o">=</span> <span class="n">Property</span><span class="p">(</span><span class="n">Array</span><span class="p">,</span>
+        <span class="n">depends_on</span><span class="o">=</span><span class="s">&#39;ystart, xstart, yend, xend, ymid, xmid, weight&#39;</span><span class="p">)</span> 
+        
+    <span class="k">def</span> <span class="nf">_get_unrotated_rr_cc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">draw</span><span class="o">.</span><span class="n">bezier_curve</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ystart</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xstart</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ymid</span><span class="p">,</span> 
+                    <span class="bp">self</span><span class="o">.</span><span class="n">xmid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">yend</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xend</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">pyparty 0.2 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Adam Hughes.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

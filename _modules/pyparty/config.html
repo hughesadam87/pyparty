@@ -1,0 +1,172 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyparty.config &mdash; pyparty 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="pyparty 0.2 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">pyparty 0.2 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pyparty.config</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+<div class="viewcode-block" id="rint"><a class="viewcode-back" href="../../API/pyparty.html#pyparty.config.rint">[docs]</a><span class="k">def</span> <span class="nf">rint</span><span class="p">(</span><span class="n">x</span><span class="p">):</span> <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span>
+</div>
+<span class="sd">&quot;&quot;&quot; Shared constants in pypart &quot;&quot;&quot;</span>
+
+<span class="c"># Particle Manager</span>
+<span class="c"># ------------</span>
+
+<span class="n">NAMESEP</span> <span class="o">=</span> <span class="s">&#39;_&#39;</span> 
+<span class="n">PADDING</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">ALIGN</span> <span class="o">=</span> <span class="s">&#39;l&#39;</span>
+<span class="n">MAXOUT</span> <span class="o">=</span> <span class="mi">50</span> <span class="c">#How many rows to show before cutting off</span>
+
+<span class="c"># Attributes to show when particles printed</span>
+<span class="n">PRINTDISPLAY</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;ptype&#39;</span><span class="p">,</span> <span class="s">&#39;center&#39;</span><span class="p">,</span> <span class="s">&#39;phi&#39;</span><span class="p">)</span> 
+
+<span class="c">#Should new ParticleManager make new Particles?</span>
+<span class="n">_COPYPARTICLES</span> <span class="o">=</span> <span class="bp">True</span> 
+
+<span class="c"># __repr__ indentation for Canvas/Grids</span>
+<span class="n">_PAD</span> <span class="o">=</span> <span class="s">&#39; &#39;</span> <span class="o">*</span> <span class="mi">3</span>  
+
+<span class="c"># Color-related</span>
+<span class="c"># -------------</span>
+<span class="n">_8_bit</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;uint8&#39;</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span>
+<span class="c">#_16_bit = (&#39;uint16&#39;, 65536) UNTESTED</span>
+
+<span class="c"># Colors</span>
+<span class="c"># -------</span>
+<span class="n">COLORTYPE</span> <span class="o">=</span> <span class="n">_8_bit</span>
+<span class="c">#PCOLOR = (0.0, 0.0, 1.0) # default particle color</span>
+<span class="n">PCOLOR</span> <span class="o">=</span> <span class="s">&#39;random&#39;</span>
+<span class="n">BGCOLOR</span> <span class="o">=</span> <span class="s">&#39;white&#39;</span><span class="c"># default background color</span>
+<span class="n">GCOLOR</span> <span class="o">=</span> <span class="s">&#39;red&#39;</span>  <span class="c">#default grid color</span>
+
+<span class="c"># Canvas</span>
+<span class="c"># ------</span>
+<span class="n">BGRES</span> <span class="o">=</span> <span class="p">(</span><span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">)</span> <span class="c"># Default canvas background resolution</span>
+<span class="n">THRESHDEF</span> <span class="o">=</span> <span class="s">&#39;img2bool&#39;</span> <span class="c">#Default binarization function</span>
+
+<span class="c"># Grid</span>
+<span class="c"># ----</span>
+
+<span class="c"># BACKWARDS BECAUSE GRID IS RELATIVE INVERSE</span>
+<span class="n">_points</span> <span class="o">=</span> <span class="mi">15</span>
+<span class="n">GRIDXSPACE</span> <span class="o">=</span> <span class="n">rint</span><span class="p">(</span> <span class="n">BGRES</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">_points</span> <span class="p">)</span><span class="c">#pixels / tile (20 tiles on 512 or so)</span>
+<span class="n">GRIDYSPACE</span> <span class="o">=</span> <span class="n">rint</span><span class="p">(</span> <span class="n">BGRES</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">_points</span> <span class="p">)</span>
+
+<span class="c"># Shape model defaults</span>
+<span class="c"># --------------------</span>
+
+<span class="c"># Center particles (to middle of default image BACKGROUND size)</span>
+<span class="n">RADIUS_DEFAULT</span> <span class="o">=</span> <span class="mi">20</span>  
+<span class="c"># USED BY ALL PARTICLES</span>
+<span class="n">CENTER_DEFAULT</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="o">/</span><span class="mf">2.0</span><span class="p">),</span> <span class="n">BGRES</span><span class="p">))</span>
+
+<span class="c">#Ellipse </span>
+<span class="n">XRADIUS</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">YRADIUS</span> <span class="o">=</span> <span class="mi">20</span>
+
+<span class="c">#SEGMENTS/BEZIER CURVES</span>
+<span class="n">XSTART</span> <span class="o">=</span> <span class="mi">206</span>
+<span class="n">YSTART</span> <span class="o">=</span> <span class="mi">206</span>
+<span class="n">XMID</span> <span class="o">=</span> <span class="mi">256</span>
+<span class="n">YMID</span> <span class="o">=</span> <span class="mi">256</span>
+<span class="n">XEND</span> <span class="o">=</span> <span class="mi">306</span>
+<span class="n">YEND</span> <span class="o">=</span> <span class="mi">306</span>
+<span class="n">BEZIERWEIGHT</span><span class="o">=</span><span class="mf">1.0</span>
+
+<span class="c">#POLYGONS</span>
+<span class="n">XVERTS</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="p">(</span><span class="mi">220</span><span class="p">,</span> <span class="mi">220</span><span class="p">,</span> <span class="mi">280</span><span class="p">,</span> <span class="mi">280</span><span class="p">)</span> <span class="p">)</span> <span class="c">#NOT CENTERED</span>
+<span class="n">YVERTS</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="p">(</span><span class="mi">220</span><span class="p">,</span> <span class="mi">280</span><span class="p">,</span> <span class="mi">220</span><span class="p">,</span> <span class="mi">280</span><span class="p">)</span> <span class="p">)</span>
+<span class="n">RECTLEN</span> <span class="o">=</span> <span class="mi">20</span>
+<span class="n">RECTWID</span> <span class="o">=</span> <span class="mi">10</span> <span class="c">#Not used</span>
+<span class="n">LINELEN</span> <span class="o">=</span> <span class="mi">50</span>
+<span class="n">LINEWID</span> <span class="o">=</span> <span class="mi">1</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">pyparty 0.2 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Adam Hughes.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

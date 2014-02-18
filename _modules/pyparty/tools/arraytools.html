@@ -1,0 +1,222 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyparty.tools.arraytools &mdash; pyparty 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="pyparty 0.2 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">pyparty 0.2 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pyparty.tools.arraytools</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">from</span> <span class="nn">pyparty.utils</span> <span class="kn">import</span> <span class="n">UtilsError</span>
+
+<div class="viewcode-block" id="ArrayUtilsError"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.arraytools.ArrayUtilsError">[docs]</a><span class="k">class</span> <span class="nc">ArrayUtilsError</span><span class="p">(</span><span class="n">UtilsError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
+</div>
+<div class="viewcode-block" id="astype_rint"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.arraytools.astype_rint">[docs]</a><span class="k">def</span> <span class="nf">astype_rint</span><span class="p">(</span><span class="n">array</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Converts ndarray to int, but rounds integers.  Sometimes don&#39;t want </span>
+<span class="sd">    accurate rounding, such as with grids&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">array</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="column_array"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.arraytools.column_array">[docs]</a><span class="k">def</span> <span class="nf">column_array</span><span class="p">(</span><span class="n">len2iter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Takes an iterable of 2 arrays [(x, x2, x3) (y, y2, y3)] and returns</span>
+<span class="sd">    array N x 2 (ie 2 columns)&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">len2iter</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="boolmask"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.arraytools.boolmask">[docs]</a><span class="k">def</span> <span class="nf">boolmask</span><span class="p">(</span><span class="n">ndarray</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Given an array, converted to binary and indiciesa evaluating to true</span>
+<span class="sd">    are used.  Most useful for outlines and other empty arrays. &quot;&quot;&quot;</span>
+    <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">ndarray</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
+    <span class="c">#OUTPUT IS 2,N array</span>
+
+<span class="c"># REPLACE</span></div>
+<div class="viewcode-block" id="unzip_array"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.arraytools.unzip_array">[docs]</a><span class="k">def</span> <span class="nf">unzip_array</span><span class="p">(</span><span class="n">pairs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Inverse of np.array(zip(x,y)). Rerturn unzipped array of pairs:</span>
+<span class="sd">    (1,2), (25,5) --&gt; array(1,25), array(25,25).&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">pairs</span><span class="p">)</span> <span class="p">)</span> <span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="add_xy"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.arraytools.add_xy">[docs]</a><span class="k">def</span> <span class="nf">add_xy</span><span class="p">(</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">xy_pair</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Add (x,y) to ndarray.  Array can be of dimentsion N,2 or 2,N &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ndarray</span> <span class="o">+</span> <span class="n">xy_pair</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">ndarray</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="n">xy_pair</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+           
+</div>
+<div class="viewcode-block" id="rmeanint"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.arraytools.rmeanint">[docs]</a><span class="k">def</span> <span class="nf">rmeanint</span><span class="p">(</span><span class="n">x</span><span class="p">):</span> <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="mi">0</span><span class="p">))</span>
+    
+</div>
+<div class="viewcode-block" id="findcenter"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.arraytools.findcenter">[docs]</a><span class="k">def</span> <span class="nf">findcenter</span><span class="p">(</span><span class="n">ndarray</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Requires (2,N) input shape.  If (N,2), result will be len(N) instead of</span>
+<span class="sd">    Len(2)&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">rmeanint</span><span class="p">,</span> <span class="n">ndarray</span><span class="p">))</span>
+    
+</div>
+<div class="viewcode-block" id="meancenter"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.arraytools.meancenter">[docs]</a><span class="k">def</span> <span class="nf">meancenter</span><span class="p">(</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Subtract center (x,y) from N,2 or 2,N array. Center can be passed</span>
+<span class="sd">    manually.&quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">center</span><span class="p">:</span>
+        <span class="n">center</span> <span class="o">=</span> <span class="n">findcenter</span><span class="p">(</span><span class="n">ndarray</span><span class="p">)</span>
+    <span class="n">cx</span><span class="p">,</span> <span class="n">cy</span> <span class="o">=</span> <span class="n">center</span>
+    <span class="c"># Adding negative center subtracts</span>
+    <span class="k">return</span> <span class="n">add_xy</span><span class="p">(</span><span class="n">ndarray</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="n">cx</span><span class="p">,</span> <span class="o">-</span><span class="n">cy</span><span class="p">))</span> 
+
+</div>
+<div class="viewcode-block" id="rotate"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.arraytools.rotate">[docs]</a><span class="k">def</span> <span class="nf">rotate</span><span class="p">(</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Meancenter and rotate.  Mean centers if center not passed&quot;&quot;&quot;</span>
+    <span class="n">ndarray</span> <span class="o">=</span> <span class="n">meancenter</span><span class="p">(</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">center</span><span class="p">)</span>
+    <span class="n">rotated</span> <span class="o">=</span> <span class="n">rotate_vector</span><span class="p">(</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">rotated</span> <span class="o">+</span> <span class="n">center</span>
+
+</div>
+<div class="viewcode-block" id="translate"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.arraytools.translate">[docs]</a><span class="k">def</span> <span class="nf">translate</span><span class="p">(</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Translate along a vector with magnitude r and angle theta (IN DEGREES). </span>
+<span class="sd">    Merely gets x,y coords of r, theta vector adds to the array element wise.&quot;&quot;&quot;</span>
+    <span class="n">theta</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">add_xy</span><span class="p">(</span><span class="n">ndarray</span><span class="p">,</span> <span class="p">(</span><span class="n">r</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span> <span class="n">r</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">))</span> <span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="rotate_vector"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.arraytools.rotate_vector">[docs]</a><span class="k">def</span> <span class="nf">rotate_vector</span><span class="p">(</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s">&#39;degrees&#39;</span><span class="p">,</span> <span class="n">rint</span><span class="o">=</span><span class="s">&#39;up&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Rotate an array ocounter-clockwise through theta.  rint rounds output </span>
+<span class="sd">    to integer; up rounds normally, down does int rounding (ie rounds down).  </span>
+<span class="sd">    ARRAY MUST BE MEAN-CENTERED if rotating in place.</span>
+<span class="sd">    </span>
+<span class="sd">    ndarray may be xy pairs [(x1,y1),(x2,y2)] or N,2 matrix.&quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">style</span> <span class="o">==</span> <span class="s">&#39;degrees&#39;</span><span class="p">:</span>
+        <span class="n">theta</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+        
+    <span class="n">costheta</span><span class="p">,</span> <span class="n">sintheta</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+    
+    <span class="n">rotMatrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+        <span class="p">[</span><span class="n">costheta</span><span class="p">,</span> <span class="o">-</span><span class="n">sintheta</span><span class="p">],</span>  
+        <span class="p">[</span><span class="n">sintheta</span><span class="p">,</span>  <span class="n">costheta</span><span class="p">]</span>
+                     <span class="p">])</span>
+    <span class="n">r_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">rotMatrix</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">rint</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">rint</span> <span class="o">==</span><span class="s">&#39;up&#39;</span><span class="p">:</span>
+            <span class="n">r_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rint</span><span class="p">(</span><span class="n">r_array</span><span class="p">)</span>
+        <span class="n">r_array</span> <span class="o">=</span> <span class="n">r_array</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s">&#39;int&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span> <span class="c">#saves memory</span>
+    <span class="k">return</span> <span class="n">r_array</span>
+</div>
+<div class="viewcode-block" id="to_spherical"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.arraytools.to_spherical">[docs]</a><span class="k">def</span> <span class="nf">to_spherical</span><span class="p">(</span><span class="n">r</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Convert xyz vector a single row of three elements to spherical &quot;&quot;&quot;</span>
+    <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span> <span class="o">=</span> <span class="n">r</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">y</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">z</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>              
+    <span class="n">theta</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">atan2</span><span class="p">(</span><span class="n">y</span><span class="p">,</span><span class="n">x</span><span class="p">)</span>                          
+    <span class="n">phi</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">atan2</span><span class="p">(</span><span class="n">z</span><span class="p">,</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">y</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>     
+    <span class="k">return</span> <span class="n">r</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span>
+</div>
+<div class="viewcode-block" id="array2sphere"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.arraytools.array2sphere">[docs]</a><span class="k">def</span> <span class="nf">array2sphere</span><span class="p">(</span><span class="n">xyz_array</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Cartesion to spherical coords.  xyz_array must be (N,2) or (N,3)!!!</span>
+<span class="sd">    EG  [( x, y, z          or [ (x1, y1), (x2, y2)]</span>
+<span class="sd">          x2, y2, z2)]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">xdim</span><span class="p">,</span> <span class="n">ydim</span> <span class="o">=</span> <span class="n">xyz_array</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">ydim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">apply_along_axis</span><span class="p">(</span><span class="n">to_spherical</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">xyz_array</span><span class="p">)</span>
+    <span class="c"># Return only r/theta, add column zeros for z</span>
+    <span class="k">elif</span> <span class="n">ydim</span> <span class="o">==</span><span class="mi">2</span><span class="p">:</span>    
+        <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">xdim</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="n">out</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">xyz_array</span> <span class="c">#DONT NEED TO COPY, RIGHT?</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">apply_along_axis</span><span class="p">(</span><span class="n">to_spherical</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">out</span><span class="p">)[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ArrayUtilsError</span><span class="p">(</span><span class="s">&quot;xyz_array must be of shape (N,2) or (N,3) (ie &quot;</span>
+            <span class="s">&quot;rows of xy or xyz vectors), recived: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">xyz_array</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+    </div>
+<div class="viewcode-block" id="nearest"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.arraytools.nearest">[docs]</a><span class="k">def</span> <span class="nf">nearest</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Find nearest value in an array, return index and array value&#39;&#39;&#39;</span>
+    <span class="n">idx</span><span class="o">=</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">array</span><span class="o">-</span><span class="n">value</span><span class="p">))</span><span class="o">.</span><span class="n">argmin</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">idx</span><span class="p">,</span> <span class="n">array</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>  
+    </div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">pyparty 0.2 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Adam Hughes.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

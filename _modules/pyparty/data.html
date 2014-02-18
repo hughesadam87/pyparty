@@ -1,0 +1,154 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyparty.data &mdash; pyparty 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="pyparty 0.2 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">pyparty 0.2 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pyparty.data</h1><div class="highlight"><pre>
+<span class="c"># Import sample data.  This import structure was taken directly from skimages</span>
+<span class="c"># data import style:</span>
+    <span class="c"># https://github.com/scikit-image/scikit-image</span>
+
+<span class="kn">import</span> <span class="nn">os.path</span> <span class="kn">as</span> <span class="nn">op</span>
+<span class="kn">from</span> <span class="nn">skimage.io</span> <span class="kn">import</span> <span class="n">imread</span>
+<span class="kn">from</span> <span class="nn">pyparty</span> <span class="kn">import</span> <span class="n">data_dir</span>
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;gwu&#39;</span><span class="p">,</span> 
+           <span class="s">&#39;spectrum&#39;</span><span class="p">,</span>
+           <span class="s">&#39;lena_who&#39;</span><span class="p">,</span>
+           <span class="s">&#39;nanogold&#39;</span><span class="p">,</span>
+           <span class="s">&#39;nanolabels&#39;</span><span class="p">,</span>
+           <span class="s">&#39;nanobinary&#39;</span><span class="p">,</span>
+           <span class="p">]</span>
+
+<span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Load an image file located in the data directory.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    f : string</span>
+<span class="sd">        File name.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    img : ndarray</span>
+<span class="sd">        Image loaded from skimage.data_dir.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">imread</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="n">f</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="gwu"><a class="viewcode-back" href="../../API/pyparty.data.html#pyparty.data.gwu">[docs]</a><span class="k">def</span> <span class="nf">gwu</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot; New George Washington University Logo &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">load</span><span class="p">(</span><span class="s">&quot;gwu.png&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="spectrum"><a class="viewcode-back" href="../../API/pyparty.data.html#pyparty.data.spectrum">[docs]</a><span class="k">def</span> <span class="nf">spectrum</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot; 3d Spectrum : original image by pyparty author &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">load</span><span class="p">(</span><span class="s">&quot;spectrum.jpg&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="lena_who"><a class="viewcode-back" href="../../API/pyparty.data.html#pyparty.data.lena_who">[docs]</a><span class="k">def</span> <span class="nf">lena_who</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot; Yound lady, released with her full permission &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">load</span><span class="p">(</span><span class="s">&quot;lena_who.jpg&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="nanogold"><a class="viewcode-back" href="../../API/pyparty.data.html#pyparty.data.nanogold">[docs]</a><span class="k">def</span> <span class="nf">nanogold</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot; Scanning electron image of Gold Nanoparticles 100,000 X </span>
+<span class="sd">    magnification.  Original image is property of Adam Hughes, </span>
+<span class="sd">    Reeves Cond. Matter Physics Group, and released for public</span>
+<span class="sd">    distribution.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">load</span><span class="p">(</span><span class="s">&quot;nanogold.tif&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="nanolabels"><a class="viewcode-back" href="../../API/pyparty.data.html#pyparty.data.nanolabels">[docs]</a><span class="k">def</span> <span class="nf">nanolabels</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot; size-segmented (nanogold); see nanogold description&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">load</span><span class="p">(</span><span class="s">&quot;nanolabels.tif&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="nanobinary"><a class="viewcode-back" href="../../API/pyparty.data.html#pyparty.data.nanobinary">[docs]</a><span class="k">def</span> <span class="nf">nanobinary</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot; binarized nanogold using trainable pixel classification &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">load</span><span class="p">(</span><span class="s">&quot;nanobinary.tif&quot;</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">pyparty 0.2 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Adam Hughes.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

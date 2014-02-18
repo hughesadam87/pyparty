@@ -1,0 +1,267 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyparty.scripts.fitutils &mdash; pyparty 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="pyparty 0.2 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">pyparty 0.2 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pyparty.scripts.fitutils</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot; Series of functions for fitting and binning of data.  Adapted from legacy</span>
+<span class="sd">scripts at git@github.com:hugadams/npsurfacecounter.git&quot;&quot;&quot;</span>
+
+<span class="c"># SHOULD ANY OF THIS BE MIGRATED INTO PRIMARY PYPARTY?</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">curve_fit</span>
+
+<div class="viewcode-block" id="gauss"><a class="viewcode-back" href="../../../API/pyparty.scripts.html#pyparty.scripts.fitutils.gauss">[docs]</a><span class="k">def</span> <span class="nf">gauss</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">*</span><span class="n">p0</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Pass in best estimates for mu and sigma, it will use these as a </span>
+<span class="sd">    starting curve and fit to data from np.curvefit function.</span>
+<span class="sd">    </span>
+<span class="sd">    p0 is two arguments, the estimates for starting mean and sigma.  </span>
+<span class="sd">    Needed by least squares fit. Notation to be compatible with curve_fit </span>
+<span class="sd">    requires this variable length argument notation.&#39;&#39;&#39;</span>
+    <span class="n">A</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span> <span class="o">=</span> <span class="n">p0</span>
+    <span class="k">return</span> <span class="n">A</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">mu</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="p">(</span><span class="mf">2.</span> <span class="o">*</span> <span class="n">sigma</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="hist_max"><a class="viewcode-back" href="../../../API/pyparty.scripts.html#pyparty.scripts.fitutils.hist_max">[docs]</a><span class="k">def</span> <span class="nf">hist_max</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span> <span class="n">bins</span><span class="p">,</span> <span class="n">idx_start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">idx_stop</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Finds the max bin index and value from the histogram.  Can pass </span>
+<span class="sd">    indicies to drop so that it can avoid. &#39;&#39;&#39;</span>    
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">idx_stop</span><span class="p">:</span>
+        <span class="n">idx_stop</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">counts</span><span class="p">)</span>
+    <span class="n">crange</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="n">idx_start</span><span class="p">:</span><span class="n">idx_stop</span><span class="p">]</span>
+    <span class="n">countmax</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">crange</span><span class="p">)</span>
+    <span class="c"># Ok here&#39;s trick.  Crange may be reduced, so I find the index of the</span>
+    <span class="c"># max on that range.  This might be creducedmax=8</span>
+    <span class="c"># but on my real range, this might be index 58, if idx start was 50.</span>
+    <span class="c"># Therefore, I add idx_start to the index</span>
+
+    <span class="n">max_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">crange</span> <span class="o">==</span> <span class="n">countmax</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">max_idx</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s">&#39;There are two bins in histogram that have idenitcal maxima and this might trip out gaussian autfit functions!  Using first one.&#39;</span><span class="p">)</span>
+    <span class="n">max_idx</span> <span class="o">=</span> <span class="n">max_idx</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">idx_start</span>
+    <span class="n">binmax</span> <span class="o">=</span> <span class="n">bins</span><span class="p">[</span><span class="n">max_idx</span><span class="p">]</span>
+    <span class="c"># index of maximum, bin(x) value, count(y) value at max</span>
+    <span class="k">return</span> <span class="n">max_idx</span><span class="p">,</span> <span class="n">binmax</span><span class="p">,</span> <span class="n">countmax</span>
+
+</div>
+<div class="viewcode-block" id="bin_above_below"><a class="viewcode-back" href="../../../API/pyparty.scripts.html#pyparty.scripts.fitutils.bin_above_below">[docs]</a><span class="k">def</span> <span class="nf">bin_above_below</span><span class="p">(</span><span class="n">series</span><span class="p">,</span> <span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Given a bin of width right-left, this splits the bin at given height.  </span>
+<span class="sd">        The data corresponding to this bin (presumably in series) is evently distributed.</span>
+<span class="sd">        For example, if the bin has 100 entries, and the height is 50, the data will be</span>
+<span class="sd">        sliced into two regions.  One from 0-50 and one from 50-100, to be returned as </span>
+<span class="sd">        below and above respectively.</span>
+<span class="sd">        </span>
+<span class="sd">        kwds:</span>
+<span class="sd">           series: Series of data presumably form which the bin was derived originally.</span>
+<span class="sd">           left/right: start/stop of slice of series.</span>
+<span class="sd">           height: y value up the bin.  If greater than the bin top, all data in the bin is returned</span>
+<span class="sd">                   as &quot;below&quot;.</span>
+<span class="sd">           shuffle: Should data in series be randomized so as not to give any ordering </span>
+<span class="sd">                    bias when split between above, below.</span>
+<span class="sd">           </span>
+<span class="sd">        returns:</span>
+<span class="sd">            Tuple of series (above, below) with the data from the original series partitioned between.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">shuffle</span><span class="p">:</span>
+        <span class="n">shuffitup</span><span class="p">(</span><span class="n">series</span><span class="p">)</span>  <span class="c"># In place operation</span>
+
+    <span class="n">height</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">height</span><span class="p">))</span>
+    <span class="n">sample</span> <span class="o">=</span> <span class="n">series</span><span class="p">[(</span><span class="n">series</span> <span class="o">&gt;=</span> <span class="n">left</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">series</span> <span class="o">&lt;=</span> <span class="n">right</span><span class="p">)]</span>  <span class="c"># Slice by values</span>
+    <span class="n">counts</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sample</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">height</span> <span class="o">&gt;=</span> <span class="n">counts</span><span class="p">:</span>
+        <span class="c"># Empty series is easier for type checking in my use case</span>
+        <span class="n">below</span><span class="p">,</span> <span class="n">above</span> <span class="o">=</span> <span class="n">sample</span><span class="p">,</span> <span class="n">Series</span><span class="p">()</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">below</span> <span class="o">=</span> <span class="n">sample</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">height</span><span class="p">]</span>  <span class="c"># just doing sample[] works too</span>
+        <span class="n">above</span> <span class="o">=</span> <span class="n">sample</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">height</span><span class="p">::]</span>
+
+    <span class="k">return</span> <span class="n">below</span><span class="p">,</span> <span class="n">above</span>
+
+</div>
+<div class="viewcode-block" id="range_slice"><a class="viewcode-back" href="../../../API/pyparty.scripts.html#pyparty.scripts.fitutils.range_slice">[docs]</a><span class="k">def</span> <span class="nf">range_slice</span><span class="p">(</span><span class="n">series</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s">&#39;value&#39;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Convienence wrapper to slice a single column of a df by either value or index.  Force user to specify</span>
+<span class="sd">    to reduce possibility of error (aka pass integer when meant to pass float).&#39;&#39;&#39;</span>
+
+    <span class="k">if</span> <span class="n">style</span> <span class="o">==</span> <span class="s">&#39;index&#39;</span><span class="p">:</span>
+        <span class="n">start</span><span class="p">,</span> <span class="n">stop</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">start</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">stop</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">style</span> <span class="o">==</span> <span class="s">&#39;value&#39;</span><span class="p">:</span>
+        <span class="n">working</span> <span class="o">=</span> <span class="n">series</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span><span class="n">series</span> <span class="o">&gt;=</span> <span class="n">start</span><span class="p">]</span>
+        <span class="n">working</span> <span class="o">=</span> <span class="n">working</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span><span class="n">working</span> <span class="o">&lt;=</span> <span class="n">stop</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
+            <span class="s">&#39;range slice can only slice by index or value, you passed </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">style</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">working</span>
+
+</div>
+<div class="viewcode-block" id="fit_normal"><a class="viewcode-back" href="../../../API/pyparty.scripts.html#pyparty.scripts.fitutils.fit_normal">[docs]</a><span class="k">def</span> <span class="nf">fit_normal</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span> <span class="n">binpoints</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Fits a normal distribution to a histogram assuming the max of the histogram</span>
+<span class="sd">    makes up the mean.  To fit with cropped data, pass cropped data into this.  For</span>
+<span class="sd">    now this is incomplete and maybe not useful because it requires knowledge of </span>
+<span class="sd">    standard deviation as well.&#39;&#39;&#39;</span>
+
+    <span class="n">idx_max</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">amp_at_mean</span> <span class="o">=</span> <span class="n">hist_max</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span> <span class="n">binpoints</span><span class="p">)</span>  <span class="c"># Skip first bin</span>
+
+    <span class="c"># Get the standard devation of a histogram</span>
+    <span class="c"># Does not rely on original data at all</span>
+    <span class="n">std</span> <span class="o">=</span> <span class="n">data_from_histogram</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span> <span class="n">binpoints</span><span class="p">)</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
+
+    <span class="c"># Fit normal distribution at each point along binpoints array</span>
+    <span class="c"># Scale it based on the max value of the histogram</span>
+    <span class="n">normal</span> <span class="o">=</span> <span class="n">mlab</span><span class="o">.</span><span class="n">normpdf</span><span class="p">(</span><span class="n">binpoints</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">std</span><span class="p">)</span>
+    <span class="n">scaleup</span> <span class="o">=</span> <span class="n">amp_at_mean</span> <span class="o">/</span> <span class="n">normal</span><span class="p">[</span><span class="n">idx_max</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">normal</span> <span class="o">*</span> <span class="n">scaleup</span>
+
+</div>
+<div class="viewcode-block" id="data_from_histogram"><a class="viewcode-back" href="../../../API/pyparty.scripts.html#pyparty.scripts.fitutils.data_from_histogram">[docs]</a><span class="k">def</span> <span class="nf">data_from_histogram</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span> <span class="n">binpoints</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Gets the standard devation from histogram data (binned by midpoint, not edges).</span>
+<span class="sd">    Doesn&#39;t use real data at all.&#39;&#39;&#39;</span>
+    <span class="n">psuedo_data</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">point</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">binpoints</span><span class="p">):</span>
+        <span class="c"># [1,1,1, + 2,2,2,2,2, + etc...]</span>
+        <span class="n">psuedo_data</span> <span class="o">=</span> <span class="n">psuedo_data</span> <span class="o">+</span> <span class="p">([</span><span class="n">point</span><span class="p">]</span> <span class="o">*</span> <span class="n">counts</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">psuedo_data</span><span class="p">])</span>
+
+<span class="c">### Probably deprecated, using wrong sigma and shit ###</span>
+
+</div>
+<div class="viewcode-block" id="optimize_gaussian"><a class="viewcode-back" href="../../../API/pyparty.scripts.html#pyparty.scripts.fitutils.optimize_gaussian">[docs]</a><span class="k">def</span> <span class="nf">optimize_gaussian</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span> <span class="n">binpoints</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Takes in counts of a histogram and bin_midpoints (see get_bin_points function) and</span>
+<span class="sd">    uses least squares regression to fit a guassian.</span>
+<span class="sd">    </span>
+<span class="sd">    Density counts is an array of weights, actual counts from np.histogram density=True&#39;&#39;&#39;</span>
+    <span class="n">mu</span><span class="p">,</span> <span class="n">amp_at_mean</span> <span class="o">=</span> <span class="n">hist_max</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span> <span class="n">binpoints</span><span class="p">)[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>  <span class="c"># Skip first bin</span>
+    <span class="n">sig</span> <span class="o">=</span> <span class="n">data_from_histogram</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span> <span class="n">binpoints</span><span class="p">)</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
+    <span class="c">### Make a best guest a initial params... [1.0, 0.0, 1.0] works fine ###</span>
+    <span class="n">p0</span> <span class="o">=</span> <span class="p">[</span><span class="n">amp_at_mean</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">sig</span><span class="p">]</span>
+    <span class="n">coeff</span><span class="p">,</span> <span class="n">var_matrix</span> <span class="o">=</span> <span class="n">curve_fit</span><span class="p">(</span><span class="n">gauss</span><span class="p">,</span> <span class="n">binpoints</span><span class="p">,</span> <span class="n">counts</span><span class="p">,</span> <span class="n">p0</span><span class="o">=</span><span class="n">p0</span><span class="p">)</span>
+    <span class="n">hist_fit</span> <span class="o">=</span> <span class="n">gauss</span><span class="p">(</span><span class="n">binpoints</span><span class="p">,</span> <span class="o">*</span><span class="n">coeff</span><span class="p">)</span>
+
+    <span class="c"># Fit coefficients if you want to keep them</span>
+    <span class="n">fit_amp</span><span class="p">,</span> <span class="n">fit_mean</span><span class="p">,</span> <span class="n">fit_sig</span> <span class="o">=</span> <span class="n">coeff</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">hist_fit</span><span class="p">,</span> <span class="n">fit_amp</span><span class="p">,</span> <span class="n">fit_mean</span><span class="p">,</span> <span class="n">fit_sig</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="psuedo_symmetric"><a class="viewcode-back" href="../../../API/pyparty.scripts.html#pyparty.scripts.fitutils.psuedo_symmetric">[docs]</a><span class="k">def</span> <span class="nf">psuedo_symmetric</span><span class="p">(</span><span class="n">counts</span><span class="p">,</span> <span class="n">binpoints</span><span class="p">,</span> <span class="n">idx_start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">idx_stop</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Takes in a histogram, examines left edge to max, and then returns symmetric values</span>
+<span class="sd">    as a pseudo-dataset. &#39;&#39;&#39;</span>
+    <span class="n">max_idx</span><span class="p">,</span> <span class="n">x_mean</span><span class="p">,</span> <span class="n">y_mean</span> <span class="o">=</span> <span class="n">hist_max</span><span class="p">(</span>
+        <span class="n">counts</span><span class="p">,</span> <span class="n">binpoints</span><span class="p">,</span> <span class="n">idx_start</span><span class="o">=</span><span class="n">idx_start</span><span class="p">,</span> <span class="n">idx_stop</span><span class="o">=</span><span class="n">idx_stop</span><span class="p">)</span>
+    <span class="c"># idx start ... idx mean ... idx start ... idx mean +1 (for symm)</span>
+    <span class="n">symrange</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">idx_start</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">max_idx</span> <span class="o">+</span> <span class="p">(</span><span class="n">max_idx</span> <span class="o">-</span> <span class="n">idx_start</span><span class="p">)))</span>
+    <span class="n">symcounts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">counts</span><span class="p">[</span><span class="n">data_idx</span><span class="p">]</span> <span class="k">for</span> <span class="n">data_idx</span> <span class="ow">in</span> <span class="n">symrange</span><span class="p">])</span>
+    <span class="n">symbins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">binpoints</span><span class="p">[</span><span class="n">data_idx</span><span class="p">]</span> <span class="k">for</span> <span class="n">data_idx</span> <span class="ow">in</span> <span class="n">symrange</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">symcounts</span><span class="p">,</span> <span class="n">symbins</span>
+
+</div>
+<div class="viewcode-block" id="get_bin_points"><a class="viewcode-back" href="../../../API/pyparty.scripts.html#pyparty.scripts.fitutils.get_bin_points">[docs]</a><span class="k">def</span> <span class="nf">get_bin_points</span><span class="p">(</span><span class="n">binarray</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="s">&#39;c&#39;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Takes in an array of bin edges (returned from histogram) as returned from a histogram</span>
+<span class="sd">    and finds the values at the midpoints, left or right edges.  Useful when plotting a scatter </span>
+<span class="sd">    plot over bins for example.&#39;&#39;&#39;</span>
+
+    <span class="c"># Return center xvalue of bins</span>
+    <span class="k">if</span> <span class="n">position</span> <span class="o">==</span> <span class="s">&#39;c&#39;</span><span class="p">:</span>
+        <span class="c"># I don&#39;t quite understand this notation</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">binarray</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">binarray</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span> <span class="o">/</span> <span class="mf">2.0</span>
+
+    <span class="c"># Return left edge xvalue of bins</span>
+    <span class="k">elif</span> <span class="n">position</span> <span class="o">==</span> <span class="s">&#39;l&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">binarray</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">binarray</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))])</span>
+
+    <span class="c"># Return right edge xvalue of bins</span>
+    <span class="c"># Note, bins are defined by their left edges, so this has to compute the bin width.</span>
+    <span class="c"># Does so by looking at first two elements.  THEREFORE SPACING MUST BE</span>
+    <span class="c"># EVEN!</span>
+    <span class="k">elif</span> <span class="n">position</span> <span class="o">==</span> <span class="s">&#39;r&#39;</span><span class="p">:</span>
+        <span class="n">width</span> <span class="o">=</span> <span class="n">binarray</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">binarray</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">binarray</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">width</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">binarray</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))])</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">pyparty 0.2 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Adam Hughes.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

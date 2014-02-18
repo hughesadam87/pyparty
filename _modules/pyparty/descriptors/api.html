@@ -1,0 +1,163 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyparty.descriptors.api &mdash; pyparty 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="pyparty 0.2 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">pyparty 0.2 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pyparty.descriptors.api</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot; Stores descriptors availabe in scikit, as well as mapping to user-defined</span>
+<span class="sd">    descriptors. &quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">user_descriptors</span> <span class="kn">import</span> <span class="n">even_or_odd</span>
+
+<div class="viewcode-block" id="DescriptorError"><a class="viewcode-back" href="../../../API/pyparty.descriptors.html#pyparty.descriptors.api.DescriptorError">[docs]</a><span class="k">class</span> <span class="nc">DescriptorError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
+
+<span class="c"># Some of these rely on image intensity: Separate these out into different set of properties.</span>
+<span class="c"># Weighted centroid, for example, IS BACKGROUND IMAGE SPECIFIC.  While ares is intrinsice.</span>
+
+<span class="c">#Some properties also suffer from positional problems since we have to translate the coordinates</span>
+<span class="c">#To build the fast bounding box.  To fix this, either we don&#39;t translate the coordinates and</span>
+<span class="c">#instead project the particle onto a full image.  Alternatively, we modify the positional descriptors</span>
+<span class="c"># (like centroid) to have a translate, untranslate dectorator.</span>
+</div>
+<span class="n">SKIMAGE_DESCRIPTORS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s">&#39;area&#39;</span><span class="p">,</span>
+<span class="c">#    &#39;bbox&#39;,</span>
+    <span class="s">&#39;centroid&#39;</span><span class="p">,</span>
+    <span class="s">&#39;convex_area&#39;</span><span class="p">,</span>
+    <span class="s">&#39;convex_image&#39;</span><span class="p">,</span>
+<span class="c">#    &#39;coords&#39;,      #</span>
+    <span class="s">&#39;eccentricity&#39;</span><span class="p">,</span>
+    <span class="s">&#39;equivalent_diameter&#39;</span><span class="p">,</span>
+    <span class="s">&#39;extent&#39;</span><span class="p">,</span>
+    <span class="s">&#39;filled_area&#39;</span><span class="p">,</span>  <span class="c"># DO I WANT TO KEEP THIS?</span>
+
+<span class="c">#    &#39;filled_image&#39;,</span>
+<span class="c">#    &#39;image&#39;,</span>
+    <span class="s">&#39;inertia_tensor&#39;</span><span class="p">,</span>
+    <span class="s">&#39;inertia_tensor_eigenvalues&#39;</span><span class="p">,</span>
+    <span class="s">&#39;label&#39;</span><span class="p">,</span> 
+    <span class="s">&#39;major_axis_length&#39;</span><span class="p">,</span>
+<span class="c">#    &#39;min_intensity&#39;,</span>
+    <span class="s">&#39;minor_axis_length&#39;</span><span class="p">,</span>
+    <span class="s">&#39;moments&#39;</span><span class="p">,</span>
+    <span class="s">&#39;moments_central&#39;</span><span class="p">,</span> 
+    <span class="s">&#39;moments_hu&#39;</span><span class="p">,</span> 
+    <span class="s">&#39;moments_normalized&#39;</span><span class="p">,</span>
+
+    <span class="s">&#39;orientation&#39;</span><span class="p">,</span>  
+
+    <span class="s">&#39;perimeter&#39;</span><span class="p">,</span>
+    <span class="s">&#39;solidity&#39;</span><span class="p">,</span>
+<span class="c">#    &#39;weighted_centroid&#39;,   #THESE ALL DEPEND ON IMAGE_INTENSITY OPTION</span>
+<span class="c">#    &#39;weighted_moments&#39;,</span>
+<span class="c">#    &#39;weighted_moments_normalized&#39;</span>
+    <span class="p">]</span>
+
+<span class="n">CUSTOM_DESCRIPTORS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;evenorodd&#39;</span> <span class="p">:</span> <span class="n">even_or_odd</span>
+    <span class="p">}</span>
+
+<div class="viewcode-block" id="add_descriptor"><a class="viewcode-back" href="../../../API/pyparty.descriptors.html#pyparty.descriptors.api.add_descriptor">[docs]</a><span class="k">def</span> <span class="nf">add_descriptor</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">fcn</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Add a descriptor to CUSTOM_DESCRIPTORS &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">CUSTOM_DESCRIPTORS</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">DescriptorError</span><span class="p">(</span><span class="s">&quot;Descriptor named </span><span class="si">%s</span><span class="s"> already found!&quot;</span> <span class="o">%</span> <span class="n">name</span><span class="p">)</span>
+    <span class="n">CUSTOM_DESCRIPTORS</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">fcn</span>
+</div>
+<span class="n">ALL_DESCRIPTORS</span> <span class="o">=</span> <span class="n">SKIMAGE_DESCRIPTORS</span> <span class="o">+</span> <span class="n">CUSTOM_DESCRIPTORS</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+<span class="c"># Ensure unique names between SKIMAGE and USER descriptors</span>
+<span class="k">if</span> <span class="nb">len</span><span class="p">(</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ALL_DESCRIPTORS</span><span class="p">))</span> <span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ALL_DESCRIPTORS</span><span class="p">):</span>
+    <span class="n">duplicates</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">SKIMAGE_DESCRIPTORS</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">CUSTOM_DESCRIPTORS</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span>
+    <span class="k">raise</span> <span class="n">DescriptorError</span><span class="p">(</span><span class="s">&quot;Non-unique descriptors found: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">duplicates</span><span class="p">)</span>
+
+    
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">pyparty 0.2 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Adam Hughes.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

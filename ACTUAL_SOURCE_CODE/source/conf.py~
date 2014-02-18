@@ -29,7 +29,6 @@ sys.path.append(os.path.abspath('sphinxext')) #Extensions
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.pngmath', 'sphinx.ext.mathjax', 'sphinx.ext.viewcode']
-
 extensions.append('IPython.sphinxext.ipython_console_highlighting')
 
 # Add any paths that contain templates here, relative to this directory.

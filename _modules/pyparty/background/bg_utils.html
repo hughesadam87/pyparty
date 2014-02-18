@@ -1,0 +1,147 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyparty.background.bg_utils &mdash; pyparty 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="pyparty 0.2 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">pyparty 0.2 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pyparty.background.bg_utils</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot; Various utilities for parsing background styles to return M X N X 3 array.</span>
+<span class="sd">Mostly designed to work for Canvas but might be useful in general &quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os.path</span> <span class="kn">as</span> <span class="nn">op</span>
+<span class="kn">from</span> <span class="nn">skimage.io</span> <span class="kn">import</span> <span class="n">imread</span>
+<span class="kn">from</span> <span class="nn">pyparty.utils</span> <span class="kn">import</span> <span class="n">to_normrgb</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">pyparty.utils</span> <span class="kn">import</span> <span class="n">any2rgb</span>
+
+<div class="viewcode-block" id="BackgroundError"><a class="viewcode-back" href="../../../API/pyparty.background.html#pyparty.background.bg_utils.BackgroundError">[docs]</a><span class="k">class</span> <span class="nc">BackgroundError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Background error &quot;&quot;&quot;</span>
+
+<span class="c"># Not sure best way to implement; EG as utility or form canvas</span></div>
+<div class="viewcode-block" id="from_grid"><a class="viewcode-back" href="../../../API/pyparty.background.html#pyparty.background.bg_utils.from_grid">[docs]</a><span class="k">def</span> <span class="nf">from_grid</span><span class="p">(</span><span class="n">grid_obj</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Up-normalizes Grid.zz array to 1.0 and passes to any2rgb for array </span>
+<span class="sd">    conversion.  This way, the upper lim will always roundto 255&quot;&quot;&quot;</span>
+    <span class="n">zz_array</span> <span class="o">=</span> <span class="n">grid_obj</span><span class="o">.</span><span class="n">zz</span>
+    <span class="k">return</span> <span class="n">any2rgb</span><span class="p">(</span><span class="n">zz_array</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">zz_array</span><span class="o">.</span><span class="n">max</span><span class="p">())</span> <span class="p">)</span>
+</div>
+<div class="viewcode-block" id="from_color_res"><a class="viewcode-back" href="../../../API/pyparty.background.html#pyparty.background.bg_utils.from_color_res">[docs]</a><span class="k">def</span> <span class="nf">from_color_res</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="n">resx</span><span class="p">,</span> <span class="n">resy</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Constant image of resolution (resx, resy) &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">resy</span><span class="p">:</span>
+        <span class="n">resy</span> <span class="o">=</span> <span class="n">resx</span>
+    <span class="n">background</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">resx</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">resy</span><span class="p">),</span> <span class="mi">3</span><span class="p">)</span> <span class="p">)</span>
+
+    <span class="n">color</span> <span class="o">=</span> <span class="n">to_normrgb</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+    <span class="n">background</span><span class="p">[:,:,:]</span> <span class="o">=</span> <span class="n">color</span>
+    <span class="k">return</span> <span class="n">background</span>        
+
+</div>
+<div class="viewcode-block" id="from_string"><a class="viewcode-back" href="../../../API/pyparty.background.html#pyparty.background.bg_utils.from_string">[docs]</a><span class="k">def</span> <span class="nf">from_string</span><span class="p">(</span><span class="n">path_or_color</span><span class="p">,</span> <span class="n">resx</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">resy</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Load an image from harddrive; wraps skimage.io.imread. </span>
+<span class="sd">    os.path.expanduser is called to allow ~/foo/path calls.</span>
+<span class="sd">    If not found, path_or_color is assumed to be a colorstring (eg &#39;aqua&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c"># Separte method because plan to expand later</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">imread</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span> <span class="n">path_or_color</span><span class="p">)</span> <span class="p">)</span>
+    <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">resx</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">BackgroundError</span><span class="p">(</span><span class="s">&quot;Background string interpreted as color; please pass&quot;</span>
+            <span class="s">&quot; resolution as well!&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">background</span> <span class="o">=</span> <span class="n">path_or_color</span>
+        
+    <span class="c"># Raise more clear error    </span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">from_color_res</span><span class="p">(</span><span class="n">background</span><span class="p">,</span> <span class="n">resx</span><span class="p">,</span> <span class="n">resy</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">BackgroundError</span><span class="p">(</span><span class="s">&quot;Failed to interpret background as a path.&quot;</span>
+            <span class="s">&quot;  Failed to interpret background as a colorstring (eg &#39;aqua&#39;)&quot;</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">pyparty 0.2 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Adam Hughes.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

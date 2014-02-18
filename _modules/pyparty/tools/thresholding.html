@@ -1,0 +1,185 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyparty.tools.thresholding &mdash; pyparty 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="pyparty 0.2 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">pyparty 0.2 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pyparty.tools.thresholding</h1><div class="highlight"><pre>
+<span class="c">#Easy access to some common thresholding functions from skimage:</span>
+<span class="c">#http://scikit-image.org/docs/dev/api/skimage.filter.thresholding.html</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">skimage</span> <span class="kn">import</span> <span class="n">img_as_bool</span>
+<span class="kn">from</span> <span class="nn">skimage.filter</span> <span class="kn">import</span> <span class="n">threshold_adaptive</span><span class="p">,</span> <span class="n">threshold_otsu</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+
+<div class="viewcode-block" id="ThresholdError"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.thresholding.ThresholdError">[docs]</a><span class="k">class</span> <span class="nc">ThresholdError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
+</div>
+<div class="viewcode-block" id="invertible"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.thresholding.invertible">[docs]</a><span class="k">def</span> <span class="nf">invertible</span><span class="p">(</span><span class="n">fcn</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Return np.invert() of function&quot;&quot;&quot;</span>
+    <span class="nd">@functools.wraps</span><span class="p">(</span><span class="n">fcn</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">invert</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;invert&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">invert</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">invert</span><span class="p">(</span><span class="n">fcn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">fcn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">wrapper</span>
+</div>
+<span class="k">def</span> <span class="nf">_valid_range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">n</span> <span class="o">&gt;</span> <span class="mi">255</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ThresholdError</span><span class="p">(</span><span class="s">&#39;n must be between 0 and 255&#39;</span><span class="p">)</span>   
+
+<span class="c"># ALL FUNCTIONS MUST ACCEPT KWARGS</span>
+<span class="nd">@invertible</span>
+<div class="viewcode-block" id="img2bool"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.thresholding.img2bool">[docs]</a><span class="k">def</span> <span class="nf">img2bool</span><span class="p">(</span><span class="n">grayimage</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Allow for *args, **kwargs to be passed &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">img_as_bool</span><span class="p">(</span><span class="n">grayimage</span><span class="p">)</span>
+</div>
+<span class="nd">@invertible</span>
+<div class="viewcode-block" id="nonzero"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.thresholding.nonzero">[docs]</a><span class="k">def</span> <span class="nf">nonzero</span><span class="p">(</span><span class="n">grayimage</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; All non-zero elements are True &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">grayimage</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> 
+</div>
+<span class="nd">@invertible</span>
+<div class="viewcode-block" id="double"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.thresholding.double">[docs]</a><span class="k">def</span> <span class="nf">double</span><span class="p">(</span><span class="n">grayimage</span><span class="p">,</span> <span class="n">nlow</span><span class="o">=</span><span class="mi">75</span><span class="p">,</span> <span class="n">nhigh</span><span class="o">=</span><span class="mi">150</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Lower and upper thresholds on range 0-255&quot;&quot;&quot;</span>
+    <span class="n">_valid_range</span><span class="p">(</span><span class="n">nlow</span><span class="p">)</span>
+    <span class="n">_valid_range</span><span class="p">(</span><span class="n">nhigh</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">grayimage</span> <span class="o">&gt;=</span> <span class="n">nlow</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">grayimage</span> <span class="o">&lt;=</span> <span class="n">nhigh</span><span class="p">)</span>
+
+</div>
+<span class="nd">@invertible</span>
+<div class="viewcode-block" id="single"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.thresholding.single">[docs]</a><span class="k">def</span> <span class="nf">single</span><span class="p">(</span><span class="n">grayimage</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">128</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Single threshold value between 0, 255. &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">double</span><span class="p">(</span><span class="n">grayimage</span><span class="p">,</span> <span class="n">nlow</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="n">nhigh</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span>
+</div>
+<span class="nd">@invertible</span>
+<div class="viewcode-block" id="nonwhite"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.thresholding.nonwhite">[docs]</a><span class="k">def</span> <span class="nf">nonwhite</span><span class="p">(</span><span class="n">grayimage</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Return any pixel under 255 &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">grayimage</span> <span class="o">&lt;</span> <span class="mi">255</span><span class="p">)</span>
+</div>
+<span class="nd">@invertible</span>
+<div class="viewcode-block" id="nonblack"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.thresholding.nonblack">[docs]</a><span class="k">def</span> <span class="nf">nonblack</span><span class="p">(</span><span class="n">grayimage</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Return any pixel over 0 &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">grayimage</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+    
+
+<span class="c">#http://scikit-image.org/docs/dev/api/skimage.filter.html#skimage.filter.threshold_otsu</span></div>
+<span class="nd">@invertible</span>
+<div class="viewcode-block" id="otsu"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.thresholding.otsu">[docs]</a><span class="k">def</span> <span class="nf">otsu</span><span class="p">(</span><span class="n">grayimage</span><span class="p">,</span> <span class="n">nbins</span><span class="o">=</span><span class="mi">256</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Otsu provides an upper threshold limit, meaning anything under threshold</span>
+<span class="sd">    is foreground. &quot;&quot;&quot;</span>
+    <span class="n">thresh</span> <span class="o">=</span> <span class="n">threshold_otsu</span><span class="p">(</span><span class="n">grayimage</span><span class="p">,</span> <span class="n">nbins</span><span class="o">=</span><span class="n">nbins</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">grayimage</span> <span class="o">&lt;=</span> <span class="n">thresh</span><span class="p">)</span>
+</div>
+<span class="nd">@invertible</span>
+<div class="viewcode-block" id="adaptive"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.thresholding.adaptive">[docs]</a><span class="k">def</span> <span class="nf">adaptive</span><span class="p">(</span><span class="n">grayimage</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">threshold_adaptive</span><span class="p">(</span><span class="n">grayimage</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="choose_thresh"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.thresholding.choose_thresh">[docs]</a><span class="k">def</span> <span class="nf">choose_thresh</span><span class="p">(</span><span class="n">fcnname</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">fcn</span> <span class="o">=</span> <span class="n">thr_select</span><span class="p">[</span><span class="n">fcnname</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ThresholdError</span><span class="p">(</span><span class="s">&#39;invalid function &quot;</span><span class="si">%s</span><span class="s">&quot;; choose from &quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> 
+              <span class="o">%</span> <span class="p">(</span><span class="n">fcnname</span><span class="p">,</span> <span class="s">&#39;&quot;, &quot;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">thr_select</span><span class="o">.</span><span class="n">keys</span><span class="p">())))</span> <span class="p">)</span>
+    <span class="k">return</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">fcn</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</div>
+<span class="n">thr_select</span><span class="o">=</span><span class="p">{</span>
+    <span class="s">&#39;single&#39;</span> <span class="p">:</span> <span class="n">single</span><span class="p">,</span>
+    <span class="s">&#39;double&#39;</span> <span class="p">:</span> <span class="n">double</span><span class="p">,</span>
+    <span class="s">&#39;img2bool&#39;</span> <span class="p">:</span> <span class="n">img2bool</span><span class="p">,</span>
+    <span class="s">&#39;nonzero&#39;</span> <span class="p">:</span> <span class="n">nonzero</span><span class="p">,</span>
+    <span class="s">&#39;adaptive&#39;</span> <span class="p">:</span> <span class="n">adaptive</span><span class="p">,</span>
+    <span class="s">&#39;otsu&#39;</span> <span class="p">:</span> <span class="n">otsu</span><span class="p">,</span>
+    <span class="s">&#39;nonwhite&#39;</span> <span class="p">:</span> <span class="n">nonwhite</span><span class="p">,</span>
+    <span class="s">&#39;nonblack&#39;</span> <span class="p">:</span> <span class="n">nonblack</span>
+    <span class="p">}</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">pyparty 0.2 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Adam Hughes.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

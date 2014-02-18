@@ -1,0 +1,1042 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyparty.tools.canvas &mdash; pyparty 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="pyparty 0.2 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">pyparty 0.2 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pyparty.tools.canvas</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">os.path</span> <span class="kn">as</span> <span class="nn">op</span>
+<span class="kn">import</span> <span class="nn">logging</span> 
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">matplotlib.collections</span> <span class="kn">import</span> <span class="n">PatchCollection</span>
+<span class="kn">from</span> <span class="nn">traits.api</span> <span class="kn">import</span> <span class="n">HasTraits</span><span class="p">,</span> <span class="n">Array</span><span class="p">,</span> <span class="n">Instance</span><span class="p">,</span> <span class="n">Property</span><span class="p">,</span> <span class="n">Float</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> \
+     <span class="n">Int</span><span class="p">,</span> <span class="n">Function</span>
+
+<span class="kn">import</span> <span class="nn">skimage.io</span>
+<span class="kn">import</span> <span class="nn">skimage.measure</span> <span class="kn">as</span> <span class="nn">measure</span>
+<span class="kn">import</span> <span class="nn">skimage.morphology</span> <span class="kn">as</span> <span class="nn">morphology</span>
+
+<span class="kn">import</span> <span class="nn">pyparty.background.bg_utils</span> <span class="kn">as</span> <span class="nn">bgu</span>
+<span class="kn">from</span> <span class="nn">pyparty.shape_models.abstract_shape</span> <span class="kn">import</span> <span class="n">ParticleError</span>
+<span class="kn">from</span> <span class="nn">pyparty.tools.thresholding</span> <span class="kn">import</span> <span class="n">choose_thresh</span>
+<span class="kn">from</span> <span class="nn">pyparty.tools.manager</span> <span class="kn">import</span> <span class="n">ParticleManager</span><span class="p">,</span> <span class="n">concat_particles</span>
+<span class="kn">from</span> <span class="nn">pyparty.tools.grids</span> <span class="kn">import</span> <span class="n">Grid</span><span class="p">,</span> <span class="n">CartesianGrid</span>
+<span class="kn">from</span> <span class="nn">pyparty.utils</span> <span class="kn">import</span> <span class="n">coords_in_image</span><span class="p">,</span> <span class="n">where_is_particle</span><span class="p">,</span> <span class="n">to_normrgb</span><span class="p">,</span> \
+     <span class="n">any2rgb</span><span class="p">,</span> <span class="n">crop</span><span class="p">,</span> <span class="n">_parse_ax</span><span class="p">,</span> <span class="n">_parse_path</span><span class="p">,</span> <span class="n">mem_address</span><span class="p">,</span> <span class="n">rgb2uint</span>
+<span class="kn">from</span> <span class="nn">pyparty.config</span> <span class="kn">import</span> <span class="n">BGCOLOR</span><span class="p">,</span> <span class="n">BGRES</span><span class="p">,</span> <span class="n">GRIDXSPACE</span><span class="p">,</span> <span class="n">GRIDYSPACE</span><span class="p">,</span> <span class="n">_PAD</span><span class="p">,</span> \
+     <span class="n">GCOLOR</span><span class="p">,</span> <span class="n">THRESHDEF</span>
+<span class="c"># Ensure colors are correctly mapped</span>
+<span class="n">BGCOLOR</span><span class="p">,</span> <span class="n">GCOLOR</span> <span class="o">=</span> <span class="n">to_normrgb</span><span class="p">(</span><span class="n">BGCOLOR</span><span class="p">),</span> <span class="n">to_normrgb</span><span class="p">(</span><span class="n">GCOLOR</span><span class="p">)</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span> 
+
+<div class="viewcode-block" id="rint"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.rint">[docs]</a><span class="k">def</span> <span class="nf">rint</span><span class="p">(</span><span class="n">x</span><span class="p">):</span> <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span>
+
+<span class="c">#def inplace(method):</span>
+    <span class="c">#&quot;&quot;&quot; Thought I could decorate methods that have inplace keyword, but turned</span>
+    <span class="c">#out to be more than I bargained for.  Decorator syntax is fine, but not correct.</span>
+    <span class="c">#&quot;&quot;&quot;</span>
+    <span class="c">#methodname = method.__name__</span>
+    <span class="c">##variables = method.func_code.co_varnames</span>
+    <span class="c">#@wraps(method)</span>
+    <span class="c">#def wrapper(obj, *args, **kwargs):</span>
+        <span class="c">#print &#39;method is&#39;, method, type(obj), type(method)</span>
+        <span class="c">#inplace = kwargs.pop(&#39;inplace&#39;, False)</span>
+        <span class="c">#if inplace:</span>
+            <span class="c">#print &#39;in inplace&#39;, args, kwargs</span>
+            <span class="c">#getattr(obj, methodname)(*args, **kwargs)</span>
+        <span class="c">#else:</span>
+            <span class="c">#print &#39;not inplace. obj is&#39;, obj</span>
+            <span class="c">#new = Canvas(background=obj.background, particles=obj._particles,</span>
+                         <span class="c">#res=obj.rez)</span>
+            <span class="c">#return getattr(new, methodname)(*args, **kwargs)</span>
+<span class="c">#    return wrapper</span>
+
+</div>
+<div class="viewcode-block" id="concat_canvas"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.concat_canvas">[docs]</a><span class="k">def</span> <span class="nf">concat_canvas</span><span class="p">(</span><span class="n">c1</span><span class="p">,</span> <span class="n">c2</span><span class="p">,</span> <span class="n">bg_resolve</span><span class="o">=</span><span class="s">&#39;c2&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">particle_args</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Adds two canvas objects under various conditions &quot;&quot;&quot;</span>
+    <span class="n">bg_resolve</span> <span class="o">=</span> <span class="n">bg_resolve</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+    <span class="c"># Choose output background</span>
+    <span class="k">if</span> <span class="n">bg_resolve</span> <span class="o">==</span> <span class="s">&#39;merge&#39;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+    <span class="k">elif</span> <span class="n">bg_resolve</span> <span class="o">==</span> <span class="s">&#39;c1&#39;</span><span class="p">:</span>
+        <span class="n">bgout</span> <span class="o">=</span> <span class="n">c1</span><span class="o">.</span><span class="n">background</span>
+        <span class="n">rezout</span> <span class="o">=</span> <span class="n">c1</span><span class="o">.</span><span class="n">rez</span>  <span class="c">#UNTESTED</span>
+        <span class="n">gridout</span> <span class="o">=</span> <span class="n">c1</span><span class="o">.</span><span class="n">grid</span>
+    <span class="k">elif</span> <span class="n">bg_resolve</span> <span class="o">==</span> <span class="s">&#39;c2&#39;</span><span class="p">:</span>
+        <span class="n">bgout</span> <span class="o">=</span> <span class="n">c2</span><span class="o">.</span><span class="n">background</span>        
+        <span class="n">rezout</span> <span class="o">=</span> <span class="n">c2</span><span class="o">.</span><span class="n">rez</span>
+        <span class="n">gridout</span> <span class="o">=</span> <span class="n">c2</span><span class="o">.</span><span class="n">grid</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">CanvasAttributeError</span><span class="p">(</span><span class="s">&#39;&quot;bg_resolve&quot; invalid; must be </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">bg_valid</span><span class="p">)</span>
+
+    <span class="n">_pout</span> <span class="o">=</span> <span class="n">concat_particles</span><span class="p">(</span><span class="n">c1</span><span class="o">.</span><span class="n">_particles</span><span class="p">,</span> <span class="n">c2</span><span class="o">.</span><span class="n">_particles</span><span class="p">,</span> <span class="o">**</span><span class="n">particle_args</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Canvas</span><span class="p">(</span><span class="n">background</span><span class="o">=</span><span class="n">bgout</span><span class="p">,</span> <span class="n">particles</span><span class="o">=</span><span class="n">_pout</span><span class="p">,</span> <span class="n">rez</span><span class="o">=</span><span class="n">rezout</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="n">gridout</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="CanvasError"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.CanvasError">[docs]</a><span class="k">class</span> <span class="nc">CanvasError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>    
+</div>
+<div class="viewcode-block" id="CanvasAttributeError"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.CanvasAttributeError">[docs]</a><span class="k">class</span> <span class="nc">CanvasAttributeError</span><span class="p">(</span><span class="n">CanvasError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>    
+    </div>
+<div class="viewcode-block" id="CanvasPlotError"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.CanvasPlotError">[docs]</a><span class="k">class</span> <span class="nc">CanvasPlotError</span><span class="p">(</span><span class="n">CanvasError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>    
+    </div>
+<div class="viewcode-block" id="Canvas"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas">[docs]</a><span class="k">class</span> <span class="nc">Canvas</span><span class="p">(</span><span class="n">HasTraits</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;  &quot;&quot;&quot;</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">Property</span><span class="p">(</span><span class="n">Array</span><span class="p">)</span> <span class="c">#chaching doesnt work</span>
+
+    <span class="c"># ALL INTERNAL REFERENCES SHOULD GO TO _PARTICLES</span>
+    <span class="n">particles</span> <span class="o">=</span> <span class="n">Property</span><span class="p">(</span><span class="n">Instance</span><span class="p">(</span><span class="n">ParticleManager</span><span class="p">,</span> <span class="n">depends_on</span><span class="o">=</span><span class="s">&#39;_particles&#39;</span><span class="p">))</span>
+    <span class="n">_particles</span> <span class="o">=</span> <span class="n">Instance</span><span class="p">(</span><span class="n">ParticleManager</span><span class="p">)</span>
+
+    <span class="c"># Background is only a property because for _set validation...</span>
+    <span class="n">background</span> <span class="o">=</span> <span class="n">Property</span><span class="p">()</span>
+    <span class="n">_background</span> <span class="o">=</span> <span class="n">Array</span>
+        
+    <span class="c"># Use this as a listener for grid</span>
+    <span class="n">_resolution</span> <span class="o">=</span> <span class="n">Tuple</span><span class="p">(</span><span class="n">Int</span><span class="p">,</span> <span class="n">Int</span><span class="p">)</span>
+
+    <span class="n">grid</span> <span class="o">=</span> <span class="n">Instance</span><span class="p">(</span><span class="n">CartesianGrid</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">particles</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">background</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">rez</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> 
+                 <span class="n">_threshfcn</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span> <span class="c">#No other traits</span>
+        <span class="sd">&quot;&quot;&quot; Load with optionally a background image and instance of Particle</span>
+<span class="sd">            Manager&quot;&quot;&quot;</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">particles</span><span class="p">:</span>
+            <span class="n">particles</span> <span class="o">=</span> <span class="n">ParticleManager</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_particles</span> <span class="o">=</span> <span class="n">particles</span>
+            
+        <span class="k">if</span> <span class="n">background</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">rez</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">reset_background</span><span class="p">()</span> <span class="c">#sets default color/resolution    </span>
+        <span class="k">elif</span> <span class="n">background</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">rez</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_resolution</span> <span class="o">=</span> <span class="n">BGRES</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_bg</span><span class="p">(</span><span class="n">background</span><span class="p">,</span> <span class="n">keepres</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_resolution</span> <span class="o">=</span> <span class="n">rez</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_bg</span><span class="p">(</span><span class="n">background</span><span class="p">,</span> <span class="n">keepres</span><span class="o">=</span><span class="n">rez</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> 
+            
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">grid</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">reset_grid</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">grid</span> <span class="o">=</span> <span class="n">grid</span>
+            
+        <span class="c"># _threshfcn through __init__ only really for Cavnas.copy(); not users</span>
+        <span class="k">if</span> <span class="n">_threshfcn</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_threshfcn</span><span class="p">(</span><span class="n">THRESHDEF</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_threshfcn</span> <span class="o">=</span> <span class="n">_threshfcn</span>
+       
+<div class="viewcode-block" id="Canvas.set_threshfcn"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas.set_threshfcn">[docs]</a>    <span class="k">def</span> <span class="nf">set_threshfcn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fcn_or_string</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Set a binarization function. &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fcn_or_string</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="c"># Update later</span>
+            <span class="k">if</span> <span class="n">args</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">CanvasError</span><span class="p">(</span><span class="s">&#39;Please use keyword args for threshold function&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_threshfcn</span> <span class="o">=</span> <span class="n">choose_thresh</span><span class="p">(</span><span class="n">fcn_or_string</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_threshtype</span> <span class="o">=</span> <span class="n">fcn_or_string</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_threshfcn</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">fcn_or_string</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_threshtype</span> <span class="o">=</span> <span class="n">fcn_or_string</span><span class="o">.</span><span class="n">__name__</span>
+        </div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">threshfcn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_threshtype</span>
+    
+    <span class="nd">@threshfcn.setter</span>
+<div class="viewcode-block" id="Canvas.threshfcn"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas.threshfcn">[docs]</a>    <span class="k">def</span> <span class="nf">threshfcn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">CanvasAttributeError</span><span class="p">(</span><span class="s">&#39;Please use &quot;set_threshfcn(fcn/str, *args, &#39;</span>
+                                   <span class="s">&#39;**kwargs)&quot; to set the binary function.&#39;</span><span class="p">)</span>
+
+    <span class="c"># Public Methods</span>
+    <span class="c"># -------------      </span></div>
+<div class="viewcode-block" id="Canvas.add"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas.add">[docs]</a>    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">particle</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Can&#39;t rely on __getattr__ because want *args to pass; only</span>
+<span class="sd">        kwargs pass correctly; and wrapper was more pain than worth. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_particles</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">particle</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="Canvas.reset_background"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas.reset_background">[docs]</a>    <span class="k">def</span> <span class="nf">reset_background</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Restore default background image; restores default RES, redraws</span>
+<span class="sd">            particles over it.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">rez</span> <span class="o">=</span> <span class="n">BGRES</span>  <span class="c">#must be set first</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_background</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">color_background</span>        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bgstyle</span> <span class="o">=</span> <span class="s">&#39;default&#39;</span>
+                
+                </div>
+<div class="viewcode-block" id="Canvas.reset_grid"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas.reset_grid">[docs]</a>    <span class="k">def</span> <span class="nf">reset_grid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; New grid of default x/y spacing; rez is optional &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grid</span> <span class="o">=</span> <span class="n">CartesianGrid</span><span class="p">(</span><span class="n">rez</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">rez</span><span class="p">,</span> <span class="n">negative_y</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                              <span class="n">xspacing</span><span class="o">=</span><span class="n">GRIDYSPACE</span><span class="p">,</span> <span class="n">yspacing</span><span class="o">=</span><span class="n">GRIDXSPACE</span><span class="p">)</span>
+        
+</div>
+<div class="viewcode-block" id="Canvas.clear_canvas"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas.clear_canvas">[docs]</a>    <span class="k">def</span> <span class="nf">clear_canvas</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Background image to default; removes ALL particles.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">clear_particles</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset_background</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset_grid</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="Canvas.clear_particles"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas.clear_particles">[docs]</a>    <span class="k">def</span> <span class="nf">clear_particles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Clears all particles from image.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_particles</span><span class="o">.</span><span class="n">plist</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c">#   @inplace</span></div>
+<div class="viewcode-block" id="Canvas.pmap"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas.pmap">[docs]</a>    <span class="k">def</span> <span class="nf">pmap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fcn</span><span class="p">,</span> <span class="o">*</span><span class="n">fcnargs</span><span class="p">,</span> <span class="o">**</span><span class="n">fcnkwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Maps a function to each particle in ParticleManger; optionally</span>
+<span class="sd">            can be done in place&quot;&quot;&quot;</span>
+
+        <span class="c">#self._particles.map(fcn, *fcnargs, **fcnkwargs)</span>
+        <span class="n">inplace</span> <span class="o">=</span> <span class="n">fcnkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;inplace&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">inplace</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_particles</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">fcn</span><span class="p">,</span> <span class="o">*</span><span class="n">fcnargs</span><span class="p">,</span> <span class="o">**</span><span class="n">fcnkwargs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cout</span> <span class="o">=</span> <span class="n">Canvas</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="n">cout</span><span class="o">.</span><span class="n">_particles</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">fcn</span><span class="p">,</span> <span class="o">*</span><span class="n">fcnargs</span><span class="p">,</span> <span class="o">**</span><span class="n">fcnkwargs</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">cout</span>    
+
+</div>
+<div class="viewcode-block" id="Canvas.pixelmap"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas.pixelmap">[docs]</a>    <span class="k">def</span> <span class="nf">pixelmap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fcn</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">*</span><span class="n">fcnargs</span><span class="p">,</span> <span class="o">**</span><span class="n">fcnkwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Image mapper (np.apply_along_axis)</span>
+
+<span class="sd">            fcn must be 1d!</span>
+
+<span class="sd">            Notes</span>
+<span class="sd">            -----</span>
+<span class="sd">            Calls numpy.apply_along_axis, which doesn&#39;t acces</span>
+<span class="sd">            keyword arguments.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">apply_along_axis</span><span class="p">(</span><span class="n">fcn</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">,</span> <span class="o">*</span><span class="n">fcnargs</span><span class="p">)</span>
+
+
+<span class="c">#http://scikit-image.org/docs/dev/api/skimage.morphology.html#skimage.morphology.label</span>
+<span class="c">#    @inplace</span></div>
+<div class="viewcode-block" id="Canvas.from_labels"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas.from_labels">[docs]</a>    <span class="k">def</span> <span class="nf">from_labels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bgout</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">binary</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">pbinary</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                    <span class="n">inplace</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">neighbors</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="o">**</span><span class="n">pmangerkwds</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Get morphological labels from gray or binary image. </span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        exclude : 0, 1, 255, &#39;w&#39;, &#39;b&#39;</span>
+<span class="sd">            Exclude white, black or specified integer from labels.  For example,</span>
+<span class="sd">            &#39;b&#39; will prevent black pixels from being labeled.</span>
+
+<span class="sd">        bgout : Valid canvas array/color</span>
+<span class="sd">            Background image of resulting canvas.  If exclude, then there will</span>
+<span class="sd">            be unlabled regions.  bgout=&#39;r&#39; will overlay the labels onto a red</span>
+<span class="sd">            background.  By default, self.background is used.</span>
+
+<span class="sd">        binary : bool</span>
+<span class="sd">            Use binary image; else use grayimage.  </span>
+<span class="sd">            </span>
+<span class="sd">        pbinary : bool</span>
+<span class="sd">            Use self.pbinary to generate thresholded image; else, use </span>
+<span class="sd">            self.threshfcn (implicit thresholding function) to binarize.</span>
+<span class="sd">            Only valid if binary = True</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        Use binary=False with caution.  Many grayimages would lead to tends of</span>
+<span class="sd">        thousands of labels due to minute color changes in each pixel.  Whitle</span>
+<span class="sd">        skimage.label can handle this, pyparty will slow down severaly trying</span>
+<span class="sd">        to make so many particles from labels.</span>
+<span class="sd">                    </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">binary</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">pbinary</span><span class="p">:</span>
+                <span class="n">image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pbinary</span> <span class="c">#PBINARY NOT self.binaryimage</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">particles</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&#39;from_labels() recieved &quot;pbinary=True&quot;, but &#39;</span>
+                        <span class="s">&#39;no particles are stored.  Use &quot;pbinary=False&quot; to &#39;</span>
+                        <span class="s">&#39;use implicit thresholding function.&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">binaryimage</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">grayimage</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&#39;Labels from grayimage can be very slow (fix coming)&#39;</span><span class="p">)</span>
+            
+        <span class="k">if</span> <span class="n">exclude</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="c"># scikit api doesn&#39;t accept None</span>
+            <span class="n">labels</span> <span class="o">=</span> <span class="n">morphology</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">neighbors</span><span class="p">)</span>
+            
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># Parse various cases</span>
+            <span class="k">if</span> <span class="n">exclude</span> <span class="o">==</span> <span class="s">&#39;w&#39;</span> <span class="ow">or</span> <span class="n">exclude</span> <span class="o">==</span> <span class="s">&#39;white&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">binary</span><span class="p">:</span>
+                    <span class="n">exclude</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">exclude</span> <span class="o">=</span> <span class="mi">255</span>                    
+            <span class="k">elif</span> <span class="n">exclude</span> <span class="o">==</span> <span class="s">&#39;b&#39;</span> <span class="ow">or</span> <span class="n">exclude</span> <span class="o">==</span> <span class="s">&#39;black&#39;</span><span class="p">:</span>
+                <span class="n">exclude</span> <span class="o">=</span> <span class="mi">0</span>
+                        
+            <span class="n">labels</span> <span class="o">=</span> <span class="n">morphology</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">neighbors</span><span class="p">,</span> <span class="n">background</span><span class="o">=</span><span class="n">exclude</span><span class="p">)</span>
+
+        <span class="n">pout</span> <span class="o">=</span> <span class="n">ParticleManager</span><span class="o">.</span><span class="n">from_labels</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="o">**</span><span class="n">pmangerkwds</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">inplace</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_particles</span> <span class="o">=</span> <span class="n">pout</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cout</span> <span class="o">=</span> <span class="n">Canvas</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="n">cout</span><span class="o">.</span><span class="n">particles</span> <span class="o">=</span> <span class="n">pout</span>
+            <span class="k">if</span> <span class="n">bgout</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">cout</span><span class="o">.</span><span class="n">background</span> <span class="o">=</span> <span class="n">bgout</span>
+            <span class="k">return</span> <span class="n">cout</span>
+        
+</div>
+<div class="viewcode-block" id="Canvas.patchshow"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas.patchshow">[docs]</a>    <span class="k">def</span> <span class="nf">patchshow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; ...</span>
+<span class="sd">        args/kwargs include alpha, edgecolors, linestyles </span>
+
+<span class="sd">        Notes:</span>
+<span class="sd">        Matplotlib API is setup that args or kwargs can be entered.  Order is</span>
+<span class="sd">        important for args, but the correspond to same kwargs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">axes</span><span class="p">,</span> <span class="n">kwargs</span> <span class="o">=</span> <span class="n">_parse_ax</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>	
+        
+        <span class="n">title</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;title&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>        
+        <span class="n">bgonly</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;bgonly&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+
+        <span class="n">grid</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;grid&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="n">gcolor</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;gcolor&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">gstyle</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;gstyle&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">gunder</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;gunder&#39;</span><span class="p">,</span><span class="bp">False</span><span class="p">)</span>
+        <span class="n">pmap</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;pmap&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        
+        <span class="n">alpha</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;alpha&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">edgecolor</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;edgecolor&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">linewidth</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;linewidth&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">linestyle</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;linestyle&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+
+        <span class="c"># Some keywords to savefig; not all supported</span>
+        <span class="n">save</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;save&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">dpi</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;dpi&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">bbox_inches</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;bbox_inches&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        
+        <span class="c"># GET NOT POP</span>
+        <span class="n">cmap</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;cmap&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>       
+        
+        <span class="c"># Implement later</span>
+        <span class="k">if</span> <span class="n">cmap</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;pbinary&#39;</span><span class="p">,</span> <span class="s">&#39;pbinary_r&#39;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="n">CanvasPlotError</span><span class="p">(</span><span class="s">&#39;&quot;pbinary(_r)&quot; color map only valid for .show()&#39;</span><span class="p">)</span>
+        
+        <span class="c"># grid defaults</span>
+        <span class="k">if</span> <span class="n">gcolor</span> <span class="ow">or</span> <span class="n">gunder</span> <span class="ow">or</span> <span class="n">gstyle</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">grid</span><span class="p">:</span>
+            <span class="n">grid</span> <span class="o">=</span> <span class="bp">True</span>
+            
+        <span class="c"># If user enters gcolor/gstyle, assume default grid</span>
+        <span class="k">if</span> <span class="n">grid</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">gcolor</span><span class="p">:</span>
+            <span class="n">gcolor</span> <span class="o">=</span> <span class="n">GCOLOR</span>       
+            
+        <span class="k">if</span> <span class="n">grid</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">gstyle</span><span class="p">:</span>
+            <span class="n">gstyle</span> <span class="o">=</span> <span class="s">&#39;solid&#39;</span>        
+        
+        <span class="c"># Corner case, don&#39;t touch</span>
+        <span class="k">if</span> <span class="n">pmap</span> <span class="ow">and</span> <span class="n">cmap</span> <span class="ow">and</span> <span class="n">bgonly</span><span class="p">:</span>
+            <span class="n">bgonly</span> <span class="o">=</span> <span class="bp">False</span>
+        
+        <span class="k">if</span> <span class="n">bgonly</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">cmap</span><span class="p">:</span> 
+            <span class="k">raise</span> <span class="n">CanvasPlotError</span><span class="p">(</span><span class="s">&#39;&quot;bgonly&quot; is only valid when a colormap is&#39;</span> 
+            <span class="s">&#39; passed.&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">cmap</span><span class="p">:</span>
+            <span class="n">bg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">graybackground</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">bg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">background</span>
+            
+        <span class="c">#Overwrite axes image</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">axes</span><span class="p">:</span>
+            <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">axes</span><span class="o">.</span><span class="n">images</span><span class="o">=</span><span class="p">[]</span>
+        <span class="c"># DONT PASS ALL KWARGS</span>
+        <span class="n">axes</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">bg</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">)</span>
+
+        <span class="c"># FOR PATICLES IN IMAGE ONLY.</span>
+        <span class="n">in_and_edges</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pin</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">pedge</span>
+        
+        <span class="c"># PARTICLE FACECOLOR, ALPHA and other PATCH ARGS</span>
+        <span class="c"># http://matplotlib.org/api/artist_api.html#matplotlib.patches.Patch</span>
+        <span class="n">patches</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">as_patch</span><span class="p">(</span><span class="n">facecolor</span><span class="o">=</span><span class="n">p</span><span class="o">.</span><span class="n">color</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span> 
+                    <span class="n">edgecolor</span><span class="o">=</span><span class="n">edgecolor</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="n">linestyle</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="n">linewidth</span><span class="p">)</span>
+                   <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">in_and_edges</span><span class="p">]</span>
+
+        <span class="c"># If no particles or grid, just pass to avoid deep mpl exceptiosn</span>
+        <span class="k">if</span> <span class="n">patches</span> <span class="ow">or</span> <span class="n">grid</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">patches</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">pmap</span><span class="p">:</span>
+                    <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;cmap&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pmap</span>               
+                <span class="k">if</span> <span class="s">&#39;cmap&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">bgonly</span><span class="p">:</span>
+                    <span class="n">ppatch</span> <span class="o">=</span> <span class="n">PatchCollection</span><span class="p">(</span><span class="n">patches</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="c">#cmap and Patch Args</span>
+                    <span class="n">ppatch</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">patches</span><span class="p">)))</span>        
+        
+                <span class="c"># Use settings passed to &quot;patches&quot;</span>
+                <span class="k">else</span><span class="p">:</span>                                                  
+                    <span class="n">ppatch</span> <span class="o">=</span> <span class="n">PatchCollection</span><span class="p">(</span><span class="n">patches</span><span class="p">,</span> <span class="n">match_original</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="c">#</span>
+        
+            <span class="c"># Grid under particles</span>
+            <span class="k">if</span> <span class="n">gunder</span><span class="p">:</span>
+                <span class="n">axes</span><span class="o">.</span><span class="n">add_collection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">as_patch</span><span class="p">(</span>
+                    <span class="n">edgecolors</span><span class="o">=</span><span class="n">gcolor</span><span class="p">,</span> <span class="n">linestyles</span><span class="o">=</span><span class="n">gstyle</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">patches</span><span class="p">:</span>
+                    <span class="n">axes</span><span class="o">.</span><span class="n">add_collection</span><span class="p">(</span><span class="n">ppatch</span><span class="p">)</span>
+            <span class="c"># Grid over particles</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">patches</span><span class="p">:</span>
+                    <span class="n">axes</span><span class="o">.</span><span class="n">add_collection</span><span class="p">(</span><span class="n">ppatch</span><span class="p">)</span>          
+                <span class="k">if</span> <span class="n">grid</span><span class="p">:</span>
+                    <span class="n">axes</span><span class="o">.</span><span class="n">add_collection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">as_patch</span><span class="p">(</span>
+                        <span class="n">edgecolors</span><span class="o">=</span><span class="n">gcolor</span><span class="p">,</span> <span class="n">linestyles</span><span class="o">=</span><span class="n">gstyle</span><span class="p">))</span>    
+        
+        <span class="k">if</span> <span class="n">title</span><span class="p">:</span>
+            <span class="n">axes</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>        
+
+        <span class="k">if</span> <span class="n">save</span><span class="p">:</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">_parse_path</span><span class="p">(</span><span class="n">save</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="n">dpi</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="n">bbox_inches</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">axes</span> 
+
+
+    <span class="c">#http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.imshow</span></div>
+<div class="viewcode-block" id="Canvas.show"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Wrapper to imshow.  Converts to gray to allow color maps.</span>
+<span class="sd">        </span>
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        Differs from patchshow in that the collective image (bg, grid, particles)</span>
+<span class="sd">        is a series of masks, so they have to be drawn onto a single ndarray and </span>
+<span class="sd">        then plotted.  Sicne patchshow is writing patchs, it can plot the background</span>
+<span class="sd">        separate from the grid and particles, which is slightly easier&quot;&quot;&quot;</span>
+
+        <span class="c"># This will pull out &quot;ax&quot;, leaving remaing args/kwargs</span>
+        <span class="n">axes</span><span class="p">,</span> <span class="n">kwargs</span> <span class="o">=</span> <span class="n">_parse_ax</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;title&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">save</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;save&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">bgonly</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;bgonly&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        
+        <span class="n">grid</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;grid&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="n">gcolor</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;gcolor&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">gunder</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;gunder&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="n">gstyle</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;gstyle&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="c">#NOT USED</span>
+        
+        <span class="k">if</span> <span class="n">gstyle</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CanvasPlotError</span><span class="p">(</span><span class="s">&#39;&quot;gstyle&quot; only valid for patchshow()&#39;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="s">&#39;pmap&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CanvasPlotError</span><span class="p">(</span><span class="s">&#39;&quot;pmap&quot; is only valid for patchshow() method&#39;</span><span class="p">)</span>
+        
+        <span class="n">PBINARY</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="s">&#39;cmap&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;cmap&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;pbinary&#39;</span> <span class="ow">or</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;cmap&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;pbinary_r&#39;</span><span class="p">:</span>
+                <span class="n">PBINARY</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;cmap&#39;</span><span class="p">]</span>
+                <span class="k">del</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;cmap&#39;</span><span class="p">]</span>
+        
+        <span class="c"># Get the background</span>
+        <span class="k">if</span> <span class="n">bgonly</span><span class="p">:</span> 
+            <span class="k">if</span> <span class="s">&#39;cmap&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">CanvasPlotError</span><span class="p">(</span><span class="s">&#39;&quot;bgonly&quot; is only valid when a colormap is&#39;</span> 
+                <span class="s">&#39; passed.&#39;</span><span class="p">)</span>
+            <span class="n">bg</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;cmap&#39;</span><span class="p">](</span><span class="bp">self</span><span class="o">.</span><span class="n">graybackground</span><span class="p">)[</span><span class="o">...</span> <span class="p">,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+            <span class="k">del</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;cmap&#39;</span><span class="p">]</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">bg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">background</span>
+            <span class="k">if</span> <span class="n">PBINARY</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">PBINARY</span> <span class="o">==</span> <span class="s">&#39;pbinary_r&#39;</span><span class="p">:</span>
+                    <span class="n">bg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">bg</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">bg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">bg</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
+                              
+        <span class="c"># grid overlay</span>
+        <span class="k">if</span> <span class="n">gcolor</span> <span class="ow">or</span> <span class="n">gunder</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">grid</span><span class="p">:</span>
+            <span class="n">grid</span> <span class="o">=</span> <span class="bp">True</span>
+            
+        <span class="c"># If user enters gcolor, assume default grid</span>
+        <span class="k">if</span> <span class="n">grid</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">gcolor</span><span class="p">:</span>
+            <span class="n">gcolor</span> <span class="o">=</span> <span class="n">GCOLOR</span>
+        
+        <span class="c"># Map attributes from grid (centers, corners, grid)</span>
+        <span class="n">gattr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">bg</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>  <span class="c">#IE pass</span>
+        <span class="k">if</span> <span class="n">grid</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">gcolor</span><span class="p">:</span>
+                <span class="n">gcolor</span> <span class="o">=</span> <span class="n">GCOLOR</span>
+            <span class="k">if</span> <span class="n">grid</span> <span class="o">==</span> <span class="bp">True</span><span class="p">:</span>
+                <span class="n">grid</span> <span class="o">=</span> <span class="s">&#39;grid&#39;</span>
+
+            <span class="c"># Validate grid keyword</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">gattr</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="p">,</span> <span class="n">grid</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">CanvasPlotError</span><span class="p">(</span><span class="s">&#39;Invalid grid argument, &quot;</span><span class="si">%s</span><span class="s">&quot;.  Choose from:  &#39;</span>
+                    <span class="s">&#39;True, &quot;grid&quot;, &quot;centers&quot;, &quot;corners&quot;, &quot;hlines&quot;, &quot;vlines&quot;&#39;</span> 
+                    <span class="o">%</span> <span class="n">grid</span><span class="p">)</span>            
+            <span class="n">gcolor</span> <span class="o">=</span> <span class="n">to_normrgb</span><span class="p">(</span><span class="n">gcolor</span><span class="p">)</span>
+                                  
+        <span class="c">#Draw grid over or under?            </span>
+        <span class="k">if</span> <span class="n">gunder</span><span class="p">:</span>
+            <span class="n">bg</span><span class="p">[</span><span class="n">gattr</span><span class="p">]</span> <span class="o">=</span> <span class="n">gcolor</span>
+            <span class="n">image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_draw_particles</span><span class="p">(</span><span class="n">bg</span><span class="p">,</span> <span class="n">force_binary</span><span class="o">=</span><span class="n">PBINARY</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_draw_particles</span><span class="p">(</span><span class="n">bg</span><span class="p">,</span> <span class="n">force_binary</span><span class="o">=</span><span class="n">PBINARY</span><span class="p">)</span>
+            <span class="n">image</span><span class="p">[</span><span class="n">gattr</span><span class="p">]</span> <span class="o">=</span> <span class="n">gcolor</span>
+                        
+        <span class="c"># GRAY CONVERT</span>
+        <span class="k">if</span> <span class="s">&#39;cmap&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">image</span> <span class="o">=</span> <span class="n">rgb2uint</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>           
+            
+        <span class="c"># Matplotlib</span>
+        <span class="k">if</span> <span class="n">axes</span><span class="p">:</span>
+            <span class="n">axes</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>     
+            <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">axes</span>        
+
+        <span class="k">if</span> <span class="n">title</span><span class="p">:</span>
+            <span class="n">axes</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+            
+        <span class="c"># Save image array (with grid)</span>
+        <span class="k">if</span> <span class="n">save</span><span class="p">:</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">_parse_path</span><span class="p">(</span><span class="n">save</span><span class="p">)</span>
+            <span class="n">skimage</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">imsave</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">image</span><span class="p">)</span>
+                        
+        <span class="k">return</span> <span class="n">axes</span> 
+</div>
+    <span class="k">def</span> <span class="nf">_draw_particles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="n">force_binary</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Draws particles over any image (ie background, background+grid.</span>
+<span class="sd">        force_binary is a hack to allow for drawing binary particles, useful</span>
+<span class="sd">        for canvas.show(cmap=pbinary)&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_particles</span><span class="p">:</span>   
+            <span class="n">rr_cc</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">rr_cc</span>
+
+            <span class="c"># Lot of crap!  Need it this way or grid color will be inverted too</span>
+            <span class="k">if</span> <span class="n">force_binary</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">force_binary</span> <span class="o">==</span> <span class="s">&#39;pbinary_r&#39;</span><span class="p">:</span>
+                    <span class="n">color</span> <span class="o">=</span> <span class="bp">False</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">color</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">color</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">color</span>
+                
+            <span class="n">rr_cc</span> <span class="o">=</span> <span class="n">coords_in_image</span><span class="p">(</span><span class="n">rr_cc</span><span class="p">,</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="n">image</span><span class="p">[</span><span class="n">rr_cc</span><span class="p">]</span> <span class="o">=</span> <span class="n">color</span>
+        <span class="k">return</span> <span class="n">image</span> 
+
+
+    <span class="k">def</span> <span class="nf">_get_image</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates image array of particles.  Tried fitting to a property or</span>
+<span class="sd">        Traits events interface to control the caching, but manually choosing</span>
+<span class="sd">        cache points proved to be easier.&quot;&quot;&quot;</span>
+
+        <span class="c"># self.background is always a new array; otherwise would use np.copy</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_draw_particles</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">background</span><span class="p">)</span>
+        
+
+    <span class="c"># Image Attributes Promoted</span>
+    <span class="c"># ------------------</span>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Canvas.shape"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas.shape">[docs]</a>    <span class="k">def</span> <span class="nf">shape</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Avoid recomputing image&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ry</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+</div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Canvas.ndim"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas.ndim">[docs]</a>    <span class="k">def</span> <span class="nf">ndim</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Avoid recomputing image for this purpose &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_background</span><span class="p">)</span>
+</div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Canvas.dtype"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas.dtype">[docs]</a>    <span class="k">def</span> <span class="nf">dtype</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># Same dtype as image</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_background</span><span class="o">.</span><span class="n">dtype</span>
+</div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Canvas.grayimage"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas.grayimage">[docs]</a>    <span class="k">def</span> <span class="nf">grayimage</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Collapse multi-channel, scale to 255 (via ubyte) &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">rgb2uint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">)</span>
+</div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Canvas.binaryimage"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas.binaryimage">[docs]</a>    <span class="k">def</span> <span class="nf">binaryimage</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_threshfcn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grayimage</span><span class="p">)</span>
+        </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Canvas.graybackground"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas.graybackground">[docs]</a>    <span class="k">def</span> <span class="nf">graybackground</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">rgb2uint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">background</span><span class="p">)</span>
+</div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Canvas.binarybackground"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas.binarybackground">[docs]</a>    <span class="k">def</span> <span class="nf">binarybackground</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_threshfcn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graybackground</span><span class="p">)</span>
+</div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Canvas.color_background"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas.color_background">[docs]</a>    <span class="k">def</span> <span class="nf">color_background</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Generate a colored background at current resolution &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">bgu</span><span class="o">.</span><span class="n">from_color_res</span><span class="p">(</span><span class="n">BGCOLOR</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ry</span><span class="p">)</span>         
+
+    <span class="c"># Promote most common grid attributes    </span></div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Canvas.gcenters"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas.gcenters">[docs]</a>    <span class="k">def</span> <span class="nf">gcenters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">centers</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Canvas.gcorners"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas.gcorners">[docs]</a>    <span class="k">def</span> <span class="nf">gcorners</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">corners</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Canvas.ghlines"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas.ghlines">[docs]</a>    <span class="k">def</span> <span class="nf">ghlines</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">hlines</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Canvas.gvlines"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas.gvlines">[docs]</a>    <span class="k">def</span> <span class="nf">gvlines</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">vlines</span>      
+    </div>
+<div class="viewcode-block" id="Canvas.gpairs"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas.gpairs">[docs]</a>    <span class="k">def</span> <span class="nf">gpairs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">pairs</span><span class="p">(</span><span class="n">attr</span><span class="p">)</span>
+    
+    <span class="c">#GRID LISTENER</span></div>
+    <span class="k">def</span> <span class="nf">__resolution_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>        
+        <span class="c"># BACKWARDS BECAUSE GRID IS RELATIVE INVERSE</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">xend</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ry</span> 
+            <span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">yend</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rx</span> 
+
+    
+    <span class="c"># Image Resolution</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">rez</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Resoloution; since x,y is wonky on image, rx really is y dim&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolution</span>
+
+    <span class="nd">@rez.setter</span>
+<div class="viewcode-block" id="Canvas.rez"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas.rez">[docs]</a>    <span class="k">def</span> <span class="nf">rez</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rez</span><span class="p">):</span>
+        <span class="n">rx</span><span class="p">,</span> <span class="n">ry</span> <span class="o">=</span> <span class="n">rint</span><span class="p">(</span><span class="n">rez</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">rint</span><span class="p">(</span><span class="n">rez</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_resolution</span> <span class="o">=</span> <span class="n">rx</span><span class="p">,</span> <span class="n">ry</span>
+        
+</div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">rx</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">rez</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="nd">@rx.setter</span>
+<div class="viewcode-block" id="Canvas.rx"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas.rx">[docs]</a>    <span class="k">def</span> <span class="nf">rx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rx</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_resolution</span> <span class="o">=</span> <span class="p">(</span> <span class="nb">int</span><span class="p">(</span><span class="n">rx</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolution</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">)</span>
+</div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ry</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">rez</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>    
+
+    <span class="nd">@ry.setter</span>
+<div class="viewcode-block" id="Canvas.ry"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas.ry">[docs]</a>    <span class="k">def</span> <span class="nf">ry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ry</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_resolution</span> <span class="o">=</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resolution</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">int</span><span class="p">(</span><span class="n">ry</span><span class="p">)</span> <span class="p">)</span>    
+</div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Canvas.pbinary"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas.pbinary">[docs]</a>    <span class="k">def</span> <span class="nf">pbinary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns boolean mask of all particles IN the image, with </span>
+<span class="sd">            background removed.&quot;&quot;&quot;</span>      
+        <span class="c"># Faster to get all coords in image at once since going to paint white</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">rez</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">particles</span><span class="p">:</span>
+            <span class="n">rr_cc</span> <span class="o">=</span> <span class="n">coords_in_image</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_particles</span><span class="o">.</span><span class="n">rr_cc_all</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rez</span><span class="p">)</span>
+            <span class="n">out</span><span class="p">[</span><span class="n">rr_cc</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">return</span> <span class="n">out</span>  
+
+</div>
+    <span class="k">def</span> <span class="nf">_whereis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">choice</span><span class="o">=</span><span class="s">&#39;in&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Wraps utils.where_is_particles for all three possibilities &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_particles</span> 
+                <span class="k">if</span> <span class="n">where_is_particle</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">rr_cc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rez</span><span class="p">)</span> <span class="o">==</span> <span class="n">choice</span><span class="p">]</span>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Canvas.pin"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas.pin">[docs]</a>    <span class="k">def</span> <span class="nf">pin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns all particles appearing FULLY in the image&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_particles</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_whereis</span><span class="p">(</span><span class="s">&#39;in&#39;</span><span class="p">)]</span>
+</div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Canvas.pedge"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas.pedge">[docs]</a>    <span class="k">def</span> <span class="nf">pedge</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns all particles appearing PARTIALLY in the image&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_particles</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_whereis</span><span class="p">(</span><span class="s">&#39;edge&#39;</span><span class="p">)]</span>
+</div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Canvas.pout"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas.pout">[docs]</a>    <span class="k">def</span> <span class="nf">pout</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns all particles appearing FULLY outside the image&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_particles</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_whereis</span><span class="p">(</span><span class="s">&#39;out&#39;</span><span class="p">)]</span>    
+
+</div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Canvas.pixcount"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas.pixcount">[docs]</a>    <span class="k">def</span> <span class="nf">pixcount</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Counts # pixels in image &quot;&quot;&quot;</span>
+        <span class="n">l</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rez</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">l</span> <span class="o">*</span> <span class="n">w</span><span class="p">)</span>
+</div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Canvas.pixarea"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas.pixarea">[docs]</a>    <span class="k">def</span> <span class="nf">pixarea</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; What&#39;s the best way to get this? &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pbinary</span><span class="p">))</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">pixcount</span>
+</div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Canvas.pixperim"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas.pixperim">[docs]</a>    <span class="k">def</span> <span class="nf">pixperim</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Wraps measure.perimeter to estimate total perimeter of </span>
+<span class="sd">            particles in binary image.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">skimage</span><span class="o">.</span><span class="n">measure</span><span class="o">.</span><span class="n">perimeter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pbinary</span><span class="p">,</span> <span class="n">neighbourhood</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>     
+
+    <span class="c"># Trait Defaults / Trait Properties</span>
+    <span class="c"># ---------------------------------</span></div>
+    <span class="k">def</span> <span class="nf">_get_particles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return a NEW INSTANCE of particles manager (ie new particles instead</span>
+<span class="sd">        of in-memory references)&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">ParticleManager</span><span class="p">(</span><span class="n">plist</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_particles</span><span class="o">.</span><span class="n">plist</span><span class="p">,</span> 
+                               <span class="n">fastnames</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_particles</span><span class="o">.</span><span class="n">fastnames</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_particles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">particles</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Make a copy of the particles to avoid passing by reference. </span>
+<span class="sd">        Note this is implictly controlled by _COPYPARTICLES in config.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_particles</span> <span class="o">=</span> <span class="n">ParticleManager</span><span class="p">(</span><span class="n">particles</span><span class="o">.</span><span class="n">plist</span><span class="p">,</span> <span class="n">particles</span><span class="o">.</span><span class="n">fastnames</span><span class="p">)</span>    
+
+    <span class="k">def</span> <span class="nf">_set_image</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">CanvasError</span><span class="p">(</span><span class="s">&#39;Image cannot be set; please make changes to particles&#39;</span>
+                          <span class="s">&#39; and/or background attributes.&#39;</span><span class="p">)</span>
+
+    <span class="c"># BACKGROUND RELATED</span>
+    <span class="c"># ------------------</span>
+
+<span class="c">#    @inplace</span>
+<div class="viewcode-block" id="Canvas.set_bg"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas.set_bg">[docs]</a>    <span class="k">def</span> <span class="nf">set_bg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bg</span><span class="p">,</span> <span class="n">keepres</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Public background setting interface. &quot;&quot;&quot;</span>
+        <span class="c">#print &#39;IN SET BG&#39;, bg, keepres</span>
+
+        <span class="c">#oldres = self.rez                </span>
+        <span class="c">#self._update_bg(bg)    </span>
+
+        <span class="c">#if keepres:</span>
+            <span class="c">#if keepres == True:</span>
+                <span class="c">#self.rez = oldres</span>
+            <span class="c">#else:</span>
+                <span class="c">#self.rez = keepres</span>
+
+        <span class="c">#else:</span>
+            <span class="c">#self.rez = self._background.shape[0:2]   	</span>
+
+        <span class="k">if</span> <span class="n">inplace</span><span class="p">:</span>
+            <span class="n">cout</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cout</span> <span class="o">=</span> <span class="n">Canvas</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>  
+
+        <span class="n">oldres</span> <span class="o">=</span> <span class="n">cout</span><span class="o">.</span><span class="n">rez</span>                
+        <span class="n">cout</span><span class="o">.</span><span class="n">_update_bg</span><span class="p">(</span><span class="n">bg</span><span class="p">)</span>    
+
+        <span class="k">if</span> <span class="n">keepres</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">keepres</span> <span class="o">==</span> <span class="bp">True</span><span class="p">:</span>
+                <span class="n">cout</span><span class="o">.</span><span class="n">rez</span> <span class="o">=</span> <span class="n">oldres</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cout</span><span class="o">.</span><span class="n">rez</span> <span class="o">=</span> <span class="n">keepres</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cout</span><span class="o">.</span><span class="n">rez</span> <span class="o">=</span> <span class="n">cout</span><span class="o">.</span><span class="n">_background</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>   
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">inplace</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">cout</span>
+
+</div>
+<div class="viewcode-block" id="Canvas.zoom_bg"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas.zoom_bg">[docs]</a>    <span class="k">def</span> <span class="nf">zoom_bg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">coords</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Zoom in on current image and set the zoomed background as the </span>
+<span class="sd">        background of a new canvas.  Note that because indicies will always </span>
+<span class="sd">        resume at 0, particle positions will not maintain their relative </span>
+<span class="sd">        positions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># avoid set_bg() because uses size of coords, not coords itself</span>
+        <span class="n">inplace</span> <span class="o">=</span> <span class="n">kwds</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;inplace&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="n">autogrid</span> <span class="o">=</span> <span class="n">kwds</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;autogrid&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">inplace</span><span class="p">:</span>
+            <span class="n">cout</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cout</span> <span class="o">=</span> <span class="n">Canvas</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>          
+
+        <span class="n">cout</span><span class="o">.</span><span class="n">_background</span> <span class="o">=</span> <span class="n">crop</span><span class="p">(</span><span class="n">cout</span><span class="o">.</span><span class="n">_background</span><span class="p">,</span> <span class="n">coords</span><span class="p">)</span>
+        <span class="n">cout</span><span class="o">.</span><span class="n">rez</span> <span class="o">=</span> <span class="n">cout</span><span class="o">.</span><span class="n">_background</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>        
+        <span class="k">if</span> <span class="n">autogrid</span><span class="p">:</span>
+            <span class="n">xmag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rx</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">cout</span><span class="o">.</span><span class="n">rx</span><span class="p">)</span> 
+            <span class="n">ymag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ry</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">cout</span><span class="o">.</span><span class="n">ry</span><span class="p">)</span> 
+            
+            <span class="n">cout</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">xdiv</span> <span class="o">=</span> <span class="n">rint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">xdiv</span> <span class="o">/</span> <span class="n">xmag</span><span class="p">)</span>
+            <span class="n">cout</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">ydiv</span> <span class="o">=</span> <span class="n">rint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">ydiv</span> <span class="o">/</span> <span class="n">ymag</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">inplace</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">cout</span>        
+
+</div>
+    <span class="k">def</span> <span class="nf">_get_background</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Crop or extend self._background based on self.rx, ry.  Always </span>
+<span class="sd">        returns a new object to avoid accidental refernce passing.&quot;&quot;&quot;</span>
+        <span class="n">bgx</span><span class="p">,</span> <span class="n">bgy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_background</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">rx</span><span class="p">,</span> <span class="n">ry</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rez</span>
+        <span class="k">if</span> <span class="n">bgx</span> <span class="o">==</span> <span class="n">rx</span> <span class="ow">and</span> <span class="n">bgy</span> <span class="o">==</span> <span class="n">ry</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_background</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">_smaller</span><span class="p">(</span><span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">idx1</span> <span class="o">&lt;</span> <span class="n">idx2</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">idx1</span>
+            <span class="k">return</span> <span class="n">idx2</span>
+
+        <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span> <span class="o">=</span> <span class="n">_smaller</span><span class="p">(</span><span class="n">rx</span><span class="p">,</span> <span class="n">bgx</span><span class="p">),</span> <span class="n">_smaller</span><span class="p">(</span><span class="n">ry</span><span class="p">,</span> <span class="n">bgy</span><span class="p">)</span>
+
+        <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span> <span class="p">(</span><span class="n">rx</span><span class="p">,</span> <span class="n">ry</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="p">)</span>
+        <span class="n">out</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">BGCOLOR</span> <span class="c">#.fill only works with scalar	</span>
+        <span class="n">out</span><span class="p">[:</span><span class="n">xs</span><span class="p">,</span> <span class="p">:</span><span class="n">ys</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_background</span><span class="p">[:</span><span class="n">xs</span><span class="p">,</span> <span class="p">:</span><span class="n">ys</span><span class="p">]</span> <span class="c">#no copy needed	</span>
+        <span class="k">return</span> <span class="n">out</span>
+
+    <span class="k">def</span> <span class="nf">_set_background</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Set background and use new resolution if there is one &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bg</span><span class="p">(</span><span class="n">bg</span><span class="p">,</span> <span class="n">keepres</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="c"># REDO THIS WITH COLOR NORM AND STUFF!  Also, dtype warning?</span>
+    <span class="k">def</span> <span class="nf">_update_bg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">background</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Parses several valid inputs including: None, Path, Color (of any </span>
+<span class="sd">        valid to_normRGB() type, ndarray, (Color, Resolution).&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">background</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_background</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">color_background</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_bgstyle</span> <span class="o">=</span> <span class="s">&#39;default&#39;</span>            
+            
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">background</span><span class="p">,</span> <span class="n">Grid</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_background</span> <span class="o">=</span> <span class="n">bgu</span><span class="o">.</span><span class="n">from_grid</span><span class="p">(</span><span class="n">background</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_bgstyle</span> <span class="o">=</span> <span class="s">&#39;grid&#39;</span>
+
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">background</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_background</span> <span class="o">=</span> <span class="n">background</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_bgstyle</span> <span class="o">=</span> <span class="s">&#39;ndarray&#39;</span>
+
+        <span class="c"># colorstring or hex</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">background</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_background</span> <span class="o">=</span> <span class="n">bgu</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="n">background</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ry</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_bgstyle</span> <span class="o">=</span> <span class="s">&#39;file/colorstring&#39;</span>            
+
+        <span class="c"># If not array, color is assume as valid to_norm_rgb(color) arg</span>
+        <span class="c"># It will raise its own error if failure occurs</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_background</span> <span class="o">=</span> <span class="n">bgu</span><span class="o">.</span><span class="n">from_color_res</span><span class="p">(</span><span class="n">background</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ry</span><span class="p">)</span>            
+            <span class="bp">self</span><span class="o">.</span><span class="n">_bgstyle</span> <span class="o">=</span> <span class="s">&#39;color&#39;</span>
+
+        <span class="c"># Float-color convert array       </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_background</span> <span class="o">=</span> <span class="n">any2rgb</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_background</span><span class="p">,</span> <span class="s">&#39;background&#39;</span><span class="p">)</span>
+
+        <span class="c"># IMAGE IS CACHED AT END OF _set_bg()</span>
+
+    <span class="c"># Delegate dictionary interface to ParticleManager</span>
+    <span class="c"># -----------</span>
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keyslice</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Employs particle manager interface; however, returns single entry</span>
+<span class="sd">            as a list to allow slicing directly into get_item[]&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_particles</span><span class="o">.</span><span class="n">__getitem__</span><span class="p">(</span><span class="n">keyslice</span><span class="p">)</span>
+
+        <span class="c">#IF WANT TO RETURN CANVAS ALWAYS SEE BELOW</span>
+        <span class="c">#pout = self._particles.__getitem__(keyslice)</span>
+        <span class="c">#return Canvas(background=self.background, particles=pout, rez=self.rez)</span>
+
+    <span class="k">def</span> <span class="nf">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keyslice</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_particles</span><span class="o">.</span><span class="n">__delitem__</span><span class="p">(</span><span class="n">keyslice</span><span class="p">)</span>    
+
+    <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">particle</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_particles</span><span class="o">.</span><span class="n">__setitem__</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">particles</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Canvas.create"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas.create">[docs]</a>    <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">print</span> <span class="s">&#39;hi&#39;</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_particles</span><span class="p">,</span> <span class="n">attr</span><span class="p">)(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</div>
+    <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Look for missing attributes on particle manager.</span>
+<span class="sd">        </span>
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        *args are NOT passed to called methods; kwargs are.  If absolutely</span>
+<span class="sd">        need ARGS, see how I handled add.  Could not get wrapper</span>
+<span class="sd">        to work correctly because it generally wanted to return a function</span>
+<span class="sd">        but sometimes this returns objects, lists etc... not just functions</span>
+<span class="sd">        so doing for example c.plist would try to give c.plist() and so on.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_particles</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>       
+        <span class="k">except</span> <span class="n">ParticleError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CanvasAttributeError</span><span class="p">(</span><span class="s">&#39;&quot;</span><span class="si">%s</span><span class="s">&quot; could not be found on </span><span class="si">%s</span><span class="s">, &#39;</span>
+                <span class="s">&#39;underlying manager, or on one-or multiple of the &#39;</span>
+                <span class="s">&#39;Particles&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span> <span class="p">)</span>             
+
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Iteration is blocked &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="n">CanvasError</span><span class="p">(</span><span class="s">&quot;Iteration on canvas is ambiguous.  Iterate over &quot;</span>
+                          <span class="s">&quot;canvas.image or canvas.particles&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">_bgstyle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bgstyle</span> <span class="c">#REPLACE</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="s">&#39;(</span><span class="si">%s</span><span class="s"> X </span><span class="si">%s</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ry</span> <span class="p">)</span> 
+        <span class="n">address</span> <span class="o">=</span> <span class="n">mem_address</span><span class="p">(</span><span class="nb">super</span><span class="p">(</span><span class="n">Canvas</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__repr__</span><span class="p">())</span>
+        
+        <span class="n">g</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">grid</span>
+        <span class="n">xd</span><span class="p">,</span> <span class="n">yd</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">xdiv</span><span class="p">,</span> <span class="n">g</span><span class="o">.</span><span class="n">ydiv</span> 
+        <span class="n">gridstring</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">xygrid[</span><span class="si">%s</span><span class="s">] --&gt;  (</span><span class="si">%s</span><span class="s">p X </span><span class="si">%s</span><span class="s">p) : (</span><span class="si">%.1f</span><span class="s"> X </span><span class="si">%.1f</span><span class="s">) [pix/tile]&quot;</span> \
+            <span class="o">%</span> <span class="p">(</span><span class="n">_PAD</span><span class="p">,</span> <span class="n">xd</span><span class="o">*</span><span class="n">yd</span><span class="p">,</span> <span class="n">xd</span><span class="p">,</span> <span class="n">yd</span><span class="p">,</span> <span class="n">g</span><span class="o">.</span><span class="n">xspacing</span><span class="p">,</span> <span class="n">g</span><span class="o">.</span><span class="n">yspacing</span><span class="p">)</span>
+        
+                                                         <span class="c"># For sublcassing</span>
+        <span class="n">outstring</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s"> at </span><span class="si">%s</span><span class="s">:</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="n">address</span><span class="p">)</span>
+
+        <span class="n">outstring</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">background  --&gt;  </span><span class="si">%s</span><span class="s"> : </span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">_PAD</span><span class="p">,</span> <span class="n">res</span><span class="p">,</span> <span class="n">_bgstyle</span><span class="p">)</span> 
+
+        <span class="n">outstring</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">particles   --&gt;  </span><span class="si">%s</span><span class="s"> particles : </span><span class="si">%s</span><span class="s"> types</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">_PAD</span><span class="p">,</span> \
+            <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_particles</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_particles</span><span class="o">.</span><span class="n">ptype_count</span><span class="p">))</span>
+        <span class="n">outstring</span> <span class="o">+=</span> <span class="n">gridstring</span>
+        
+        <span class="k">return</span> <span class="n">outstring</span>
+
+    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_particles</span><span class="o">.</span><span class="n">__len__</span><span class="p">()</span>
+
+    <span class="c"># Arithmetic Operation</span>
+    <span class="c"># --------------------</span>
+
+    <span class="k">def</span> <span class="nf">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">c2</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">concat_canvas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">c2</span><span class="p">,</span> <span class="n">bg_resolve</span><span class="o">=</span><span class="s">&#39;c2&#39;</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">c2</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">CanvasError</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s"> does not support subtraction&quot;</span> <span class="o">%</span> 
+              <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+    
+    
+    <span class="c"># Class methods</span>
+    <span class="c"># ------------</span>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Canvas.copy"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns a copied canvas object. &quot;&quot;&quot;</span>
+        <span class="n">newgrid</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">grid</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cls</span><span class="p">(</span><span class="n">background</span><span class="o">=</span><span class="n">obj</span><span class="o">.</span><span class="n">background</span><span class="p">,</span> <span class="n">particles</span><span class="o">=</span><span class="n">obj</span><span class="o">.</span><span class="n">_particles</span><span class="p">,</span> 
+                        <span class="n">rez</span><span class="o">=</span><span class="n">obj</span><span class="o">.</span><span class="n">rez</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="n">newgrid</span><span class="p">,</span> <span class="n">_threshfcn</span><span class="o">=</span><span class="n">obj</span><span class="o">.</span><span class="n">_threshfcn</span><span class="p">)</span>        
+
+    
+    <span class="c"># Extend to polygons/other partciles in future</span>
+    <span class="c"># May want to refactor into particle manager method actually</span></div>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Canvas.random_circles"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.Canvas.random_circles">[docs]</a>    <span class="k">def</span> <span class="nf">random_circles</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">rmin</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">rmax</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">background</span><span class="o">=</span><span class="n">BGCOLOR</span><span class="p">,</span> <span class="n">pcolor</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return a canvas populated with n randomly positioned circles.  </span>
+<span class="sd">        Radius ranges vary randomly between 5 and 50.&quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">random</span> <span class="kn">as</span> <span class="nn">r</span>
+                       
+        <span class="n">particles</span> <span class="o">=</span> <span class="n">ParticleManager</span><span class="p">()</span>            
+        <span class="c"># Randomize particle centers within the image default dimensions</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+            <span class="n">cx</span><span class="p">,</span> <span class="n">cy</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">BGRES</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">r</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">BGRES</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">radius</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">rmin</span><span class="p">,</span><span class="n">rmax</span><span class="p">)</span>
+            <span class="n">particles</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;circle&#39;</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="p">(</span><span class="n">cx</span><span class="p">,</span><span class="n">cy</span><span class="p">),</span> <span class="n">radius</span><span class="o">=</span><span class="n">radius</span><span class="p">,</span> 
+                          <span class="n">color</span><span class="o">=</span><span class="n">to_normrgb</span><span class="p">(</span><span class="n">pcolor</span><span class="p">))</span>
+        
+        <span class="c"># Use default resolution and grid</span>
+        <span class="k">return</span> <span class="n">cls</span><span class="p">(</span><span class="n">background</span><span class="o">=</span><span class="n">background</span><span class="p">,</span> <span class="n">particles</span><span class="o">=</span><span class="n">particles</span><span class="p">)</span>
+</div></div>
+<div class="viewcode-block" id="ScaledCanvas"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.canvas.ScaledCanvas">[docs]</a><span class="k">class</span> <span class="nc">ScaledCanvas</span><span class="p">(</span><span class="n">Canvas</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Canvas with a &quot;scale&quot; that maps system of coordinates from pixels</span>
+<span class="sd">        to pre-set units.&quot;&quot;&quot;</span>
+    <span class="bp">NotImplemented</span>
+    
+    </div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">c</span><span class="o">=</span><span class="n">Canvas</span><span class="p">()</span>
+    <span class="c">#c.add(&#39;tetramer&#39;, 3, center=(250, 250), color=(1,0,0))</span>
+    <span class="c">#c.add(&#39;trimer&#39;, r1=30, center=(100,100), color=(.2,.2,.2))</span>
+    <span class="n">c</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s">&#39;tetramer&#39;</span><span class="p">,</span> <span class="n">radius_1</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="mi">400</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>    
+    <span class="k">print</span> <span class="n">c</span><span class="o">.</span><span class="n">names</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">pyparty 0.2 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Adam Hughes.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

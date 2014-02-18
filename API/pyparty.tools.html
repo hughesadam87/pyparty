@@ -1,0 +1,1069 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>tools Package &mdash; pyparty 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="pyparty 0.2 documentation" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">pyparty 0.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">tools Package</a><ul>
+<li><a class="reference internal" href="#id1"><tt class="docutils literal"><span class="pre">tools</span></tt> Package</a></li>
+<li><a class="reference internal" href="#module-pyparty.tools.arraytools"><tt class="docutils literal"><span class="pre">arraytools</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-pyparty.tools.canvas"><tt class="docutils literal"><span class="pre">canvas</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-pyparty.tools.grids"><tt class="docutils literal"><span class="pre">grids</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-pyparty.tools.manager"><tt class="docutils literal"><span class="pre">manager</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-pyparty.tools.thresholding"><tt class="docutils literal"><span class="pre">thresholding</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/API/pyparty.tools.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="tools-package">
+<h1>tools Package<a class="headerlink" href="#tools-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2><tt class="xref py py-mod docutils literal"><span class="pre">tools</span></tt> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-pyparty.tools"></span></div>
+<div class="section" id="module-pyparty.tools.arraytools">
+<span id="arraytools-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">arraytools</span></tt> Module<a class="headerlink" href="#module-pyparty.tools.arraytools" title="Permalink to this headline">¶</a></h2>
+<dl class="exception">
+<dt id="pyparty.tools.arraytools.ArrayUtilsError">
+<em class="property">exception </em><tt class="descclassname">pyparty.tools.arraytools.</tt><tt class="descname">ArrayUtilsError</tt><a class="reference internal" href="../_modules/pyparty/tools/arraytools.html#ArrayUtilsError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.arraytools.ArrayUtilsError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="pyparty.html#pyparty.utils.UtilsError" title="pyparty.utils.UtilsError"><tt class="xref py py-class docutils literal"><span class="pre">pyparty.utils.UtilsError</span></tt></a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyparty.tools.arraytools.add_xy">
+<tt class="descclassname">pyparty.tools.arraytools.</tt><tt class="descname">add_xy</tt><big>(</big><em>ndarray</em>, <em>xy_pair</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/arraytools.html#add_xy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.arraytools.add_xy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add (x,y) to ndarray.  Array can be of dimentsion N,2 or 2,N</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyparty.tools.arraytools.array2sphere">
+<tt class="descclassname">pyparty.tools.arraytools.</tt><tt class="descname">array2sphere</tt><big>(</big><em>xyz_array</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/arraytools.html#array2sphere"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.arraytools.array2sphere" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cartesion to spherical coords.  xyz_array must be (N,2) or (N,3)!!!
+EG  [( x, y, z          or [ (x1, y1), (x2, y2)]
+x2, y2, z2)]</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyparty.tools.arraytools.astype_rint">
+<tt class="descclassname">pyparty.tools.arraytools.</tt><tt class="descname">astype_rint</tt><big>(</big><em>array</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/arraytools.html#astype_rint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.arraytools.astype_rint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts ndarray to int, but rounds integers.  Sometimes don&#8217;t want 
+accurate rounding, such as with grids</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyparty.tools.arraytools.boolmask">
+<tt class="descclassname">pyparty.tools.arraytools.</tt><tt class="descname">boolmask</tt><big>(</big><em>ndarray</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/arraytools.html#boolmask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.arraytools.boolmask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given an array, converted to binary and indiciesa evaluating to true
+are used.  Most useful for outlines and other empty arrays.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyparty.tools.arraytools.column_array">
+<tt class="descclassname">pyparty.tools.arraytools.</tt><tt class="descname">column_array</tt><big>(</big><em>len2iter</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/arraytools.html#column_array"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.arraytools.column_array" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes an iterable of 2 arrays [(x, x2, x3) (y, y2, y3)] and returns
+array N x 2 (ie 2 columns)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyparty.tools.arraytools.findcenter">
+<tt class="descclassname">pyparty.tools.arraytools.</tt><tt class="descname">findcenter</tt><big>(</big><em>ndarray</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/arraytools.html#findcenter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.arraytools.findcenter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Requires (2,N) input shape.  If (N,2), result will be len(N) instead of
+Len(2)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyparty.tools.arraytools.meancenter">
+<tt class="descclassname">pyparty.tools.arraytools.</tt><tt class="descname">meancenter</tt><big>(</big><em>ndarray</em>, <em>center=None</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/arraytools.html#meancenter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.arraytools.meancenter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Subtract center (x,y) from N,2 or 2,N array. Center can be passed
+manually.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyparty.tools.arraytools.nearest">
+<tt class="descclassname">pyparty.tools.arraytools.</tt><tt class="descname">nearest</tt><big>(</big><em>array</em>, <em>value</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/arraytools.html#nearest"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.arraytools.nearest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find nearest value in an array, return index and array value</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyparty.tools.arraytools.rmeanint">
+<tt class="descclassname">pyparty.tools.arraytools.</tt><tt class="descname">rmeanint</tt><big>(</big><em>x</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/arraytools.html#rmeanint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.arraytools.rmeanint" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyparty.tools.arraytools.rotate">
+<tt class="descclassname">pyparty.tools.arraytools.</tt><tt class="descname">rotate</tt><big>(</big><em>ndarray</em>, <em>theta</em>, <em>center=None</em>, <em>**kwds</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/arraytools.html#rotate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.arraytools.rotate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Meancenter and rotate.  Mean centers if center not passed</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyparty.tools.arraytools.rotate_vector">
+<tt class="descclassname">pyparty.tools.arraytools.</tt><tt class="descname">rotate_vector</tt><big>(</big><em>ndarray</em>, <em>theta</em>, <em>style='degrees'</em>, <em>rint='up'</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/arraytools.html#rotate_vector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.arraytools.rotate_vector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rotate an array ocounter-clockwise through theta.  rint rounds output 
+to integer; up rounds normally, down does int rounding (ie rounds down).  
+ARRAY MUST BE MEAN-CENTERED if rotating in place.</p>
+<p>ndarray may be xy pairs [(x1,y1),(x2,y2)] or N,2 matrix.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyparty.tools.arraytools.to_spherical">
+<tt class="descclassname">pyparty.tools.arraytools.</tt><tt class="descname">to_spherical</tt><big>(</big><em>r</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/arraytools.html#to_spherical"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.arraytools.to_spherical" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert xyz vector a single row of three elements to spherical</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyparty.tools.arraytools.translate">
+<tt class="descclassname">pyparty.tools.arraytools.</tt><tt class="descname">translate</tt><big>(</big><em>ndarray</em>, <em>r</em>, <em>theta=0.0</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/arraytools.html#translate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.arraytools.translate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Translate along a vector with magnitude r and angle theta (IN DEGREES). 
+Merely gets x,y coords of r, theta vector adds to the array element wise.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyparty.tools.arraytools.unzip_array">
+<tt class="descclassname">pyparty.tools.arraytools.</tt><tt class="descname">unzip_array</tt><big>(</big><em>pairs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/arraytools.html#unzip_array"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.arraytools.unzip_array" title="Permalink to this definition">¶</a></dt>
+<dd><p>Inverse of np.array(zip(x,y)). Rerturn unzipped array of pairs:
+(1,2), (25,5) &#8211;&gt; array(1,25), array(25,25).</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pyparty.tools.canvas">
+<span id="canvas-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">canvas</span></tt> Module<a class="headerlink" href="#module-pyparty.tools.canvas" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pyparty.tools.canvas.Canvas">
+<em class="property">class </em><tt class="descclassname">pyparty.tools.canvas.</tt><tt class="descname">Canvas</tt><big>(</big><em>particles=None</em>, <em>background=None</em>, <em>rez=None</em>, <em>grid=None</em>, <em>_threshfcn=None</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">traits.has_traits.HasTraits</span></tt></p>
+<dl class="method">
+<dt id="pyparty.tools.canvas.Canvas.add">
+<tt class="descname">add</tt><big>(</big><em>particle</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas.add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas.add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Can&#8217;t rely on __getattr__ because want <a href="#id2"><span class="problematic" id="id3">*</span></a>args to pass; only
+kwargs pass correctly; and wrapper was more pain than worth.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.canvas.Canvas.binarybackground">
+<tt class="descname">binarybackground</tt><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas.binarybackground"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas.binarybackground" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.canvas.Canvas.binaryimage">
+<tt class="descname">binaryimage</tt><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas.binaryimage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas.binaryimage" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyparty.tools.canvas.Canvas.clear_canvas">
+<tt class="descname">clear_canvas</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas.clear_canvas"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas.clear_canvas" title="Permalink to this definition">¶</a></dt>
+<dd><p>Background image to default; removes ALL particles.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyparty.tools.canvas.Canvas.clear_particles">
+<tt class="descname">clear_particles</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas.clear_particles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas.clear_particles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clears all particles from image.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.canvas.Canvas.color_background">
+<tt class="descname">color_background</tt><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas.color_background"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas.color_background" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a colored background at current resolution</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyparty.tools.canvas.Canvas.copy">
+<em class="property">classmethod </em><tt class="descname">copy</tt><big>(</big><em>obj</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a copied canvas object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyparty.tools.canvas.Canvas.create">
+<tt class="descname">create</tt><big>(</big><em>attr</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas.create"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas.create" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.canvas.Canvas.dtype">
+<tt class="descname">dtype</tt><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas.dtype"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas.dtype" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyparty.tools.canvas.Canvas.from_labels">
+<tt class="descname">from_labels</tt><big>(</big><em>bgout=None</em>, <em>exclude=None</em>, <em>binary=True</em>, <em>pbinary=True</em>, <em>inplace=False</em>, <em>neighbors=4</em>, <em>**pmangerkwds</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas.from_labels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas.from_labels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get morphological labels from gray or binary image.</p>
+<dl class="docutils">
+<dt>exclude <span class="classifier-delimiter">:</span> <span class="classifier">0, 1, 255, &#8216;w&#8217;, &#8216;b&#8217;</span></dt>
+<dd>Exclude white, black or specified integer from labels.  For example,
+&#8216;b&#8217; will prevent black pixels from being labeled.</dd>
+<dt>bgout <span class="classifier-delimiter">:</span> <span class="classifier">Valid canvas array/color</span></dt>
+<dd>Background image of resulting canvas.  If exclude, then there will
+be unlabled regions.  bgout=&#8217;r&#8217; will overlay the labels onto a red
+background.  By default, self.background is used.</dd>
+<dt>binary <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd>Use binary image; else use grayimage.</dd>
+<dt>pbinary <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd>Use self.pbinary to generate thresholded image; else, use 
+self.threshfcn (implicit thresholding function) to binarize.
+Only valid if binary = True</dd>
+</dl>
+<p>Use binary=False with caution.  Many grayimages would lead to tends of
+thousands of labels due to minute color changes in each pixel.  Whitle
+skimage.label can handle this, pyparty will slow down severaly trying
+to make so many particles from labels.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.canvas.Canvas.gcenters">
+<tt class="descname">gcenters</tt><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas.gcenters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas.gcenters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.canvas.Canvas.gcorners">
+<tt class="descname">gcorners</tt><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas.gcorners"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas.gcorners" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.canvas.Canvas.ghlines">
+<tt class="descname">ghlines</tt><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas.ghlines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas.ghlines" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyparty.tools.canvas.Canvas.gpairs">
+<tt class="descname">gpairs</tt><big>(</big><em>attr</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas.gpairs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas.gpairs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.canvas.Canvas.graybackground">
+<tt class="descname">graybackground</tt><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas.graybackground"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas.graybackground" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.canvas.Canvas.grayimage">
+<tt class="descname">grayimage</tt><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas.grayimage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas.grayimage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collapse multi-channel, scale to 255 (via ubyte)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.canvas.Canvas.gvlines">
+<tt class="descname">gvlines</tt><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas.gvlines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas.gvlines" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.canvas.Canvas.ndim">
+<tt class="descname">ndim</tt><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas.ndim"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas.ndim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Avoid recomputing image for this purpose</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyparty.tools.canvas.Canvas.patchshow">
+<tt class="descname">patchshow</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas.patchshow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas.patchshow" title="Permalink to this definition">¶</a></dt>
+<dd><p>...
+args/kwargs include alpha, edgecolors, linestyles</p>
+<p>Notes:
+Matplotlib API is setup that args or kwargs can be entered.  Order is
+important for args, but the correspond to same kwargs.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.canvas.Canvas.pbinary">
+<tt class="descname">pbinary</tt><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas.pbinary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas.pbinary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns boolean mask of all particles IN the image, with 
+background removed.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.canvas.Canvas.pedge">
+<tt class="descname">pedge</tt><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas.pedge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas.pedge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns all particles appearing PARTIALLY in the image</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.canvas.Canvas.pin">
+<tt class="descname">pin</tt><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas.pin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas.pin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns all particles appearing FULLY in the image</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.canvas.Canvas.pixarea">
+<tt class="descname">pixarea</tt><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas.pixarea"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas.pixarea" title="Permalink to this definition">¶</a></dt>
+<dd><p>What&#8217;s the best way to get this?</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.canvas.Canvas.pixcount">
+<tt class="descname">pixcount</tt><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas.pixcount"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas.pixcount" title="Permalink to this definition">¶</a></dt>
+<dd><p>Counts # pixels in image</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyparty.tools.canvas.Canvas.pixelmap">
+<tt class="descname">pixelmap</tt><big>(</big><em>fcn</em>, <em>axis=0</em>, <em>*fcnargs</em>, <em>**fcnkwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas.pixelmap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas.pixelmap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Image mapper (np.apply_along_axis)</p>
+<p>fcn must be 1d!</p>
+<p>Calls numpy.apply_along_axis, which doesn&#8217;t acces
+keyword arguments.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.canvas.Canvas.pixperim">
+<tt class="descname">pixperim</tt><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas.pixperim"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas.pixperim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wraps measure.perimeter to estimate total perimeter of 
+particles in binary image.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyparty.tools.canvas.Canvas.pmap">
+<tt class="descname">pmap</tt><big>(</big><em>fcn</em>, <em>*fcnargs</em>, <em>**fcnkwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas.pmap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas.pmap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Maps a function to each particle in ParticleManger; optionally
+can be done in place</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.canvas.Canvas.pout">
+<tt class="descname">pout</tt><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas.pout"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas.pout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns all particles appearing FULLY outside the image</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyparty.tools.canvas.Canvas.random_circles">
+<em class="property">classmethod </em><tt class="descname">random_circles</tt><big>(</big><em>n=50</em>, <em>rmin=5</em>, <em>rmax=50</em>, <em>background=(1.0</em>, <em>1.0</em>, <em>1.0)</em>, <em>pcolor=None</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas.random_circles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas.random_circles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a canvas populated with n randomly positioned circles.  
+Radius ranges vary randomly between 5 and 50.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyparty.tools.canvas.Canvas.reset_background">
+<tt class="descname">reset_background</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas.reset_background"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas.reset_background" title="Permalink to this definition">¶</a></dt>
+<dd><p>Restore default background image; restores default RES, redraws
+particles over it.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyparty.tools.canvas.Canvas.reset_grid">
+<tt class="descname">reset_grid</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas.reset_grid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas.reset_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>New grid of default x/y spacing; rez is optional</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.canvas.Canvas.rez">
+<tt class="descname">rez</tt><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas.rez"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas.rez" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resoloution; since x,y is wonky on image, rx really is y dim</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.canvas.Canvas.rx">
+<tt class="descname">rx</tt><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas.rx"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas.rx" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.canvas.Canvas.ry">
+<tt class="descname">ry</tt><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas.ry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas.ry" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyparty.tools.canvas.Canvas.set_bg">
+<tt class="descname">set_bg</tt><big>(</big><em>bg</em>, <em>keepres=False</em>, <em>inplace=False</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas.set_bg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas.set_bg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Public background setting interface.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyparty.tools.canvas.Canvas.set_threshfcn">
+<tt class="descname">set_threshfcn</tt><big>(</big><em>fcn_or_string</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas.set_threshfcn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas.set_threshfcn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set a binarization function.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.canvas.Canvas.shape">
+<tt class="descname">shape</tt><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas.shape"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas.shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Avoid recomputing image</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyparty.tools.canvas.Canvas.show">
+<tt class="descname">show</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas.show" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper to imshow.  Converts to gray to allow color maps.</p>
+<p>Differs from patchshow in that the collective image (bg, grid, particles)
+is a series of masks, so they have to be drawn onto a single ndarray and 
+then plotted.  Sicne patchshow is writing patchs, it can plot the background
+separate from the grid and particles, which is slightly easier</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.canvas.Canvas.threshfcn">
+<tt class="descname">threshfcn</tt><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas.threshfcn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas.threshfcn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyparty.tools.canvas.Canvas.zoom_bg">
+<tt class="descname">zoom_bg</tt><big>(</big><em>*coords</em>, <em>**kwds</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#Canvas.zoom_bg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.Canvas.zoom_bg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Zoom in on current image and set the zoomed background as the 
+background of a new canvas.  Note that because indicies will always 
+resume at 0, particle positions will not maintain their relative 
+positions.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyparty.tools.canvas.CanvasAttributeError">
+<em class="property">exception </em><tt class="descclassname">pyparty.tools.canvas.</tt><tt class="descname">CanvasAttributeError</tt><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#CanvasAttributeError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.CanvasAttributeError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyparty.tools.canvas.CanvasError" title="pyparty.tools.canvas.CanvasError"><tt class="xref py py-class docutils literal"><span class="pre">pyparty.tools.canvas.CanvasError</span></tt></a></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyparty.tools.canvas.CanvasError">
+<em class="property">exception </em><tt class="descclassname">pyparty.tools.canvas.</tt><tt class="descname">CanvasError</tt><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#CanvasError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.CanvasError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyparty.tools.canvas.CanvasPlotError">
+<em class="property">exception </em><tt class="descclassname">pyparty.tools.canvas.</tt><tt class="descname">CanvasPlotError</tt><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#CanvasPlotError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.CanvasPlotError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyparty.tools.canvas.CanvasError" title="pyparty.tools.canvas.CanvasError"><tt class="xref py py-class docutils literal"><span class="pre">pyparty.tools.canvas.CanvasError</span></tt></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="pyparty.tools.canvas.ScaledCanvas">
+<em class="property">class </em><tt class="descclassname">pyparty.tools.canvas.</tt><tt class="descname">ScaledCanvas</tt><big>(</big><em>particles=None</em>, <em>background=None</em>, <em>rez=None</em>, <em>grid=None</em>, <em>_threshfcn=None</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#ScaledCanvas"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.ScaledCanvas" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyparty.tools.canvas.Canvas" title="pyparty.tools.canvas.Canvas"><tt class="xref py py-class docutils literal"><span class="pre">pyparty.tools.canvas.Canvas</span></tt></a></p>
+<p>Canvas with a &#8220;scale&#8221; that maps system of coordinates from pixels
+to pre-set units.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyparty.tools.canvas.concat_canvas">
+<tt class="descclassname">pyparty.tools.canvas.</tt><tt class="descname">concat_canvas</tt><big>(</big><em>c1</em>, <em>c2</em>, <em>bg_resolve='c2'</em>, <em>**particle_args</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#concat_canvas"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.concat_canvas" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds two canvas objects under various conditions</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyparty.tools.canvas.rint">
+<tt class="descclassname">pyparty.tools.canvas.</tt><tt class="descname">rint</tt><big>(</big><em>x</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/canvas.html#rint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.canvas.rint" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-pyparty.tools.grids">
+<span id="grids-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">grids</span></tt> Module<a class="headerlink" href="#module-pyparty.tools.grids" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pyparty.tools.grids.CartesianGrid">
+<em class="property">class </em><tt class="descclassname">pyparty.tools.grids.</tt><tt class="descname">CartesianGrid</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/grids.html#CartesianGrid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.CartesianGrid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyparty.tools.grids.TiledGrid" title="pyparty.tools.grids.TiledGrid"><tt class="xref py py-class docutils literal"><span class="pre">pyparty.tools.grids.TiledGrid</span></tt></a></p>
+<p>A tiled grid with a left-right fade mesh.  This results in a gradient
+that is constant; hence, it&#8217;s easy to make a cartesian grid.</p>
+<dl class="method">
+<dt id="pyparty.tools.grids.CartesianGrid.set_zfcn">
+<tt class="descname">set_zfcn</tt><big>(</big><em>fcn_or_str</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/grids.html#CartesianGrid.set_zfcn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.CartesianGrid.set_zfcn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyparty.tools.grids.Grid">
+<em class="property">class </em><tt class="descclassname">pyparty.tools.grids.</tt><tt class="descname">Grid</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/grids.html#Grid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.Grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">traits.has_traits.HasTraits</span></tt></p>
+<p>Wraps np.meshgrid; main purpose in pyparty is to create and map functions
+to images.  I would not use this for quantitative 2d functions as I&#8217;ve chosen
+initial parameters based on if they produce the correct behavior when plotted
+with imshow(); this may not mean they are numerically veritable as imshow()
+is somewhat liberal in its own normalization schema.</p>
+<dl class="method">
+<dt id="pyparty.tools.grids.Grid.blend_bg">
+<tt class="descname">blend_bg</tt><big>(</big><em>bg</em>, <em>weight=0.5</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/grids.html#Grid.blend_bg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.Grid.blend_bg" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.grids.Grid.diagonalspacing">
+<tt class="descname">diagonalspacing</tt><a class="reference internal" href="../_modules/pyparty/tools/grids.html#Grid.diagonalspacing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.Grid.diagonalspacing" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyparty.tools.grids.Grid.empty_bool">
+<tt class="descname">empty_bool</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/grids.html#Grid.empty_bool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.Grid.empty_bool" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return False boolean array; used in many related methods</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.grids.Grid.gradient">
+<tt class="descname">gradient</tt><a class="reference internal" href="../_modules/pyparty/tools/grids.html#Grid.gradient"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.Grid.gradient" title="Permalink to this definition">¶</a></dt>
+<dd><p>X and Y components of gradient.  gx+gy for net grad field</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.grids.Grid.mesh">
+<tt class="descname">mesh</tt><a class="reference internal" href="../_modules/pyparty/tools/grids.html#Grid.mesh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.Grid.mesh" title="Permalink to this definition">¶</a></dt>
+<dd><p>[XX, YY] (each 512, 512)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.grids.Grid.meshindex">
+<tt class="descname">meshindex</tt><a class="reference internal" href="../_modules/pyparty/tools/grids.html#Grid.meshindex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.Grid.meshindex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicies of meshgrid: not sure if useful atm</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.grids.Grid.midpoint">
+<tt class="descname">midpoint</tt><a class="reference internal" href="../_modules/pyparty/tools/grids.html#Grid.midpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.Grid.midpoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>(xmid, ymid) ; useful for meancentering operations</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyparty.tools.grids.Grid.rotate">
+<tt class="descname">rotate</tt><big>(</big><em>theta</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/grids.html#Grid.rotate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.Grid.rotate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Theta in degrees.  Problem is that rotating grid result in negative 
+indicies in rr, cc.  Therefore, don&#8217;t want to do image[rr,cc].  Returns 
+(2,N) indicies.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyparty.tools.grids.Grid.set_zfcn">
+<tt class="descname">set_zfcn</tt><big>(</big><em>fcn_or_string</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/grids.html#Grid.set_zfcn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.Grid.set_zfcn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.grids.Grid.shape">
+<tt class="descname">shape</tt><a class="reference internal" href="../_modules/pyparty/tools/grids.html#Grid.shape"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.Grid.shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>For convienence; forget to always check zz</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.grids.Grid.xspacing">
+<tt class="descname">xspacing</tt><a class="reference internal" href="../_modules/pyparty/tools/grids.html#Grid.xspacing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.Grid.xspacing" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.grids.Grid.xx">
+<tt class="descname">xx</tt><a class="reference internal" href="../_modules/pyparty/tools/grids.html#Grid.xx"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.Grid.xx" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.grids.Grid.yspacing">
+<tt class="descname">yspacing</tt><a class="reference internal" href="../_modules/pyparty/tools/grids.html#Grid.yspacing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.Grid.yspacing" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.grids.Grid.yy">
+<tt class="descname">yy</tt><a class="reference internal" href="../_modules/pyparty/tools/grids.html#Grid.yy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.Grid.yy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.grids.Grid.zfcn">
+<tt class="descname">zfcn</tt><a class="reference internal" href="../_modules/pyparty/tools/grids.html#Grid.zfcn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.Grid.zfcn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.grids.Grid.zz">
+<tt class="descname">zz</tt><a class="reference internal" href="../_modules/pyparty/tools/grids.html#Grid.zz"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.Grid.zz" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyparty.tools.grids.GridAttributeError">
+<em class="property">exception </em><tt class="descclassname">pyparty.tools.grids.</tt><tt class="descname">GridAttributeError</tt><a class="reference internal" href="../_modules/pyparty/tools/grids.html#GridAttributeError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.GridAttributeError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyparty.tools.grids.GridError" title="pyparty.tools.grids.GridError"><tt class="xref py py-class docutils literal"><span class="pre">pyparty.tools.grids.GridError</span></tt></a></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyparty.tools.grids.GridError">
+<em class="property">exception </em><tt class="descclassname">pyparty.tools.grids.</tt><tt class="descname">GridError</tt><a class="reference internal" href="../_modules/pyparty/tools/grids.html#GridError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.GridError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyparty.tools.grids.GridImportError">
+<em class="property">exception </em><tt class="descclassname">pyparty.tools.grids.</tt><tt class="descname">GridImportError</tt><a class="reference internal" href="../_modules/pyparty/tools/grids.html#GridImportError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.GridImportError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyparty.tools.grids.GridError" title="pyparty.tools.grids.GridError"><tt class="xref py py-class docutils literal"><span class="pre">pyparty.tools.grids.GridError</span></tt></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="pyparty.tools.grids.TiledGrid">
+<em class="property">class </em><tt class="descclassname">pyparty.tools.grids.</tt><tt class="descname">TiledGrid</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/grids.html#TiledGrid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.TiledGrid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyparty.tools.grids.Grid" title="pyparty.tools.grids.Grid"><tt class="xref py py-class docutils literal"><span class="pre">pyparty.tools.grids.Grid</span></tt></a></p>
+<p>Provide tiled grid by rounding reslution to integers.  Stores boolean 
+array corresponding to edges, corners and centers.</p>
+<p>Edges, corners, centers are returned as len(2) tuples of indicies, the same
+primitive as rr_cc in Particles.  This facilitates easy indexing 
+(eg image[corners]=1) as well as compatibility with utils and arraytools.</p>
+<dl class="method">
+<dt id="pyparty.tools.grids.TiledGrid.as_patch">
+<tt class="descname">as_patch</tt><big>(</big><em>**kwds</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/grids.html#TiledGrid.as_patch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.TiledGrid.as_patch" title="Permalink to this definition">¶</a></dt>
+<dd><p>matplotlib pathpatch for hlines and vlines</p>
+<p><a href="#id4"><span class="problematic" id="id5">**</span></a>pathkwds : any valid PathCollection keyword (linestyle, edgecolor)</p>
+<p>First, finds coordinates of hlines, vlines.  Then, it it finds
+the x, y coords of each line; it extracts the points corresponding to
+each isoline, and makes a path for each of these.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyparty.tools.grids.TiledGrid.as_tiles">
+<tt class="descname">as_tiles</tt><big>(</big><em>key=None</em>, <em>sort=True</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/grids.html#TiledGrid.as_tiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.TiledGrid.as_tiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return tiles as list of xs, ys or as dictionary.</p>
+<dl class="docutils">
+<dt>key <span class="classifier-delimiter">:</span> <span class="classifier">None, True, &#8216;flat&#8217;, &#8216;2d&#8217;</span></dt>
+<dd>If None, list is returns (same as self.tiles)
+If True or &#8216;flat&#8217;, dicionary keyed by index corresponding
+to iterating over self.centers
+If &#8216;2d&#8217;, dict keyed by (I, J) indicies, corresponding to 2d 
+index pairs in range (0-self.xdiv, 0-self.ydiv)</dd>
+<dt>sort <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd>On dictionary return, OrderedDict will be returned</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.grids.TiledGrid.centers">
+<tt class="descname">centers</tt><a class="reference internal" href="../_modules/pyparty/tools/grids.html#TiledGrid.centers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.TiledGrid.centers" title="Permalink to this definition">¶</a></dt>
+<dd><p>For now, returns indicies (IE TUPLE) instead of matrix.  Still is
+indexable with Image[cx, cy].  Takes atan2(x,y) relative to top left
+corner, result in a vector facing down, right.  Instead, we translate 
+opposite this (up, left), and then cut out centers that are negative.
+In short, we compute the vector from topleft corner to center, then 
+translate in opposite direction.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.grids.TiledGrid.corners">
+<tt class="descname">corners</tt><a class="reference internal" href="../_modules/pyparty/tools/grids.html#TiledGrid.corners"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.TiledGrid.corners" title="Permalink to this definition">¶</a></dt>
+<dd><p>Default corners: bottom-left corners</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.grids.TiledGrid.dlines">
+<tt class="descname">dlines</tt><a class="reference internal" href="../_modules/pyparty/tools/grids.html#TiledGrid.dlines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.TiledGrid.dlines" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.grids.TiledGrid.dlines_neg">
+<tt class="descname">dlines_neg</tt><a class="reference internal" href="../_modules/pyparty/tools/grids.html#TiledGrid.dlines_neg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.TiledGrid.dlines_neg" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.grids.TiledGrid.grid">
+<tt class="descname">grid</tt><a class="reference internal" href="../_modules/pyparty/tools/grids.html#TiledGrid.grid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.TiledGrid.grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>X and Y edges as boolean</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.grids.TiledGrid.hlines">
+<tt class="descname">hlines</tt><a class="reference internal" href="../_modules/pyparty/tools/grids.html#TiledGrid.hlines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.TiledGrid.hlines" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyparty.tools.grids.TiledGrid.pairs">
+<tt class="descname">pairs</tt><big>(</big><em>attr</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/grids.html#TiledGrid.pairs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.TiledGrid.pairs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return pairs of attributes that are typically stored as len(2) 
+tuple, indicies.  Valid attr include corners, centers, etc...</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.grids.TiledGrid.quadrants">
+<tt class="descname">quadrants</tt><a class="reference internal" href="../_modules/pyparty/tools/grids.html#TiledGrid.quadrants"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.TiledGrid.quadrants" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return 4-qudrants of grid</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.grids.TiledGrid.tiles">
+<tt class="descname">tiles</tt><a class="reference internal" href="../_modules/pyparty/tools/grids.html#TiledGrid.tiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.TiledGrid.tiles" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.grids.TiledGrid.vlines">
+<tt class="descname">vlines</tt><a class="reference internal" href="../_modules/pyparty/tools/grids.html#TiledGrid.vlines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.TiledGrid.vlines" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.grids.TiledGrid.xx">
+<tt class="descname">xx</tt><a class="reference internal" href="../_modules/pyparty/tools/grids.html#TiledGrid.xx"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.TiledGrid.xx" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.grids.TiledGrid.yy">
+<tt class="descname">yy</tt><a class="reference internal" href="../_modules/pyparty/tools/grids.html#TiledGrid.yy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.TiledGrid.yy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pyparty.tools.grids.fade">
+<tt class="descclassname">pyparty.tools.grids.</tt><tt class="descname">fade</tt><big>(</big><em>xx</em>, <em>yy</em>, <em>style='h'</em>, <em>reverse=False</em>, <em>fadefcn=None</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/grids.html#fade"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.fade" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mesh with a constant fade.  Can be hoirzonal, vertical or diagonal.
+If reverse, fade direction flips (ie right to left).  Optional fadefcn
+will apply a function AFTER the the fading.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyparty.tools.grids.rint">
+<tt class="descclassname">pyparty.tools.grids.</tt><tt class="descname">rint</tt><big>(</big><em>x</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/grids.html#rint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.rint" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyparty.tools.grids.unzip_array">
+<tt class="descclassname">pyparty.tools.grids.</tt><tt class="descname">unzip_array</tt><big>(</big><em>ndarray</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/grids.html#unzip_array"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.unzip_array" title="Permalink to this definition">¶</a></dt>
+<dd><p>Inverse operation of arraytools.unzip_array.  Make sure that is not in
+use and then replace</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyparty.tools.grids.ztrig">
+<tt class="descclassname">pyparty.tools.grids.</tt><tt class="descname">ztrig</tt><big>(</big><em>xx</em>, <em>yy</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/grids.html#ztrig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.grids.ztrig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Example of returning a trig function applied on grid</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pyparty.tools.manager">
+<span id="manager-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">manager</span></tt> Module<a class="headerlink" href="#module-pyparty.tools.manager" title="Permalink to this headline">¶</a></h2>
+<dl class="exception">
+<dt id="pyparty.tools.manager.KeyErrorManager">
+<em class="property">exception </em><tt class="descclassname">pyparty.tools.manager.</tt><tt class="descname">KeyErrorManager</tt><a class="reference internal" href="../_modules/pyparty/tools/manager.html#KeyErrorManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.manager.KeyErrorManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.KeyError</span></tt></p>
+<p>Particle Manager dictionary interface Exception</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pyparty.tools.manager.ManagerError">
+<em class="property">exception </em><tt class="descclassname">pyparty.tools.manager.</tt><tt class="descname">ManagerError</tt><a class="reference internal" href="../_modules/pyparty/tools/manager.html#ManagerError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.manager.ManagerError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
+<p>Particle Manager general Exception</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="pyparty.tools.manager.ParticleManager">
+<em class="property">class </em><tt class="descclassname">pyparty.tools.manager.</tt><tt class="descname">ParticleManager</tt><big>(</big><em>plist=None</em>, <em>fastnames=False</em>, <em>copy=True</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/manager.html#ParticleManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.manager.ParticleManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">traits.has_traits.HasTraits</span></tt></p>
+<p>Container class for creating, storing, managing particles;
+provides API used by higher-level objects.  Provides a property
+interface for easy mapping and slicing.</p>
+<dl class="method">
+<dt id="pyparty.tools.manager.ParticleManager.add">
+<tt class="descname">add</tt><big>(</big><em>particle</em>, <em>*pargs</em>, <em>**pkwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/manager.html#ParticleManager.add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.manager.ParticleManager.add" title="Permalink to this definition">¶</a></dt>
+<dd><p>If color not passed, default color is used
+If not idx, put in last entry</p>
+<p>particle : Name of valid pyparty particle (eg &#8216;circle&#8217;)</p>
+<p>name : Particle name</p>
+<dl class="docutils">
+<dt>color <span class="classifier-delimiter">:</span> <span class="classifier">Str or None</span></dt>
+<dd>Color of particle; defaults to Config specification</dd>
+<dt>force <span class="classifier-delimiter">:</span> <span class="classifier">Bool (False)</span></dt>
+<dd>???</dd>
+</dl>
+<p><a href="#id6"><span class="problematic" id="id7">*</span></a>pargs : Particle constructor args</p>
+<p><a href="#id8"><span class="problematic" id="id9">**</span></a>pkwargs : Particle constructor kwargs</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyparty.tools.manager.ParticleManager.available">
+<tt class="descname">available</tt><big>(</big><em>subtype=None</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/manager.html#ParticleManager.available"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.manager.ParticleManager.available" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show all valid particle types.  Subtype is &#8216;simple&#8217; &#8216;multi&#8217; to
+return groups of particles</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.manager.ParticleManager.centers">
+<tt class="descname">centers</tt><a class="reference internal" href="../_modules/pyparty/tools/manager.html#ParticleManager.centers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.manager.ParticleManager.centers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return center coordinates of all particles.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyparty.tools.manager.ParticleManager.descriptor_table">
+<tt class="descname">descriptor_table</tt><big>(</big><em>outfile</em>, <em>alphebetize=False</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/manager.html#ParticleManager.descriptor_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.manager.ParticleManager.descriptor_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Output all particle descriptors into a table.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyparty.tools.manager.ParticleManager.from_labels">
+<em class="property">classmethod </em><tt class="descname">from_labels</tt><big>(</big><em>labelarray</em>, <em>prefix='label'</em>, <em>colorbynum=False</em>, <em>pmin=2</em>, <em>pmax=None</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/manager.html#ParticleManager.from_labels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.manager.ParticleManager.from_labels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create ParticleManager from output of skimage.morphology.label
+array.  Each item is written to a general Particle type.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyparty.tools.manager.ParticleManager.hsv_colors">
+<tt class="descname">hsv_colors</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/manager.html#ParticleManager.hsv_colors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.manager.ParticleManager.hsv_colors" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyparty.tools.manager.ParticleManager.idx">
+<tt class="descname">idx</tt><big>(</big><em>*names</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/manager.html#ParticleManager.idx"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.manager.ParticleManager.idx" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return index given names</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyparty.tools.manager.ParticleManager.in_region">
+<tt class="descname">in_region</tt><big>(</big><em>*coords</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/manager.html#ParticleManager.in_region"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.manager.ParticleManager.in_region" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get all particles whose CENTERS are within a rectangular region</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyparty.tools.manager.ParticleManager.map">
+<tt class="descname">map</tt><big>(</big><em>fcn</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/manager.html#ParticleManager.map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.manager.ParticleManager.map" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply a function to all particles.  Can also use functools.partial</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.manager.ParticleManager.mem_address">
+<tt class="descname">mem_address</tt><a class="reference internal" href="../_modules/pyparty/tools/manager.html#ParticleManager.mem_address"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.manager.ParticleManager.mem_address" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return address in memory</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.manager.ParticleManager.names">
+<tt class="descname">names</tt><a class="reference internal" href="../_modules/pyparty/tools/manager.html#ParticleManager.names"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.manager.ParticleManager.names" title="Permalink to this definition">¶</a></dt>
+<dd><p>Particles names; so common, worth doing here</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.manager.ParticleManager.particles">
+<tt class="descname">particles</tt><a class="reference internal" href="../_modules/pyparty/tools/manager.html#ParticleManager.particles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.manager.ParticleManager.particles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Particle objects</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyparty.tools.manager.ParticleManager.pop">
+<tt class="descname">pop</tt><big>(</big><em>idx</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/manager.html#ParticleManager.pop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.manager.ParticleManager.pop" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.manager.ParticleManager.ptype_count">
+<tt class="descname">ptype_count</tt><a class="reference internal" href="../_modules/pyparty/tools/manager.html#ParticleManager.ptype_count"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.manager.ParticleManager.ptype_count" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unique particle types in plist.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.manager.ParticleManager.ptypes">
+<tt class="descname">ptypes</tt><a class="reference internal" href="../_modules/pyparty/tools/manager.html#ParticleManager.ptypes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.manager.ParticleManager.ptypes" title="Permalink to this definition">¶</a></dt>
+<dd><p>All UNIQUE particle types.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyparty.tools.manager.ParticleManager.reverse">
+<tt class="descname">reverse</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/manager.html#ParticleManager.reverse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.manager.ParticleManager.reverse" title="Permalink to this definition">¶</a></dt>
+<dd><p>In place since list is inplace</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyparty.tools.manager.ParticleManager.rr_cc_all">
+<tt class="descname">rr_cc_all</tt><a class="reference internal" href="../_modules/pyparty/tools/manager.html#ParticleManager.rr_cc_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.manager.ParticleManager.rr_cc_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns all rr_cc coord concatenated into one (rr, cc)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyparty.tools.manager.ParticleManager.sortby">
+<tt class="descname">sortby</tt><big>(</big><em>attr='name'</em>, <em>inplace=False</em>, <em>ascending=True</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/manager.html#ParticleManager.sortby"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.manager.ParticleManager.sortby" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sort list by attribute/descriptor</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pyparty.tools.manager.concat_particles">
+<tt class="descclassname">pyparty.tools.manager.</tt><tt class="descname">concat_particles</tt><big>(</big><em>p1</em>, <em>p2</em>, <em>alternate=False</em>, <em>overwrite=False</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/manager.html#concat_particles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.manager.concat_particles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Joins two instances of particle manager.</p>
+<p>p1, p2 : ParticleManager</p>
+<dl class="docutils">
+<dt>alternate <span class="classifier-delimiter">:</span> <span class="classifier">Bool </span></dt>
+<dd>Add particles in alternating order.  If False, all of p2 is added 
+after p1, meaning p2 would paint &#8220;over&#8221; p1 for particles w/ overlapping
+regions</dd>
+<dt>overwrite <span class="classifier-delimiter">:</span> <span class="classifier">Bool</span></dt>
+<dd>If True, particles in p2 with same name as those in p1 will overwrite.
+Otherwise, an error is raised if particles in p1 and p2 share names.</dd>
+</dl>
+<dl class="docutils">
+<dt>pout <span class="classifier-delimiter">:</span> <span class="classifier">ParticleManager</span></dt>
+<dd>Merged particle manager containing all particles of p1 and p2.</dd>
+</dl>
+<p>When overwriting, the elements are deleted from p1</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyparty.tools.manager.format_particles">
+<tt class="descclassname">pyparty.tools.manager.</tt><tt class="descname">format_particles</tt><big>(</big><em>obj</em>, <em>align='l'</em>, <em>padding=3</em>, <em>attrs='name'</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/manager.html#format_particles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.manager.format_particles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Output column-delimted representation of a ParticleManager instance.</p>
+<p>obj : ParticleManager</p>
+<dl class="docutils">
+<dt>align <span class="classifier-delimiter">:</span> <span class="classifier">str (&#8216;l&#8217;, &#8216;c&#8217;, &#8216;r&#8217;)</span></dt>
+<dd>Column alignment</dd>
+<dt>padding <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>Column padding (width column = padding + len(max_word) )</dd>
+<dt>attrs <span class="classifier-delimiter">:</span> <span class="classifier">List(str)</span></dt>
+<dd>Names of attributes to display in printout.  Must be valid attributes
+of obj.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyparty.tools.manager.overlapping_particles">
+<tt class="descclassname">pyparty.tools.manager.</tt><tt class="descname">overlapping_particles</tt><big>(</big><em>p1</em>, <em>p2</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/manager.html#overlapping_particles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.manager.overlapping_particles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return all of the particles in p1, who are touching 1 or more particles
+in p2.  Returns name such as:</p>
+<p>(p1 [circle0] : p2 [dimer3, dimer5] : (rr_cc03, rr_cc05))</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyparty.tools.manager.subtract_particles">
+<tt class="descclassname">pyparty.tools.manager.</tt><tt class="descname">subtract_particles</tt><big>(</big><em>p1</em>, <em>p2</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/manager.html#subtract_particles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.manager.subtract_particles" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyparty.tools.manager.summarize_particles">
+<tt class="descclassname">pyparty.tools.manager.</tt><tt class="descname">summarize_particles</tt><big>(</big><em>obj</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/manager.html#summarize_particles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.manager.summarize_particles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a summarized printout for Paticle Manager object.</p>
+<p>obj : ParticleManager</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pyparty.tools.thresholding">
+<span id="thresholding-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">thresholding</span></tt> Module<a class="headerlink" href="#module-pyparty.tools.thresholding" title="Permalink to this headline">¶</a></h2>
+<dl class="exception">
+<dt id="pyparty.tools.thresholding.ThresholdError">
+<em class="property">exception </em><tt class="descclassname">pyparty.tools.thresholding.</tt><tt class="descname">ThresholdError</tt><a class="reference internal" href="../_modules/pyparty/tools/thresholding.html#ThresholdError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.thresholding.ThresholdError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyparty.tools.thresholding.adaptive">
+<tt class="descclassname">pyparty.tools.thresholding.</tt><tt class="descname">adaptive</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/thresholding.html#adaptive"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.thresholding.adaptive" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyparty.tools.thresholding.choose_thresh">
+<tt class="descclassname">pyparty.tools.thresholding.</tt><tt class="descname">choose_thresh</tt><big>(</big><em>fcnname</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/thresholding.html#choose_thresh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.thresholding.choose_thresh" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyparty.tools.thresholding.double">
+<tt class="descclassname">pyparty.tools.thresholding.</tt><tt class="descname">double</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/thresholding.html#double"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.thresholding.double" title="Permalink to this definition">¶</a></dt>
+<dd><p>Lower and upper thresholds on range 0-255</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyparty.tools.thresholding.img2bool">
+<tt class="descclassname">pyparty.tools.thresholding.</tt><tt class="descname">img2bool</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/thresholding.html#img2bool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.thresholding.img2bool" title="Permalink to this definition">¶</a></dt>
+<dd><p>Allow for <a href="#id10"><span class="problematic" id="id11">*</span></a>args, <a href="#id12"><span class="problematic" id="id13">**</span></a>kwargs to be passed</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyparty.tools.thresholding.invertible">
+<tt class="descclassname">pyparty.tools.thresholding.</tt><tt class="descname">invertible</tt><big>(</big><em>fcn</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/thresholding.html#invertible"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.thresholding.invertible" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return np.invert() of function</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyparty.tools.thresholding.nonblack">
+<tt class="descclassname">pyparty.tools.thresholding.</tt><tt class="descname">nonblack</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/thresholding.html#nonblack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.thresholding.nonblack" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return any pixel over 0</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyparty.tools.thresholding.nonwhite">
+<tt class="descclassname">pyparty.tools.thresholding.</tt><tt class="descname">nonwhite</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/thresholding.html#nonwhite"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.thresholding.nonwhite" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return any pixel under 255</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyparty.tools.thresholding.nonzero">
+<tt class="descclassname">pyparty.tools.thresholding.</tt><tt class="descname">nonzero</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/thresholding.html#nonzero"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.thresholding.nonzero" title="Permalink to this definition">¶</a></dt>
+<dd><p>All non-zero elements are True</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyparty.tools.thresholding.otsu">
+<tt class="descclassname">pyparty.tools.thresholding.</tt><tt class="descname">otsu</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/thresholding.html#otsu"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.thresholding.otsu" title="Permalink to this definition">¶</a></dt>
+<dd><p>Otsu provides an upper threshold limit, meaning anything under threshold
+is foreground.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyparty.tools.thresholding.single">
+<tt class="descclassname">pyparty.tools.thresholding.</tt><tt class="descname">single</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/tools/thresholding.html#single"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.tools.thresholding.single" title="Permalink to this definition">¶</a></dt>
+<dd><p>Single threshold value between 0, 255.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">pyparty 0.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Adam Hughes.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

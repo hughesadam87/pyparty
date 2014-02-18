@@ -1,0 +1,641 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyparty.tools.manager &mdash; pyparty 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="pyparty 0.2 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">pyparty 0.2 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pyparty.tools.manager</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+<span class="kn">from</span> <span class="nn">operator</span> <span class="kn">import</span> <span class="n">attrgetter</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+
+<span class="c"># 3rd Party Imports</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">enthought.traits.api</span> <span class="kn">import</span> <span class="n">HasTraits</span><span class="p">,</span> <span class="n">Instance</span><span class="p">,</span> <span class="n">Property</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span>\
+     <span class="n">cached_property</span><span class="p">,</span> <span class="n">List</span>
+
+<span class="c"># pyparty Imports</span>
+<span class="kn">from</span> <span class="nn">pyparty.shape_models.api</span> <span class="kn">import</span> <span class="n">GROUPEDTYPES</span><span class="p">,</span> <span class="n">ALLTYPES</span>
+<span class="kn">from</span> <span class="nn">pyparty.shape_models.abstract_shape</span> <span class="kn">import</span> <span class="n">Particle</span><span class="p">,</span> <span class="n">ParticleError</span>
+<span class="kn">from</span> <span class="nn">pyparty.trait_types.metaparticle</span> <span class="kn">import</span> <span class="n">MetaParticle</span><span class="p">,</span> <span class="n">copy_metaparticle</span>
+<span class="kn">from</span> <span class="nn">pyparty.config</span> <span class="kn">import</span> <span class="n">NAMESEP</span><span class="p">,</span> <span class="n">PADDING</span><span class="p">,</span> <span class="n">ALIGN</span><span class="p">,</span> <span class="n">MAXOUT</span><span class="p">,</span> \
+     <span class="n">_COPYPARTICLES</span><span class="p">,</span> <span class="n">PRINTDISPLAY</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span> 
+
+<span class="c"># Particle Manager Exceptions</span>
+<span class="c"># ---------------------------</span>
+
+<div class="viewcode-block" id="ManagerError"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.manager.ManagerError">[docs]</a><span class="k">class</span> <span class="nc">ManagerError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Particle Manager general Exception &quot;&quot;&quot;</span>
+    </div>
+<div class="viewcode-block" id="KeyErrorManager"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.manager.KeyErrorManager">[docs]</a><span class="k">class</span> <span class="nc">KeyErrorManager</span><span class="p">(</span><span class="ne">KeyError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Particle Manager dictionary interface Exception &quot;&quot;&quot;</span>   
+    
+
+<span class="c"># Particle Manager Utilities</span>
+<span class="c"># --------------------------</span>
+</div>
+<div class="viewcode-block" id="concat_particles"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.manager.concat_particles">[docs]</a><span class="k">def</span> <span class="nf">concat_particles</span><span class="p">(</span><span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">,</span> <span class="n">alternate</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Joins two instances of particle manager.</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    p1, p2 : ParticleManager</span>
+<span class="sd">    </span>
+<span class="sd">    alternate : Bool </span>
+<span class="sd">       Add particles in alternating order.  If False, all of p2 is added </span>
+<span class="sd">       after p1, meaning p2 would paint &quot;over&quot; p1 for particles w/ overlapping</span>
+<span class="sd">       regions</span>
+<span class="sd">       </span>
+<span class="sd">    overwrite : Bool</span>
+<span class="sd">       If True, particles in p2 with same name as those in p1 will overwrite.</span>
+<span class="sd">       Otherwise, an error is raised if particles in p1 and p2 share names.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pout : ParticleManager</span>
+<span class="sd">       Merged particle manager containing all particles of p1 and p2.</span>
+<span class="sd">       </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    When overwriting, the elements are deleted from p1</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">p1_temp</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">p1</span><span class="p">)</span>
+    <span class="n">shared</span> <span class="o">=</span> <span class="p">[</span><span class="n">name</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">p1</span><span class="o">.</span><span class="n">names</span> <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">p2</span><span class="o">.</span><span class="n">names</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">shared</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">overwrite</span><span class="p">:</span>
+            <span class="n">p1_temp</span><span class="o">.</span><span class="n">plist</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">p1</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">shared</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ManagerError</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s"> Duplicate particle names found.&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">shared</span><span class="p">))</span>
+            
+    <span class="n">pout</span> <span class="o">=</span> <span class="n">p1_temp</span><span class="o">.</span><span class="n">plist</span> <span class="o">+</span> <span class="n">p2</span><span class="o">.</span><span class="n">plist</span>
+
+    <span class="c">#http://stackoverflow.com/questions/7529376/pythonic-way-to-mix-two-lists    </span>
+    <span class="k">if</span> <span class="n">alternate</span><span class="p">:</span>
+        <span class="n">pout</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">pout</span> <span class="ow">in</span> <span class="nb">map</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="n">p1_temp</span><span class="p">,</span> <span class="n">p2</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pout</span><span class="p">]</span>
+        <span class="n">pout</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pout</span> <span class="k">if</span> <span class="n">p</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">]</span>
+            
+    <span class="k">return</span> <span class="n">ParticleManager</span><span class="p">(</span><span class="n">plist</span><span class="o">=</span><span class="n">pout</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="subtract_particles"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.manager.subtract_particles">[docs]</a><span class="k">def</span> <span class="nf">subtract_particles</span><span class="p">(</span><span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">):</span>
+    <span class="n">p1_temp</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">p1</span><span class="p">)</span>
+    <span class="n">shared</span> <span class="o">=</span> <span class="p">[</span><span class="n">name</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">p1</span><span class="o">.</span><span class="n">names</span> <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">p2</span><span class="o">.</span><span class="n">names</span><span class="p">]</span>    
+    <span class="n">p1_temp</span><span class="o">.</span><span class="n">plist</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">p1</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">shared</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">p1_temp</span>            
+
+</div>
+<div class="viewcode-block" id="summarize_particles"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.manager.summarize_particles">[docs]</a><span class="k">def</span> <span class="nf">summarize_particles</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Return a summarized printout for Paticle Manager object.</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    obj : ParticleManager</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">countstring</span> <span class="o">=</span> <span class="s">&#39;0 particles&#39;</span>
+        <span class="n">ptypestring</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+        
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">countstring</span> <span class="o">=</span> <span class="s">&#39;1 particle (</span><span class="si">%s</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="n">obj</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span>
+<span class="c">#        ptypestring = &#39;%s type&#39; % obj[0].ptype</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">countstring</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s"> particles (</span><span class="si">%s</span><span class="s">...</span><span class="si">%s</span><span class="s">)&#39;</span> <span class="o">%</span> \
+            <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">obj</span><span class="p">),</span> <span class="n">obj</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">obj</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+ <span class="c">#       ptypestring = &#39;%s ptypes&#39; % len(obj.ptypes)</span>
+ 
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">ptypes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">ptypestring</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s"> ptypes&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">ptypes</span><span class="p">)</span>
+        <span class="n">ptypestring</span> <span class="o">=</span> <span class="s">&#39; ptype=&quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="n">obj</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">ptype</span>
+        
+    <span class="k">return</span> <span class="p">(</span><span class="s">&#39;&lt;&lt; </span><span class="si">%s</span><span class="s"> /</span><span class="si">%s</span><span class="s"> at </span><span class="si">%s</span><span class="s"> &gt;&gt;&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">countstring</span><span class="p">,</span> <span class="n">ptypestring</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">mem_address</span> <span class="p">)</span> <span class="p">)</span>   
+
+</div>
+<span class="k">def</span> <span class="nf">_attr_mapper</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Helper to format particles for string-formatting.  Adds ??? for</span>
+<span class="sd">    missing attributes; handles colors specially...&quot;&quot;&quot;</span>   
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">AttributeError</span><span class="p">,</span> <span class="n">ParticleError</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&#39;????&#39;</span>
+    
+    <span class="k">if</span> <span class="n">attr</span> <span class="o">==</span> <span class="s">&#39;color&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&#39;</span><span class="si">%.1f</span><span class="s"> : </span><span class="si">%.1f</span><span class="s"> : </span><span class="si">%.1f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">val</span>
+        
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>    
+
+
+<div class="viewcode-block" id="format_particles"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.manager.format_particles">[docs]</a><span class="k">def</span> <span class="nf">format_particles</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="s">&#39;l&#39;</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">)):</span>
+    <span class="sd">&quot;&quot;&quot; Output column-delimted representation of a ParticleManager instance.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    obj : ParticleManager</span>
+<span class="sd">        </span>
+<span class="sd">    align : str (&#39;l&#39;, &#39;c&#39;, &#39;r&#39;)</span>
+<span class="sd">        Column alignment</span>
+<span class="sd">    </span>
+<span class="sd">    padding : int</span>
+<span class="sd">        Column padding (width column = padding + len(max_word) )</span>
+<span class="sd">        </span>
+<span class="sd">    attrs : List(str)</span>
+<span class="sd">        Names of attributes to display in printout.  Must be valid attributes</span>
+<span class="sd">        of obj.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">padding</span> <span class="o">=</span> <span class="s">&#39; &#39;</span> <span class="o">*</span> <span class="n">padding</span>
+    <span class="n">just_fcn</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;l&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="o">.</span><span class="n">ljust</span><span class="p">,</span>
+        <span class="s">&#39;r&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="o">.</span><span class="n">rjust</span><span class="p">,</span>
+        <span class="s">&#39;c&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="o">.</span><span class="n">center</span><span class="p">}[</span><span class="n">align</span><span class="p">]</span>
+
+    <span class="n">outlist</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">plist</span><span class="p">)</span>
+    
+    <span class="c"># Header [( &#39;&#39;   NAME   PTYPE)]</span>
+    <span class="n">outrows</span> <span class="o">=</span> <span class="p">[</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">attrs</span><span class="p">]</span> <span class="p">]</span>
+    
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">outlist</span><span class="p">):</span>
+        <span class="n">att_row</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span> <span class="o">+</span> <span class="p">[</span><span class="n">_attr_mapper</span><span class="p">(</span><span class="n">p</span><span class="p">,</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">attrs</span><span class="p">]</span>
+        <span class="n">outrows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">att_row</span><span class="p">))</span>
+         
+    <span class="n">widths</span> <span class="o">=</span> <span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span> <span class="n">col</span><span class="p">))</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">outrows</span><span class="p">)]</span>
+    <span class="k">return</span>  <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="p">[</span> <span class="n">padding</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">just_fcn</span><span class="p">(</span><span class="n">val</span><span class="p">,</span><span class="n">width</span><span class="p">)</span> <span class="k">for</span> <span class="n">val</span><span class="p">,</span> <span class="n">width</span> 
+                    <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">widths</span><span class="p">)))</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">outrows</span><span class="p">]</span> <span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="overlapping_particles"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.manager.overlapping_particles">[docs]</a><span class="k">def</span> <span class="nf">overlapping_particles</span><span class="p">(</span><span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Return all of the particles in p1, who are touching 1 or more particles</span>
+<span class="sd">    in p2.  Returns name such as:</span>
+<span class="sd">    </span>
+<span class="sd">    (p1 [circle0] : p2 [dimer3, dimer5] : (rr_cc03, rr_cc05)) &quot;&quot;&quot;</span>
+        
+</div>
+<div class="viewcode-block" id="ParticleManager"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.manager.ParticleManager">[docs]</a><span class="k">class</span> <span class="nc">ParticleManager</span><span class="p">(</span><span class="n">HasTraits</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Container class for creating, storing, managing particles;</span>
+<span class="sd">        provides API used by higher-level objects.  Provides a property</span>
+<span class="sd">        interface for easy mapping and slicing.  </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+            
+    <span class="n">plist</span> <span class="o">=</span> <span class="n">List</span><span class="p">(</span><span class="n">Instance</span><span class="p">(</span><span class="n">MetaParticle</span><span class="p">))</span>
+    <span class="c"># Cached property</span>
+    <span class="n">_namemap</span> <span class="o">=</span> <span class="n">Property</span><span class="p">(</span><span class="n">Tuple</span><span class="p">,</span> <span class="n">depends_on</span> <span class="o">=</span> <span class="s">&#39;plist&#39;</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plist</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fastnames</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="n">_COPYPARTICLES</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; fastnames:</span>
+<span class="sd">           (TRUE):  circle_1, dimer_2, circle_3, dimer_4</span>
+<span class="sd">           (FALSE): circle_1, dimer_1, circle_2, dimer_2</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fastnames</span> <span class="o">=</span> <span class="n">fastnames</span>      
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">plist</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">plist</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">copy</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">plist</span> <span class="o">=</span> <span class="p">[</span><span class="n">copy_metaparticle</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">plist</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">plist</span> <span class="o">=</span> <span class="n">plist</span>
+            
+        <span class="c"># To get properties loaded</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ParticleManager</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+   
+    <span class="nd">@cached_property</span>
+    <span class="k">def</span> <span class="nf">_get__namemap</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Store light map of name to index for faster name lookup.  I verified</span>
+<span class="sd">            that this updates when plist elemnts are updated as well as obj itself.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span> <span class="p">(</span><span class="n">pobj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span> <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">pobj</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plist</span><span class="p">))</span>    
+            
+
+<div class="viewcode-block" id="ParticleManager.add"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.manager.ParticleManager.add">[docs]</a>    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">particle</span><span class="p">,</span> <span class="o">*</span><span class="n">pargs</span><span class="p">,</span> <span class="o">**</span><span class="n">pkwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; If color not passed, default color is used</span>
+<span class="sd">            If not idx, put in last entry </span>
+
+<span class="sd">            Attributes</span>
+<span class="sd">            ----------</span>
+<span class="sd">            </span>
+<span class="sd">            particle : Name of valid pyparty particle (eg &#39;circle&#39;)</span>
+<span class="sd">            </span>
+<span class="sd">            name : Particle name</span>
+<span class="sd">            </span>
+<span class="sd">            color : Str or None</span>
+<span class="sd">                Color of particle; defaults to Config specification</span>
+<span class="sd">            </span>
+<span class="sd">            force : Bool (False)</span>
+<span class="sd">                ???             </span>
+<span class="sd">            *pargs : Particle constructor args</span>
+<span class="sd">            </span>
+<span class="sd">            **pkwargs : Particle constructor kwargs</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+        
+        <span class="n">name</span> <span class="o">=</span> <span class="n">pkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">force</span> <span class="o">=</span> <span class="n">pkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;force&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="n">pkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;color&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>  
+     
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">particle</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
+            <span class="n">particle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_particle</span><span class="p">(</span><span class="n">particle</span><span class="p">,</span> <span class="o">*</span><span class="n">pargs</span><span class="p">,</span> <span class="o">**</span><span class="n">pkwargs</span><span class="p">)</span>
+
+        <span class="n">idx</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+       
+        <span class="c">#Generate key if it does not yet exist</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="p">:</span>
+            <span class="n">ptype</span> <span class="o">=</span> <span class="n">particle</span><span class="o">.</span><span class="n">ptype</span>
+            
+            <span class="c"># ISSUE WITH INDEX IF USER CAN SPECIFY IDX AND NAME INVOLVES IT??</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fastnames</span><span class="p">:</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s%s%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ptype</span><span class="p">,</span> <span class="n">NAMESEP</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span>            
+            
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">pcount</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ptype_count</span><span class="p">[</span><span class="n">ptype</span><span class="p">]</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="n">pcount</span> <span class="o">=</span> <span class="mi">0</span>
+    
+                <span class="n">name</span> <span class="o">=</span> <span class="n">ptype</span> <span class="o">+</span> <span class="n">NAMESEP</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">pcount</span><span class="p">)</span>            
+            
+        <span class="n">idx_old</span> <span class="o">=</span> <span class="bp">None</span> <span class="c">#For deleting at end</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_namemap</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">force</span><span class="p">:</span>
+                <span class="n">idx_old</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_namemap</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ManagerError</span><span class="p">(</span><span class="s">&#39;particle at index </span><span class="si">%s</span><span class="s"> is already named &quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span>\
+                    <span class="s">&#39; (force=True to overwrite)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_namemap</span><span class="p">[</span><span class="n">name</span><span class="p">],</span> <span class="n">name</span><span class="p">)</span> <span class="p">)</span>        
+
+        <span class="n">meta</span> <span class="o">=</span> <span class="n">MetaParticle</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">particle</span><span class="o">=</span><span class="n">particle</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">meta</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">idx_old</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">plist</span><span class="p">[</span><span class="n">idx_old</span><span class="p">]</span>
+
+                </div>
+    <span class="k">def</span> <span class="nf">_make_particle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ptype</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Instantiate a particle through string specifying class type</span>
+<span class="sd">        via PARTICLETYPES.  Calls auto_init() to allow for flexible kwds&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">pclass</span> <span class="o">=</span> <span class="n">ALLTYPES</span><span class="p">[</span><span class="n">ptype</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">KeyErrorManager</span><span class="p">(</span><span class="s">&#39;&quot;</span><span class="si">%s</span><span class="s">&quot; is not an understood Particle type.  &#39;</span>
+                <span class="s">&#39;Choose from: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ptype</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">available</span><span class="p">()))</span>
+        <span class="k">return</span> <span class="n">pclass</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    
+    
+<div class="viewcode-block" id="ParticleManager.map"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.manager.ParticleManager.map">[docs]</a>    <span class="k">def</span> <span class="nf">map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fcn</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Apply a function to all particles.  Can also use functools.partial&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plist</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[</span><span class="n">fcn</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plist</span><span class="p">]</span>
+        </div>
+<div class="viewcode-block" id="ParticleManager.reverse"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.manager.ParticleManager.reverse">[docs]</a>    <span class="k">def</span> <span class="nf">reverse</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; In place since list is inplace &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plist</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+    </div>
+<div class="viewcode-block" id="ParticleManager.pop"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.manager.ParticleManager.pop">[docs]</a>    <span class="k">def</span> <span class="nf">pop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plist</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="ParticleManager.idx"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.manager.ParticleManager.idx">[docs]</a>    <span class="k">def</span> <span class="nf">idx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">names</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return index given names &quot;&quot;&quot;</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_namemap</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">out</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">out</span>
+    </div>
+    <span class="k">def</span> <span class="nf">_unmask_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Test if object is an integer, string, or isntance of </span>
+<span class="sd">            MetaParticle.  Returns index in any case. &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">idx</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_namemap</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">MetaParticle</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_namemap</span><span class="p">[</span><span class="n">idx</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+        
+        <span class="k">raise</span> <span class="n">ManagerError</span><span class="p">(</span><span class="s">&quot;Index must be of type int, str or MetaParticle&quot;</span>
+                           <span class="s">&quot; received </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span> <span class="p">)</span>
+        
+    <span class="c"># Magic Methods</span>
+    <span class="c"># -------------</span>
+    <span class="k">def</span> <span class="nf">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p2</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">concat_particles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p2</span><span class="p">,</span> <span class="n">alternate</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Removes duplicates between p2, p1, but does not affect p1 particles</span>
+<span class="sd">            otherwise.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">subtract_particles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p2</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">plist</span><span class="o">.</span><span class="n">__iter__</span><span class="p">()</span>
+    
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keyslice</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Supports single name lookup; otherwise defers to list delitem&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">keyslice</span><span class="p">,</span> <span class="s">&#39;__iter__&#39;</span><span class="p">):</span>
+            <span class="c"># Boolean indexing</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">keyslice</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+                <span class="n">boolout</span> <span class="o">=</span> <span class="n">keyslice</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s">&#39;bool&#39;</span><span class="p">)</span>
+                <span class="n">plout</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">plist</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">exists</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">boolout</span><span class="p">)</span> <span class="k">if</span> <span class="n">exists</span><span class="p">]</span>                
+    
+            <span class="k">else</span><span class="p">:</span>    
+                <span class="n">plout</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">plist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_unmask_index</span><span class="p">(</span><span class="n">idx</span><span class="p">)]</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">keyslice</span><span class="p">]</span>              
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">plout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_unmask_index</span><span class="p">(</span><span class="n">keyslice</span><span class="p">)]</span>
+
+        <span class="c"># When slicing returns one value; still need to list-convert due to</span>
+        <span class="c"># trait type!</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">plout</span><span class="p">,</span> <span class="s">&#39;__iter__&#39;</span><span class="p">):</span>
+            <span class="n">plout</span> <span class="o">=</span> <span class="p">[</span><span class="n">plout</span><span class="p">]</span>
+        
+        <span class="k">return</span> <span class="n">ParticleManager</span><span class="p">(</span><span class="n">plist</span><span class="o">=</span><span class="n">plout</span><span class="p">,</span> <span class="n">fastnames</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fastnames</span><span class="p">)</span>
+
+        
+    <span class="k">def</span> <span class="nf">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keyslice</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Supports single name deletion; otherwise defers to list delitem.  </span>
+<span class="sd">            Deletes in place to congruance with list API.</span>
+<span class="sd">        </span>
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        When deleting iteratively, avoid calls to &quot;del&quot; which changes size </span>
+<span class="sd">        during iteariton.&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">keyslice</span><span class="p">,</span> <span class="s">&#39;__iter__&#39;</span><span class="p">):</span>
+            <span class="c"># Boolean indexing</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">keyslice</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+                <span class="n">boolout</span> <span class="o">=</span> <span class="n">keyslice</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s">&#39;bool&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">plist</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">plist</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">exists</span> <span class="ow">in</span>
+                                 <span class="nb">enumerate</span><span class="p">(</span><span class="n">boolout</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>    
+                <span class="n">to_remove</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_unmask_index</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">keyslice</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">plist</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">plist</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+                                 <span class="k">if</span> <span class="n">idx</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">to_remove</span><span class="p">]</span>
+
+        <span class="c"># Delete single entry (can&#39;t del multiple as index changes inplace)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">plist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_unmask_index</span><span class="p">(</span><span class="n">keyslice</span><span class="p">)]</span>
+        
+
+    <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keyorslice</span><span class="p">,</span> <span class="n">particle</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Not sure how confident I am in implementing this.  Users can add, </span>
+<span class="sd">        and remove particles through add()/remove() (__get /__del) API.  </span>
+<span class="sd">        Allowing them to set through slicing could break the API.  </span>
+<span class="sd">        For example, setting many particles to the same value and hence the </span>
+<span class="sd">        same name...</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="n">ManagerError</span><span class="p">(</span><span class="s">&#39;&quot;</span><span class="si">%s</span><span class="s">&quot; object does not support item assigment.&#39;</span> <span class="o">%</span> 
+                           <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return numpy array subset of self.plist based on attr. Attribute</span>
+<span class="sd">            can be name, color, descriptor or otherwise common attribute of</span>
+<span class="sd">            Particle class.  </span>
+<span class="sd">            </span>
+<span class="sd">            Notes</span>
+<span class="sd">            -----</span>
+<span class="sd">            Implemented similar pandas package to allow for attribute-based </span>
+<span class="sd">            indexing.</span>
+<span class="sd">            </span>
+<span class="sd">            Examples</span>
+<span class="sd">            --------</span>
+<span class="sd">            big_particles = p[p.perims &gt; 50] &quot;&quot;&quot;</span>
+        
+        <span class="n">out</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plist</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">plist</span><span class="o">.</span><span class="n">__len__</span><span class="p">()</span>
+    
+    <span class="c"># MAKE MORE SUCCINT</span>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; For 0 particles or many particles, calls &quot;summarize_particles&quot;; </span>
+<span class="sd">        otherwise, calls format particles, which returns a table.</span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">MAXOUT</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">summarize_particles</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">format_particles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="n">ALIGN</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="n">PADDING</span><span class="p">,</span> 
+                                    <span class="n">attrs</span><span class="o">=</span><span class="n">PRINTDISPLAY</span><span class="p">)</span>  
+        
+<div class="viewcode-block" id="ParticleManager.in_region"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.manager.ParticleManager.in_region">[docs]</a>    <span class="k">def</span> <span class="nf">in_region</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">coords</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Get all particles whose CENTERS are within a rectangular region&quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+    
+
+    <span class="c"># python properties</span>
+    <span class="c"># -------------</span></div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="ParticleManager.names"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.manager.ParticleManager.names">[docs]</a>    <span class="k">def</span> <span class="nf">names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Particles names; so common, worth doing here&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plist</span><span class="p">)</span>
+    
+    <span class="c"># Careful, this returns actual Shapes, not MetaParticles.  If in canvas</span>
+    <span class="c"># doing something like c[ptype==&#39;circle&#39;] returns ParticleManager</span></div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="ParticleManager.particles"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.manager.ParticleManager.particles">[docs]</a>    <span class="k">def</span> <span class="nf">particles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Particle objects&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">particle</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plist</span><span class="p">)</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="ParticleManager.centers"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.manager.ParticleManager.centers">[docs]</a>    <span class="k">def</span> <span class="nf">centers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return center coordinates of all particles.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">center</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plist</span><span class="p">)</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="ParticleManager.rr_cc_all"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.manager.ParticleManager.rr_cc_all">[docs]</a>    <span class="k">def</span> <span class="nf">rr_cc_all</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns all rr_cc coord concatenated into one (rr, cc) &quot;&quot;&quot;</span>
+        <span class="n">rr</span><span class="p">,</span> <span class="n">cc</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">rr_cc</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plist</span><span class="p">))</span>
+        <span class="k">return</span> <span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">rr</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">cc</span><span class="p">)</span> <span class="p">)</span>
+        
+    <span class="c"># Full attribute container sorted mappers        </span></div>
+<div class="viewcode-block" id="ParticleManager.sortby"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.manager.ParticleManager.sortby">[docs]</a>    <span class="k">def</span> <span class="nf">sortby</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="o">=</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Sort list by attribute/descriptor&quot;&quot;&quot;</span>
+
+        <span class="n">plistout</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plist</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">attrgetter</span><span class="p">(</span><span class="n">attr</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ascending</span><span class="p">:</span>
+            <span class="n">plistout</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">inplace</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">plist</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">plistout</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ParticleManager</span><span class="p">(</span><span class="n">plist</span><span class="o">=</span><span class="n">plistout</span><span class="p">)</span>
+        
+    </div>
+    <span class="k">def</span> <span class="nf">_rr_cc_color</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns rr_cc, color for each particle; useful to canvas &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[(</span><span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">rr_cc</span><span class="p">,</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plist</span><span class="p">]</span>
+    
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="ParticleManager.mem_address"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.manager.ParticleManager.mem_address">[docs]</a>    <span class="k">def</span> <span class="nf">mem_address</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return address in memory &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">ParticleManager</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__repr__</span><span class="p">()</span> <span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s">&#39;&gt;&#39;</span><span class="p">)</span>           
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="ParticleManager.ptypes"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.manager.ParticleManager.ptypes">[docs]</a>    <span class="k">def</span> <span class="nf">ptypes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; All UNIQUE particle types. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span> <span class="n">p</span><span class="o">.</span><span class="n">ptype</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plist</span> <span class="p">)</span> <span class="p">)</span>
+        </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="ParticleManager.ptype_count"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.manager.ParticleManager.ptype_count">[docs]</a>    <span class="k">def</span> <span class="nf">ptype_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Unique particle types in plist. &quot;&quot;&quot;</span>
+        <span class="n">ptypes</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span> <span class="n">p</span><span class="o">.</span><span class="n">ptype</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plist</span><span class="p">)</span> 
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span> <span class="p">(</span><span class="n">typ</span><span class="p">,</span> <span class="n">ptypes</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">typ</span><span class="p">))</span> <span class="k">for</span> <span class="n">typ</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ptypes</span><span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="ParticleManager.available"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.manager.ParticleManager.available">[docs]</a>    <span class="k">def</span> <span class="nf">available</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subtype</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Show all valid particle types.  Subtype is &#39;simple&#39; &#39;multi&#39; to</span>
+<span class="sd">            return groups of particles&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">subtype</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">GROUPEDTYPES</span><span class="p">[</span><span class="n">subtype</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span> <span class="p">(</span><span class="n">k</span><span class="o">+</span><span class="s">&#39;:&#39;</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span> 
+                          <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">GROUPEDTYPES</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="p">)</span> 
+        
+    <span class="c"># Later put this all in color stuff (changes colors) [NOT USED]</span></div>
+<div class="viewcode-block" id="ParticleManager.hsv_colors"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.manager.ParticleManager.hsv_colors">[docs]</a>    <span class="k">def</span> <span class="nf">hsv_colors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">_invert</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+            <span class="n">r</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">color</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.</span><span class="o">-</span><span class="n">r</span><span class="p">,</span> <span class="mf">1.</span><span class="o">-</span><span class="n">g</span><span class="p">,</span> <span class="mf">1.</span><span class="o">-</span><span class="n">b</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">p</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">_invert</span><span class="p">)</span>
+        </div>
+<div class="viewcode-block" id="ParticleManager.descriptor_table"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.manager.ParticleManager.descriptor_table">[docs]</a>    <span class="k">def</span> <span class="nf">descriptor_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outfile</span><span class="p">,</span> <span class="n">alphebetize</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Output all particle descriptors into a table. &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+        
+        
+    <span class="c"># Class methods</span>
+    <span class="c"># ------------</span></div>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="ParticleManager.from_labels"><a class="viewcode-back" href="../../../API/pyparty.tools.html#pyparty.tools.manager.ParticleManager.from_labels">[docs]</a>    <span class="k">def</span> <span class="nf">from_labels</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">labelarray</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;label&#39;</span><span class="p">,</span> <span class="n">colorbynum</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">pmin</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                    <span class="n">pmax</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Create ParticleManager from output of skimage.morphology.label</span>
+<span class="sd">        array.  Each item is written to a general Particle type.&quot;&quot;&quot;</span>
+
+        <span class="kn">from</span> <span class="nn">pyparty.shape_models.io</span> <span class="kn">import</span> <span class="n">LabeledParticle</span>
+        <span class="n">plist</span> <span class="o">=</span> <span class="p">[]</span>
+         
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">pmax</span><span class="p">:</span>
+            <span class="n">pmax</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">labelarray</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+            
+        <span class="k">if</span> <span class="n">pmin</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;pmin &lt; 10 may result in errors in some particle descriptors&quot;</span><span class="p">)</span>
+
+        <span class="c">#Background label is -1</span>
+        <span class="n">num</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">labelarray</span><span class="p">)</span>    
+       
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">num</span><span class="p">):</span>
+            
+            <span class="c"># SKIP BACKGROUND</span>
+            <span class="k">if</span> <span class="n">label</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="k">continue</span>
+            
+            <span class="c"># Is label size within pixel range</span>
+            <span class="n">freq</span> <span class="o">=</span> <span class="p">(</span><span class="n">labelarray</span><span class="o">==</span><span class="n">label</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">freq</span> <span class="o">&lt;</span> <span class="n">pmin</span> <span class="ow">or</span> <span class="n">freq</span> <span class="o">&gt;</span> <span class="n">pmax</span><span class="p">:</span>
+                <span class="k">continue</span>
+            
+            <span class="n">name</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s%s%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">NAMESEP</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span>
+                
+            <span class="n">rr_cc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">labelarray</span><span class="o">==</span><span class="n">label</span><span class="p">)</span>
+            <span class="n">particle</span> <span class="o">=</span> <span class="n">LabeledParticle</span><span class="p">(</span><span class="n">rr_cc</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">ptype</span><span class="o">=</span><span class="s">&#39;nd_label&#39;</span><span class="p">)</span>
+                        
+            <span class="k">if</span> <span class="n">colorbynum</span><span class="p">:</span>
+                <span class="n">cn</span> <span class="o">=</span> <span class="n">label</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="n">num</span><span class="p">)</span>     <span class="c">#Normalize to max value  </span>
+                <span class="n">color</span> <span class="o">=</span> <span class="p">(</span><span class="n">cn</span><span class="p">,</span> <span class="n">cn</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c">#Color defaults to random</span>
+                <span class="n">color</span> <span class="o">=</span> <span class="bp">None</span>
+
+            <span class="n">plist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="n">MetaParticle</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> 
+                                       <span class="n">particle</span><span class="o">=</span><span class="n">particle</span><span class="p">)</span> <span class="p">)</span>
+        <span class="k">return</span> <span class="n">cls</span><span class="p">(</span><span class="n">plist</span><span class="o">=</span><span class="n">plist</span><span class="p">)</span>      </div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">pyparty 0.2 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Adam Hughes.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

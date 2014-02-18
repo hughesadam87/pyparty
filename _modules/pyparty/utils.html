@@ -1,0 +1,665 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyparty.utils &mdash; pyparty 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="pyparty 0.2 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">pyparty 0.2 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pyparty.utils</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">random</span> 
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">os.path</span> <span class="kn">as</span> <span class="nn">op</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.colors</span> <span class="kn">as</span> <span class="nn">colors</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">matplotlib.cm</span> <span class="kn">as</span> <span class="nn">cm</span>
+
+<span class="kn">from</span> <span class="nn">matplotlib.axes</span> <span class="kn">import</span> <span class="n">Subplot</span>
+<span class="kn">from</span> <span class="nn">skimage</span> <span class="kn">import</span> <span class="n">img_as_float</span><span class="p">,</span> <span class="n">img_as_ubyte</span>
+<span class="kn">from</span> <span class="nn">skimage.color</span> <span class="kn">import</span> <span class="n">gray2rgb</span><span class="p">,</span> <span class="n">rgb2gray</span>
+<span class="kn">from</span> <span class="nn">skimage</span> <span class="kn">import</span> <span class="n">exposure</span>
+<span class="kn">from</span> <span class="nn">pyparty.config</span> <span class="kn">import</span> <span class="n">PCOLOR</span><span class="p">,</span> <span class="n">COLORTYPE</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span> 
+
+<span class="c"># COLOR RELATED ATTRIBUTES</span>
+<span class="n">CTYPE</span><span class="p">,</span> <span class="n">CBITS</span> <span class="o">=</span> <span class="n">COLORTYPE</span>
+
+<span class="n">ERRORMESSAGE</span> <span class="o">=</span> <span class="s">&#39;Valid color arguments include color names (&quot;aqua&quot;), &#39;</span> <span class="o">+</span>  \
+    <span class="s">&#39;rgb-tuples (.2, .4, 0.), ints/floats (0-</span><span class="si">%s</span><span class="s">) or (0.0-1.0) or&#39;</span> <span class="o">%</span> <span class="n">CBITS</span> <span class="o">+</span> \
+    <span class="s">&#39; hexcolorstrings (#00FFFF).&#39;</span> 
+
+<span class="c">#http://matplotlib.org/api/colors_api.html#matplotlib.colors.ColorConverter            </span>
+<span class="n">_rgb_from_string</span> <span class="o">=</span> <span class="n">colors</span><span class="o">.</span><span class="n">ColorConverter</span><span class="p">()</span><span class="o">.</span><span class="n">to_rgb</span>
+
+<div class="viewcode-block" id="UtilsError"><a class="viewcode-back" href="../../API/pyparty.html#pyparty.utils.UtilsError">[docs]</a><span class="k">class</span> <span class="nc">UtilsError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; General utilities error &quot;&quot;&quot;</span> 
+</div>
+<div class="viewcode-block" id="ColorError"><a class="viewcode-back" href="../../API/pyparty.html#pyparty.utils.ColorError">[docs]</a><span class="k">class</span> <span class="nc">ColorError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Particular to color-utilities &quot;&quot;&quot;</span>   
+</div>
+<div class="viewcode-block" id="rand_color"><a class="viewcode-back" href="../../API/pyparty.html#pyparty.utils.rand_color">[docs]</a><span class="k">def</span> <span class="nf">rand_color</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Random color of various styles &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">style</span> <span class="o">==</span> <span class="s">&#39;hex&#39;</span><span class="p">:</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">255</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="s">&#39;#</span><span class="si">%02X%02X%02X</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">r</span><span class="p">(),</span><span class="n">r</span><span class="p">(),</span><span class="n">r</span><span class="p">()))</span>
+
+    <span class="k">elif</span> <span class="n">style</span> <span class="o">==</span> <span class="s">&#39;bright&#39;</span><span class="p">:</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span> <span class="n">r</span><span class="p">(),</span> <span class="n">r</span><span class="p">(),</span> <span class="n">r</span><span class="p">()</span> <span class="p">)</span>
+        
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span>
+        <span class="k">return</span>  <span class="p">(</span> <span class="n">r</span><span class="p">(),</span> <span class="n">r</span><span class="p">(),</span> <span class="n">r</span><span class="p">()</span> <span class="p">)</span>
+    
+    </div>
+<span class="k">def</span> <span class="nf">_pix_norm</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">imax</span><span class="o">=</span><span class="n">CBITS</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Normalize pixel intensity to colorbit &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="n">imax</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ColorError</span><span class="p">(</span><span class="s">&quot;Pixel intensity cannot exceed </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">imax</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">/</span> <span class="n">imax</span>
+
+
+<div class="viewcode-block" id="copyarray"><a class="viewcode-back" href="../../API/pyparty.html#pyparty.utils.copyarray">[docs]</a><span class="k">def</span> <span class="nf">copyarray</span><span class="p">(</span><span class="n">fcn</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Decorator to return copy of an array. ARRAY MUST BE FIRST ARG!! &quot;&quot;&quot;</span>
+    <span class="nd">@functools.wraps</span><span class="p">(</span><span class="n">fcn</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span> <span class="c">#why aren&#39;t kwargs found?</span>
+        <span class="n">args</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+        <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">fcn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">wrapper</span>
+
+</div>
+<div class="viewcode-block" id="to_normrgb"><a class="viewcode-back" href="../../API/pyparty.html#pyparty.utils.to_normrgb">[docs]</a><span class="k">def</span> <span class="nf">to_normrgb</span><span class="p">(</span><span class="n">color</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Returns an rgb len(3) tuple on range 0.0-1.0 with several input styles; </span>
+<span class="sd">        wraps matplotlib.color.ColorConvert.  If None, returns config.PCOLOR by</span>
+<span class="sd">        default.&quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">color</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="n">PCOLOR</span>
+
+    <span class="c"># If iterable, assume 3-channel RGB</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="s">&#39;__iter__&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">color</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ColorError</span><span class="p">(</span><span class="s">&quot;Multi-channel color must be 3-channel;&quot;</span>
+                             <span class="s">&quot; recieved </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">color</span><span class="p">))</span>
+        <span class="n">r</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">color</span>
+        <span class="k">if</span> <span class="n">r</span> <span class="o">&lt;=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">g</span> <span class="o">&lt;=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">b</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">r</span> <span class="o">&gt;=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">g</span> <span class="o">&gt;=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">b</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">r</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">_pix_norm</span><span class="p">,</span> <span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="p">)</span>        
+            <span class="k">return</span> <span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ColorError</span><span class="p">(</span><span class="s">&quot;Multi-channel color style ambiguous. (r, g, b)&quot;</span>
+                <span class="s">&quot; elements must all be &lt; 1 or all &gt; 1 (normalized to </span><span class="si">%s</span><span class="s"> pixels)&quot;</span> 
+                             <span class="o">%</span> <span class="n">CBITS</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">color</span> <span class="o">==</span> <span class="s">&#39;random&#39;</span><span class="p">:</span>
+            <span class="n">color</span> <span class="o">=</span> <span class="n">rand_color</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="s">&#39;hex&#39;</span><span class="p">)</span>            
+        <span class="k">return</span> <span class="n">_rgb_from_string</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+
+    <span class="c"># If single channel --&gt; map accross channels EG 22 --&gt; (22, 22, 22)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">color</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">color</span> <span class="o">=</span> <span class="n">_pix_norm</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">color</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">color</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="mf">1.</span><span class="p">,</span><span class="mf">1.</span><span class="p">,</span><span class="mf">1.</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">)</span>
+
+    <span class="k">raise</span> <span class="n">ColorError</span><span class="p">(</span><span class="n">ERRORMESSAGE</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="any2rgb"><a class="viewcode-back" href="../../API/pyparty.html#pyparty.utils.any2rgb">[docs]</a><span class="k">def</span> <span class="nf">any2rgb</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Returns a normalized float 3-channel array regardless of original</span>
+<span class="sd">    dtype and channel.  All valid pyparty images must pass this</span>
+
+<span class="sd">    name : str</span>
+<span class="sd">        Name of array which will be referenced in logger messages&quot;&quot;&quot;</span>
+
+    <span class="c"># *****</span>
+    <span class="c"># Quick way to convert to float (don&#39;t use img_as_float becase we want</span>
+    <span class="c"># to enforce that upperlimit of 255 is checked</span>
+    <span class="n">array</span> <span class="o">=</span> <span class="n">array</span> <span class="o">/</span> <span class="mf">1.0</span>  
+
+    <span class="c"># Returns scalar for 1-channel OR 3-channel</span>
+    <span class="k">if</span> <span class="n">array</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="c"># For 8-bit, divide by 255!</span>
+        <span class="k">if</span> <span class="n">array</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">&gt;</span> <span class="n">COLORTYPE</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="n">BackgroundError</span><span class="p">(</span><span class="s">&quot;Only 8bit ints are supported for now&quot;</span><span class="p">)</span>
+        <span class="n">array</span> <span class="o">=</span> <span class="n">array</span> <span class="o">/</span> <span class="n">COLORTYPE</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> 
+
+    <span class="k">if</span> <span class="n">array</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">array</span> 
+
+    <span class="k">elif</span> <span class="n">array</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> color has been converted (1-channel to 3-channel RGB)&#39;</span>
+                    <span class="o">%</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">gray2rgb</span><span class="p">(</span><span class="n">array</span><span class="p">)</span>
+
+    <span class="k">raise</span> <span class="n">BackgroundError</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> must be 2 or 3 dimensional array!&#39;</span> <span class="o">%</span> <span class="n">name</span> <span class="p">)</span>    
+
+</div>
+<div class="viewcode-block" id="coords_in_image"><a class="viewcode-back" href="../../API/pyparty.html#pyparty.utils.coords_in_image">[docs]</a><span class="k">def</span> <span class="nf">coords_in_image</span><span class="p">(</span><span class="n">rr_cc</span><span class="p">,</span> <span class="n">shape</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Taken almost directly from  skimage.draw().  Decided best not to</span>
+<span class="sd">        do any formatting implicitly in the shape models.</span>
+
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        rr_cc : len(2) iter</span>
+<span class="sd">            rr, cc returns from skimage.draw(); or shape_models.rr_cc</span>
+
+<span class="sd">        shape : len(2) iter</span>
+<span class="sd">            image dimensions (ie 512 X 512)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        (rr, cc) : tuple(rr[mask], cc[mask])</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="n">rr</span><span class="p">,</span> <span class="n">cc</span> <span class="o">=</span> <span class="n">rr_cc</span> 
+    <span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">rr</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">rr</span> <span class="o">&lt;</span> <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">cc</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">cc</span> <span class="o">&lt;</span> <span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">rr</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span> <span class="n">cc</span><span class="p">[</span><span class="n">mask</span><span class="p">])</span>            
+
+</div>
+<div class="viewcode-block" id="rgb2uint"><a class="viewcode-back" href="../../API/pyparty.html#pyparty.utils.rgb2uint">[docs]</a><span class="k">def</span> <span class="nf">rgb2uint</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">warnmsg</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Returns color image as 8-bit unsigned (0-255) int.  Unsigned 8bit gray </span>
+<span class="sd">    values are safer to plotting; so enforced throughout pyparty.&quot;&quot;&quot;</span>
+     <span class="c"># img 127 --&gt; ubyte of 123... </span>
+        <span class="c"># Try this:</span>
+        <span class="c">#	print c.grayimage.max(), c.image.max() * 255, img_as_uint(lena()).max()</span>
+
+    <span class="c"># DOES NOT CHECK IMAGE DIMENSIONS; LEAVES THAT TO CALLING OBJECT</span>
+    <span class="n">grayimg</span> <span class="o">=</span> <span class="n">img_as_ubyte</span><span class="p">(</span> <span class="n">rgb2gray</span><span class="p">(</span><span class="n">image</span><span class="p">)</span> <span class="p">)</span>
+    <span class="k">if</span> <span class="n">warnmsg</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">warnmsg</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">warnmsg</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;3-Channel image converted to 1-channel gray.&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">grayimg</span>    
+    
+</div>
+<div class="viewcode-block" id="where_is_particle"><a class="viewcode-back" href="../../API/pyparty.html#pyparty.utils.where_is_particle">[docs]</a><span class="k">def</span> <span class="nf">where_is_particle</span><span class="p">(</span><span class="n">rr_cc</span><span class="p">,</span> <span class="n">shape</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Quickly evaluates if particle rr, cc is fully within, partically in,</span>
+<span class="sd">        or is outside and image.  Does this by comparin shapes, so is fast,</span>
+<span class="sd">        but does not track which portions are outside, inside or on edge.</span>
+
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        rr_cc : len(2) iter</span>
+<span class="sd">            rr, cc returns from skimage.draw(); or shape_models.rr_cc</span>
+
+<span class="sd">        shape : len(2) iter</span>
+<span class="sd">            image dimensions (ie 512 X 512)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        &#39;in&#39; / &#39;out&#39; / &#39;edge&#39; : str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+
+    <span class="n">rr_cc_in</span> <span class="o">=</span> <span class="n">coords_in_image</span><span class="p">(</span><span class="n">rr_cc</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span>
+
+    <span class="c"># Get dimensions of rr_cc vs. rr_cc_in</span>
+    <span class="n">dim_full</span> <span class="o">=</span> <span class="p">(</span> <span class="nb">len</span><span class="p">(</span><span class="n">rr_cc</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">len</span><span class="p">(</span><span class="n">rr_cc</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="p">)</span>
+    <span class="n">dim_in</span> <span class="o">=</span> <span class="p">(</span> <span class="nb">len</span><span class="p">(</span><span class="n">rr_cc_in</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">len</span><span class="p">(</span><span class="n">rr_cc_in</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="p">)</span> 
+
+    <span class="k">if</span> <span class="n">dim_in</span> <span class="o">==</span> <span class="n">dim_full</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&#39;in&#39;</span>
+    <span class="k">elif</span> <span class="n">dim_in</span> <span class="o">==</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&#39;out&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&#39;edge&#39;</span>
+    
+</div>
+<div class="viewcode-block" id="rr_cc_box"><a class="viewcode-back" href="../../API/pyparty.html#pyparty.utils.rr_cc_box">[docs]</a><span class="k">def</span> <span class="nf">rr_cc_box</span><span class="p">(</span><span class="n">rr_cc</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Center the rr_cc values in a binarized box.&quot;&quot;&quot;</span>
+
+    <span class="n">rr</span><span class="p">,</span> <span class="n">cc</span> <span class="o">=</span> <span class="n">rr_cc</span>
+    <span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span><span class="p">,</span> <span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">=</span> <span class="n">rr</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">rr</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">cc</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">cc</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">pad</span><span class="p">:</span>
+        <span class="n">pad</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">pad</span><span class="p">)</span>
+        <span class="n">ymin</span><span class="p">,</span> <span class="n">xmin</span> <span class="o">=</span> <span class="n">ymin</span> <span class="o">-</span> <span class="n">pad</span><span class="p">,</span> <span class="n">xmin</span> <span class="o">-</span> <span class="n">pad</span>
+        <span class="n">ymax</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">=</span> <span class="n">ymax</span> <span class="o">+</span> <span class="n">pad</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">+</span> <span class="n">pad</span>     
+
+    <span class="c"># Center rr, cc mins to 0 index</span>
+    <span class="n">rr_trans</span> <span class="o">=</span> <span class="n">rr</span> <span class="o">-</span> <span class="n">ymin</span>
+    <span class="n">cc_trans</span> <span class="o">=</span> <span class="n">cc</span> <span class="o">-</span> <span class="n">xmin</span>
+    <span class="n">rr_cc_trans</span> <span class="o">=</span> <span class="p">(</span><span class="n">rr_trans</span><span class="p">,</span> <span class="n">cc_trans</span><span class="p">)</span>   
+
+    <span class="n">dx</span> <span class="o">=</span> <span class="p">(</span><span class="n">xmax</span><span class="o">-</span><span class="n">xmin</span><span class="p">)</span> 
+    <span class="n">dy</span> <span class="o">=</span> <span class="p">(</span><span class="n">ymax</span><span class="o">-</span><span class="n">ymin</span><span class="p">)</span> 
+
+    <span class="n">rect</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span> <span class="p">(</span><span class="n">dy</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">dx</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="s">&#39;uint8&#39;</span> <span class="p">)</span> 
+    <span class="n">rect</span><span class="p">[</span><span class="n">rr_cc_trans</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">rect</span>   
+
+</div>
+<span class="k">def</span> <span class="nf">_parse_path</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Validate a path; if None, set to cwd with timestamp.&quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="n">path</span><span class="o">==</span><span class="bp">True</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">time</span> <span class="k">as</span> <span class="n">tstamp</span>
+        <span class="n">dirname</span><span class="p">,</span> <span class="n">basename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="s">&#39;canvas_</span><span class="si">%.0f</span><span class="s">.png&#39;</span> <span class="o">%</span> <span class="n">tstamp</span><span class="p">()</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span> <span class="n">basename</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Saving to </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">path</span><span class="p">)</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">op</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">UtilsError</span><span class="p">(</span><span class="s">&#39;Path exists: &quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="n">path</span><span class="p">)</span>    
+    
+    <span class="c"># PIL raises ambiguous KeyError </span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">op</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">path</span><span class="p">)[</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="n">UtilsError</span><span class="p">(</span><span class="s">&quot;Please add an extension to save path&quot;</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">path</span>
+
+
+<span class="k">def</span> <span class="nf">_parse_ax</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Parse plotting *args, **kwargs for an AxesSubplot.  This allows for</span>
+<span class="sd">    axes and colormap to be passed as keyword or position. </span>
+<span class="sd">    Returns AxesSubplot, colormap, kwargs with *args removed&quot;&quot;&quot;</span>
+
+    <span class="n">axes</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;axes&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>       
+    <span class="n">cmap</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;cmap&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">axes</span><span class="p">:</span>
+        <span class="n">indicies</span> <span class="o">=</span> <span class="p">[</span><span class="n">idx</span> <span class="k">for</span> <span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">arg</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">Subplot</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">indicies</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">axes</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">indicies</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">UtilsError</span><span class="p">(</span><span class="s">&quot;Multiple axes not understood&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+            <span class="n">axes</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">indicies</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>      
+            
+    <span class="k">if</span> <span class="n">args</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">cmap</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">UtilsError</span><span class="p">(</span><span class="s">&quot;Please only pass a colormap and/or Axes&quot;</span>
+                 <span class="s">&quot; subplot to Canvas plotting&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;cmap&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>            
+            
+    <span class="c"># If string, replace cmap with true cmap instance (used by show())</span>
+    <span class="k">if</span> <span class="s">&#39;cmap&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">cmap</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;cmap&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cmap</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">cmap</span> <span class="o">!=</span> <span class="s">&#39;pbinary&#39;</span> <span class="ow">and</span> <span class="n">cmap</span> <span class="o">!=</span> <span class="s">&#39;pbinary_r&#39;</span><span class="p">:</span> <span class="c">#special canvas word</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;cmap&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="n">cmap</span><span class="p">)</span>    
+        
+    <span class="k">return</span> <span class="n">axes</span><span class="p">,</span> <span class="n">kwargs</span>
+
+<span class="c"># showim(img, ax)</span>
+<div class="viewcode-block" id="showim"><a class="viewcode-back" href="../../API/pyparty.html#pyparty.utils.showim">[docs]</a><span class="k">def</span> <span class="nf">showim</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Similar to imshow with a few more keywords&quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">UtilsError</span><span class="p">(</span><span class="s">&quot;First argument to showim() must be an ndarray/image, &quot;</span>
+            <span class="s">&quot;got </span><span class="si">%s</span><span class="s"> instead.&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">image</span><span class="p">))</span>
+
+    <span class="n">title</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;title&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="n">axes</span><span class="p">,</span> <span class="n">kwargs</span> <span class="o">=</span> <span class="n">_parse_ax</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">axes</span><span class="p">:</span>
+        <span class="n">axes</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>      <span class="c"># matplotlib API asymmetry</span>
+        <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">axes</span>        
+
+    <span class="k">if</span> <span class="n">title</span><span class="p">:</span>
+        <span class="n">axes</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">axes</span>    
+
+</div>
+<div class="viewcode-block" id="splot"><a class="viewcode-back" href="../../API/pyparty.html#pyparty.utils.splot">[docs]</a><span class="k">def</span> <span class="nf">splot</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Wrapper to plt.subplots(r, c).  Will return flattened axes and discard</span>
+<span class="sd">    figure.  &#39;flatten&#39; keyword will not flatten if the plt.subplots() return</span>
+<span class="sd">    is not itself flat.  If flatten=False and fig=True, standard plt.subplots</span>
+<span class="sd">    behavior is recovered.&quot;&quot;&quot;</span>
+
+    <span class="n">flatten</span> <span class="o">=</span> <span class="n">kwds</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;flatten&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+    <span class="n">_return_fig</span> <span class="o">=</span> <span class="n">kwds</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;fig&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+
+    <span class="n">fig</span><span class="p">,</span> <span class="n">args</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span>
+
+    <span class="c"># Seems like sometimes returns flat, sometimes returns list of lists</span>
+    <span class="c"># so either way I flatten    </span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s">&#39;__iter__&#39;</span><span class="p">):</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="n">args</span><span class="p">]</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="n">ax</span><span class="o">.</span><span class="n">axes</span> <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">args</span><span class="p">]</span> 
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">flatten</span><span class="p">:</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="n">ax</span><span class="o">.</span><span class="n">axes</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">args</span> <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">row</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">ax</span><span class="o">.</span><span class="n">axes</span> <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">row</span><span class="p">)</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">args</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">_return_fig</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">args</span>
+
+<span class="c"># Used with crop</span></div>
+<span class="k">def</span> <span class="nf">_get_xyshape</span><span class="p">(</span><span class="n">image</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns first two dimensions of an image, whether it is 2d or 3d, </span>
+<span class="sd">       as is the case of colored images.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image: a ndarray</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">    -----------</span>
+<span class="sd">    img_xf, img_yf: shape of first and second dimension of array</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    UtilsError</span>
+<span class="sd">        If image shape is not 2 or 3.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">ndim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">img_xf</span><span class="p">,</span> <span class="n">img_yf</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span>
+
+    <span class="k">elif</span> <span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">img_xf</span><span class="p">,</span> <span class="n">img_yf</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">UtilsError</span><span class="p">(</span><span class="s">&#39;Image must have dimensions 2 or 3 (received </span><span class="si">%s</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="n">ndim</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">img_xf</span><span class="p">,</span> <span class="n">img_yf</span>
+
+
+<div class="viewcode-block" id="crop"><a class="viewcode-back" href="../../API/pyparty.html#pyparty.utils.crop">[docs]</a><span class="k">def</span> <span class="nf">crop</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">coords</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Crops a rectangle (xi, yi, xf, yf) from an image.  If image</span>
+<span class="sd">       is 3-dimenionsal (eg color image), slices on first two dimensions.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image: a ndarray</span>
+<span class="sd">    coords : (xi, yi, xf, yf)</span>
+<span class="sd">        lenngth-4 iterable with coordiantes corresponding to rectangle corners</span>
+<span class="sd">    in order (xi, yi, xf, yf)</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Allows for xf/yf &gt; xi/yi for more flexible rectangle drawing.</span>
+<span class="sd">    Please refer to the numpy indexing API for de-facto slicing. </span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    UtilsError</span>
+<span class="sd">    	If more or less than 4 coordinates are passed.</span>
+<span class="sd">        If x or y rectangle coordinates exceed the range of image (image.shape)</span>
+
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from skimage import data</span>
+<span class="sd">    &gt;&gt;&gt; lena = img_as_float(data.lena())</span>
+<span class="sd">    &gt;&gt;&gt; crop(lena, (0,0,400,300))	</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">img_xf</span><span class="p">,</span> <span class="n">img_yf</span> <span class="o">=</span> <span class="n">_get_xyshape</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">xi</span><span class="p">,</span> <span class="n">yi</span><span class="p">,</span> <span class="n">xf</span><span class="p">,</span> <span class="n">yf</span> <span class="o">=</span> <span class="n">coords</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">UtilsError</span><span class="p">(</span><span class="s">&quot;Coordinates must be lenth four iterable of form&quot;</span>
+                         <span class="s">&quot;(xi, yi, xf, yf).  Instead, received </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">coords</span><span class="p">)</span>
+
+
+    <span class="c"># Make sure crop limits are in range of image</span>
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">(</span><span class="n">xi</span><span class="p">,</span> <span class="n">xf</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="n">img_xf</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">UtilsError</span><span class="p">(</span><span class="s">&#39;Cropping bounds (</span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">) exceed&#39;</span>
+                             <span class="s">&#39; image horizontal range (</span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">xi</span><span class="p">,</span> <span class="n">xf</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">img_xf</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="p">(</span><span class="n">yi</span><span class="p">,</span> <span class="n">yf</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">y</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">y</span> <span class="o">&gt;</span> <span class="n">img_yf</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">UtilsError</span><span class="p">(</span><span class="s">&#39;Cropping bounds (</span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">) exceed&#39;</span>
+                             <span class="s">&#39; image vertical range (</span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">yi</span><span class="p">,</span> <span class="n">yf</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">img_yf</span><span class="p">))</span>
+
+    <span class="c"># Reverse bounds if final exceeds initial</span>
+    <span class="k">if</span> <span class="n">yf</span> <span class="o">&lt;</span> <span class="n">yi</span><span class="p">:</span>
+        <span class="n">yi</span><span class="p">,</span> <span class="n">yf</span> <span class="o">=</span> <span class="n">yf</span><span class="p">,</span> <span class="n">yi</span>
+
+    <span class="k">if</span> <span class="n">xf</span> <span class="o">&lt;</span> <span class="n">xi</span><span class="p">:</span>
+        <span class="n">xi</span><span class="p">,</span> <span class="n">xf</span> <span class="o">=</span> <span class="n">xf</span><span class="p">,</span> <span class="n">xi</span>
+
+    <span class="n">ndim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="p">[</span><span class="n">yi</span><span class="p">:</span><span class="n">yf</span><span class="p">,</span> <span class="n">xi</span><span class="p">:</span><span class="n">xf</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="p">[</span><span class="n">yi</span><span class="p">:</span><span class="n">yf</span><span class="p">,</span> <span class="n">xi</span><span class="p">:</span><span class="n">xf</span><span class="p">]</span>   
+
+    <span class="k">return</span> <span class="n">image</span>
+</div>
+<div class="viewcode-block" id="mem_address"><a class="viewcode-back" href="../../API/pyparty.html#pyparty.utils.mem_address">[docs]</a><span class="k">def</span> <span class="nf">mem_address</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Return memory address string for a python object.  Object must have</span>
+<span class="sd">    default python object __repr__ (ie it would look something like:</span>
+<span class="sd">        &lt;pyparty.tools.grids.CartesianGrid object at 0x3ba2fb0&gt;</span>
+<span class="sd">    The address is merely returned by string parsing. &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">__repr__</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">E</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">UtilsError</span><span class="p">(</span><span class="s">&quot;Failed to return memory address by string parsing.  &quot;</span>
+                         <span class="s">&quot;Recieved following message: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">E</span><span class="o">.</span><span class="n">message</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">out</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s">&quot;&#39;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s">&#39;&gt;&#39;</span><span class="p">)</span>
+    
+    </div>
+<div class="viewcode-block" id="grayhist"><a class="viewcode-back" href="../../API/pyparty.html#pyparty.utils.grayhist">[docs]</a><span class="k">def</span> <span class="nf">grayhist</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">histkwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Plot an image along with its histogram and cumulative histogram.</span>
+<span class="sd">    </span>
+<span class="sd">    ADAPTED FROM SCIKIT IMAGE GALLERY</span>
+<span class="sd">    http://scikit-image.org/docs/dev/auto_examples/plot_local_equalize.html</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    bins : (Number bins, defaults to 256)</span>
+
+<span class="sd">    cdf : bool(False) </span>
+<span class="sd">        Plot cumulative distribution function over histogram.</span>
+<span class="sd">        </span>
+<span class="sd">    xlim : Set xlimits of histogram.</span>
+<span class="sd">        Very common to histogram so decided to promote it.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple : (n, bins, patches) or ([n0, n1, ...], bins, [patches0, patches1,...])</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    See matplotlib hist API for all plt.hist() parameters.</span>
+<span class="sd">    http://matplotlib.org/api/pyplot_api.html</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="n">img</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">rgb2uint</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">warnmsg</span> <span class="o">=</span> <span class="bp">True</span><span class="p">)</span>
+    
+    <span class="c"># Histogram plotting kwargs</span>
+    <span class="n">bins</span> <span class="o">=</span> <span class="n">histkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;bins&#39;</span><span class="p">,</span> <span class="mi">256</span><span class="p">)</span> <span class="c">#used several places</span>
+    <span class="n">cdf</span> <span class="o">=</span> <span class="n">histkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;cdf&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+    <span class="n">histkwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&#39;color&#39;</span><span class="p">,</span> <span class="s">&#39;black&#39;</span><span class="p">)</span>
+    <span class="n">histkwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&#39;alpha&#39;</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
+    <span class="n">histkwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&#39;orientation&#39;</span><span class="p">,</span> <span class="s">&#39;vertical&#39;</span><span class="p">)</span>
+    
+    <span class="c"># CDF line plotting kwargs</span>
+    <span class="n">lcolor</span> <span class="o">=</span> <span class="n">histkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;lcolor&#39;</span><span class="p">,</span> <span class="s">&#39;red&#39;</span><span class="p">)</span>
+    <span class="n">lw</span> <span class="o">=</span> <span class="n">histkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;lw&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>    
+    <span class="n">ls</span> <span class="o">=</span> <span class="n">histkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;ls&#39;</span><span class="p">,</span> <span class="s">&#39;-&#39;</span><span class="p">)</span>
+    
+    <span class="n">xlim</span> <span class="o">=</span> <span class="n">histkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;xlim&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">histkwargs</span><span class="p">[</span><span class="s">&#39;orientation&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;horizontal&#39;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">UtilsError</span><span class="p">(</span><span class="s">&quot;horizontal orientation not supported.&quot;</span><span class="p">)</span>
+    
+    <span class="n">axes</span><span class="p">,</span> <span class="n">kwargs</span> <span class="o">=</span> <span class="n">_parse_ax</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">histkwargs</span><span class="p">)</span>    
+    
+    <span class="c"># Matplotlib</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">axes</span><span class="p">:</span>
+        <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+    
+    <span class="c"># Display histogram</span>
+    <span class="n">histout</span> <span class="o">=</span> <span class="n">axes</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">bins</span><span class="o">=</span><span class="n">bins</span><span class="p">,</span> <span class="o">**</span><span class="n">histkwargs</span><span class="p">)</span>
+    <span class="n">axes</span><span class="o">.</span><span class="n">ticklabel_format</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s">&#39;y&#39;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s">&#39;scientific&#39;</span><span class="p">,</span> <span class="n">scilimits</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+    <span class="n">axes</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s">&#39;Pixel intensity&#39;</span><span class="p">)</span>
+    
+    <span class="c"># Display cumulative distribution</span>
+    <span class="k">if</span> <span class="n">cdf</span><span class="p">:</span>
+        <span class="n">ax_cdf</span> <span class="o">=</span> <span class="n">axes</span><span class="o">.</span><span class="n">twinx</span><span class="p">()</span>
+        <span class="n">img_cdf</span><span class="p">,</span> <span class="n">bins</span> <span class="o">=</span> <span class="n">exposure</span><span class="o">.</span><span class="n">cumulative_distribution</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">bins</span><span class="p">)</span>
+        <span class="n">ax_cdf</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">bins</span><span class="p">,</span> <span class="n">img_cdf</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">lcolor</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="n">lw</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="n">ls</span><span class="p">)</span>
+    
+    <span class="c"># Set the range based on scikit image dtype range </span>
+    <span class="c"># (not quite right for rgb)</span>
+    <span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">=</span> <span class="n">pp_dtype_range</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">xlim</span><span class="p">:</span>
+        <span class="n">rmin</span><span class="p">,</span> <span class="n">rmax</span> <span class="o">=</span> <span class="n">xlim</span>
+        <span class="k">if</span> <span class="n">rmin</span> <span class="o">&lt;</span> <span class="n">xmin</span> <span class="ow">or</span> <span class="n">rmax</span> <span class="o">&gt;</span> <span class="n">xmax</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">UtilsError</span><span class="p">(</span><span class="s">&quot;Range </span><span class="si">%s</span><span class="s"> out of bounds (</span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span>
+                             <span class="p">(</span><span class="n">xlim</span><span class="p">,</span> <span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">=</span> <span class="n">xlim</span>
+    <span class="n">axes</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">histout</span>
+    
+    </div>
+<div class="viewcode-block" id="rgbhist"><a class="viewcode-back" href="../../API/pyparty.html#pyparty.utils.rgbhist">[docs]</a><span class="k">def</span> <span class="nf">rgbhist</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; See imagej version &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">img</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">gray2rgb</span><span class="p">(</span><span class="n">img</span><span class="p">)</span> 
+        <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Converting 1-channel gray image to rgb&quot;</span><span class="p">)</span>
+
+    <span class="n">bins</span> <span class="o">=</span> <span class="n">histkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;bins&#39;</span><span class="p">,</span> <span class="mi">256</span><span class="p">)</span> <span class="c">#used several places</span>
+    <span class="n">cdf</span> <span class="o">=</span> <span class="n">histkwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;cdf&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        
+    <span class="n">axes</span><span class="p">,</span> <span class="n">kwargs</span> <span class="o">=</span> <span class="n">_parse_ax</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">histkwargs</span><span class="p">)</span> 
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">axes</span><span class="p">:</span>
+        <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>    
+        
+    <span class="c"># MAYBE STILL USE DTYPE FROM SKIMAGE IN CASE USERS PASS THEIR OWN RGB</span>
+    <span class="c"># IMAGE IN HERE OUTISDE OF PYPARTY?</span>
+    <span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span>
+        
+    <span class="c"># Can probably just call histograam 3 times w/ color arg</span>
+    <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+</div>
+<div class="viewcode-block" id="pp_dtype_range"><a class="viewcode-back" href="../../API/pyparty.html#pyparty.utils.pp_dtype_range">[docs]</a><span class="k">def</span> <span class="nf">pp_dtype_range</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Similar to skimage.utils.dtype_range, returns upper and lower limits</span>
+<span class="sd">    on image of 1-channel and 3-channel.  Can&#39;t use skimage because it</span>
+<span class="sd">    allows for negative floats, which we avoid in 3-channel images.&quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="n">img</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span>
+    <span class="k">elif</span> <span class="n">img</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">=</span>  <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span> 
+    <span class="k">return</span> <span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">pyparty 0.2 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Adam Hughes.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,216 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>logging_utils Package &mdash; pyparty 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="pyparty 0.2 documentation" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">pyparty 0.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">logging_utils Package</a><ul>
+<li><a class="reference internal" href="#module-pyparty.logging_utils.logger"><tt class="docutils literal"><span class="pre">logger</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/API/pyparty.logging_utils.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="logging-utils-package">
+<h1>logging_utils Package<a class="headerlink" href="#logging-utils-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-pyparty.logging_utils.logger">
+<span id="logger-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">logger</span></tt> Module<a class="headerlink" href="#module-pyparty.logging_utils.logger" title="Permalink to this headline">¶</a></h2>
+<p>Custom logging tools.  configure_logger() returns a root_logger with separate
+file and stream handlers.  log() is a flexible decorator that logs a function,
+displays its arguments and their values, and formatts errors different based
+on the value of logging.trace; logging.testmode.</p>
+<p>In the future, this should be consolidated into a Class</p>
+<dl class="exception">
+<dt id="pyparty.logging_utils.logger.LogExit">
+<em class="property">exception </em><tt class="descclassname">pyparty.logging_utils.logger.</tt><tt class="descname">LogExit</tt><a class="reference internal" href="../_modules/pyparty/logging_utils/logger.html#LogExit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.logging_utils.logger.LogExit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.SystemExit</span></tt></p>
+<p>Custom exit</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyparty.logging_utils.logger.configure_logger">
+<tt class="descclassname">pyparty.logging_utils.logger.</tt><tt class="descname">configure_logger</tt><big>(</big><em>screenlog=True</em>, <em>logfile=None</em>, <em>screen_level=20</em>, <em>file_level=10</em>, <em>time=False</em>, <em>name=None</em>, <em>**filekws</em><big>)</big><a class="reference internal" href="../_modules/pyparty/logging_utils/logger.html#configure_logger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.logging_utils.logger.configure_logger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instantiates a logger with streamhandler, filehandler or both.
+Very similar to logging.basicConfig except it allows for simultaneous
+to-screen and to-file output.</p>
+<dl class="docutils">
+<dt>screenlog <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd>Log handler writes to screen.</dd>
+<dt>logfile <span class="classifier-delimiter">:</span> <span class="classifier">str (filename)</span></dt>
+<dd>Filename to which loghandler writes</dd>
+<dt>screen_level <span class="classifier-delimiter">:</span> <span class="classifier">str of logging.CATEGORY or int</span></dt>
+<dd>Set logging level for screen handler (error, info, debug etc...)</dd>
+<dt>file_level <span class="classifier-delimiter">:</span> <span class="classifier">str of logging.CATEGORY or int</span></dt>
+<dd>Set logging level for file handler (error, info, debug etc...)</dd>
+<dt>time <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><dl class="first last docutils">
+<dt>Prefix log messages with date and time IE:</dt>
+<dd><dl class="first docutils">
+<dt>08-12 10:45:27 DEBUG    path/to/module &#8220;message&#8221;</dt>
+<dd>vs.</dd>
+</dl>
+<p class="last">DEBUG   path/to/module &#8220;message&#8221;</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<blockquote>
+<div><p>Apparently one must set the root logger level to info, regardless
+of the child handler level settings to get everything working.  To
+limit the handler to just ONE type of error, it then requires the
+use of Filters.</p>
+<p>The show_all keyword merely changes the root logger name between
+__name__ and &#8216;&#8217; which gives this behavior.</p>
+</div></blockquote>
+<p>logger : logging.Logger instance</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyparty.logging_utils.logger.decode_lvl">
+<tt class="descclassname">pyparty.logging_utils.logger.</tt><tt class="descname">decode_lvl</tt><big>(</big><em>level</em><big>)</big><a class="reference internal" href="../_modules/pyparty/logging_utils/logger.html#decode_lvl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.logging_utils.logger.decode_lvl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts logging level code (&#8216;info, &#8216;debug&#8217;) to int for logging.log()</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyparty.logging_utils.logger.log">
+<tt class="descclassname">pyparty.logging_utils.logger.</tt><tt class="descname">log</tt><big>(</big><em>level='info'</em>, <em>show_args=False</em>, <em>show_values=False</em>, <em>crop_values=True</em>, <em>log_name=None</em>, <em>method=False</em><big>)</big><a class="reference internal" href="../_modules/pyparty/logging_utils/logger.html#log"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.logging_utils.logger.log" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorates a function and logs its call signature.</p>
+<dl class="docutils">
+<dt>level <span class="classifier-delimiter">:</span> <span class="classifier">str/int </span></dt>
+<dd>valid logging level (eg &#8216;info&#8217;, &#8216;error&#8217;, 40) at which to log mesage.</dd>
+<dt>show_args <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><dl class="first last docutils">
+<dt>If true, function arguments names will be displayed.  For example:</dt>
+<dd>foo(&#8216;arg1&#8217;, &#8216;arg2&#8217;, &#8216;arg3&#8217;)</dd>
+</dl>
+</dd>
+<dt>show_values <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><dl class="first last docutils">
+<dt>If true, function argument values will be display.  For example:</dt>
+<dd>foo( 30, &lt;FooObject at 320323&gt;, {&#8216;bar&#8217;:&#8217;baz&#8217;}</dd>
+</dl>
+</dd>
+<dt>If show_args and show_values, call signature is reconstructed fully:</dt>
+<dd>foo ( &#8216;arg1&#8217; = 30, &#8216;arg2&#8217; = &lt;FooObject at 320323&gt; ...)</dd>
+<dt>crop_values <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd>If true, values longer than certain character limit ( utils._fmt_word() )
+will be truncated to end with &#8221;...&#8221;.  This is useful when function 
+arguments are long lists of values.</dd>
+<dt>log_name <span class="classifier-delimiter">:</span> <span class="classifier">str or None</span></dt>
+<dd>This decorator does not attempt to inspect the function it is wrapping,
+so log_name is used to explicitly pass the name which will go to getLogger().</dd>
+</dl>
+<blockquote>
+<div>description</div></blockquote>
+<dl class="docutils">
+<dt>attr <span class="classifier-delimiter">:</span> <span class="classifier">type</span></dt>
+<dd>description</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyparty.logging_utils.logger.logclass">
+<tt class="descclassname">pyparty.logging_utils.logger.</tt><tt class="descname">logclass</tt><big>(</big><em>public_lvl='info'</em>, <em>private_lvl='debug'</em>, <em>skip=</em><span class="optional">[</span><span class="optional">]</span>, <em>**logkwargs</em><big>)</big><a class="reference internal" href="../_modules/pyparty/logging_utils/logger.html#logclass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyparty.logging_utils.logger.logclass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a log decorator to all class methods.  Private methods (_foo)
+are logged to debug.  Public methods are logged to info.  Magic methods
+(__foo__) are skipped; as well as methods in the &#8220;skip&#8221; list.</p>
+<dl class="docutils">
+<dt>Note: This is a class method, so instance attributes like &#8220;name&#8221;</dt>
+<dd>aren&#8217;t defined.  Individual methods should add more explicit
+logging for this reason.</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">pyparty 0.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Adam Hughes.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

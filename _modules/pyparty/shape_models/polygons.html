@@ -1,0 +1,442 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyparty.shape_models.polygons &mdash; pyparty 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="pyparty 0.2 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">pyparty 0.2 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pyparty.shape_models.polygons</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">skimage.draw</span> <span class="kn">as</span> <span class="nn">draw</span>
+<span class="kn">import</span> <span class="nn">math</span>
+
+<span class="kn">from</span> <span class="nn">traits.has_traits</span> <span class="kn">import</span> <span class="n">CHECK_INTERFACES</span>
+<span class="kn">from</span> <span class="nn">traits.api</span> <span class="kn">import</span> <span class="n">Array</span><span class="p">,</span> <span class="n">Str</span><span class="p">,</span> <span class="n">Property</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">import</span> <span class="nn">matplotlib.patches</span> <span class="kn">as</span> <span class="nn">mpatch</span>
+
+<span class="kn">from</span> <span class="nn">pyparty.shape_models.basic</span> <span class="kn">import</span> <span class="n">LineSegment</span>
+<span class="kn">from</span> <span class="nn">pyparty.config</span> <span class="kn">import</span> <span class="n">XVERTS</span><span class="p">,</span> <span class="n">YVERTS</span><span class="p">,</span> <span class="n">RECTLEN</span><span class="p">,</span> <span class="n">RECTWID</span><span class="p">,</span> <span class="n">LINEWID</span><span class="p">,</span> <span class="n">LINELEN</span>
+<span class="kn">from</span> <span class="nn">pyparty.config</span> <span class="kn">import</span> <span class="n">CENTER_DEFAULT</span> <span class="k">as</span> <span class="n">CDEF</span>
+<span class="kn">from</span> <span class="nn">pyparty.tools.arraytools</span> <span class="kn">import</span> <span class="n">rotate_vector</span><span class="p">,</span> <span class="n">unzip_array</span><span class="p">,</span> <span class="n">rotate</span><span class="p">,</span> \
+     <span class="n">rmeanint</span>
+<span class="kn">from</span> <span class="nn">pyparty.shape_models.abstract_shape</span> <span class="kn">import</span> <span class="n">ShapeError</span><span class="p">,</span> <span class="n">FastOriented</span><span class="p">,</span> \
+    <span class="n">CenteredParticle</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span> 
+
+<div class="viewcode-block" id="rint"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.polygons.rint">[docs]</a><span class="k">def</span> <span class="nf">rint</span><span class="p">(</span><span class="n">x</span><span class="p">):</span> <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span>
+</div>
+<span class="k">def</span> <span class="nf">_invalid_constructor</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">cname</span><span class="o">=</span><span class="s">&#39;Polygon&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Raises either PolyConstructError or NotImplementedError depending on</span>
+<span class="sd">    which keywords are passed.  Exists to reduced boilerplate.  Tried to </span>
+<span class="sd">    integrate as class/static method but it added too much overhead&quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">PolyConstructError</span><span class="p">(</span><span class="s">&#39;Cannot construct &quot;</span><span class="si">%s</span><span class="s">&quot; from parameter &quot;width&quot;&#39;</span> <span class="o">%</span> 
+                                 <span class="n">cname</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>   
+    
+
+<div class="viewcode-block" id="PolygonError"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.polygons.PolygonError">[docs]</a><span class="k">class</span> <span class="nc">PolygonError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;  &quot;&quot;&quot;</span>
+    </div>
+<div class="viewcode-block" id="PolyConstructError"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.polygons.PolyConstructError">[docs]</a><span class="k">class</span> <span class="nc">PolyConstructError</span><span class="p">(</span><span class="n">PolygonError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Raised when a polygon has a bad-constructor call and wants to alert user</span>
+<span class="sd">    instead of going to the next call.  For example, calling square with</span>
+<span class="sd">    from_length_width() &quot;&quot;&quot;</span>
+        </div>
+<div class="viewcode-block" id="Polygon"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.polygons.Polygon">[docs]</a><span class="k">class</span> <span class="nc">Polygon</span><span class="p">(</span><span class="n">FastOriented</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; General CLOSED polygon which uses only verticies to wrap </span>
+<span class="sd">    skimage.draw.polygon.  Closed is enforced through _validate_verts() and</span>
+<span class="sd">    is used in call to mpatch.Polygon</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    </span>
+<span class="sd">    _yverts : array</span>
+<span class="sd">        Y-coords of verticies of polygon</span>
+<span class="sd">        </span>
+<span class="sd">    _xverts : array</span>
+<span class="sd">        X-coords of verticies of polygon</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Polygon verticies ARE order dependent.  In this manner, interesting shapes</span>
+<span class="sd">    like bowties can be drawn; however, providing verticies in the wrong order</span>
+<span class="sd">    can result in null output, and otherwise confusing drawings.  Thus, various</span>
+<span class="sd">    subclasses for common shapes (SQUARE, RECTANGLE) are available.</span>
+<span class="sd">    </span>
+<span class="sd">    There are several constructors for polygons, instead of relying on the need</span>
+<span class="sd">    to pass </span>
+<span class="sd">        </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ptype</span> <span class="o">=</span> <span class="n">Str</span><span class="p">(</span><span class="s">&#39;polygon&#39;</span><span class="p">)</span>
+    
+    <span class="n">_yverts</span> <span class="o">=</span> <span class="n">Array</span>
+    <span class="n">_xverts</span> <span class="o">=</span> <span class="n">Array</span>
+    
+    <span class="c"># INTENTIONALLY LEAVING SETTING OF CX DISABLED FOR NOW</span>
+    <span class="n">center</span> <span class="o">=</span> <span class="n">Property</span><span class="p">(</span><span class="n">Tuple</span><span class="p">)</span><span class="c">#, depends_on=&#39;_xverts, _yverts&#39;)</span>
+    <span class="n">unrotated_rr_cc</span> <span class="o">=</span> <span class="n">Property</span><span class="p">(</span><span class="n">Array</span><span class="p">)</span><span class="c">#, depends_on=&#39;orientation, _xverts, _yverts&#39;)</span>
+    
+    <span class="c"># MEMOIZING CAUSES ISSUE WITH COPY.DEEPCOPY (copy metaparticle)</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Initialize and run any coord validation imposed by shape.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_xverts</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;xverts&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_yverts</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;yverts&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_validate_verts</span><span class="p">()</span>        
+        <span class="nb">super</span><span class="p">(</span><span class="n">Polygon</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        
+    
+    <span class="k">def</span> <span class="nf">_validate_verts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Verticies are validated once upon initialization for any polygon.</span>
+<span class="sd">            Verticies are immutable to user.&quot;&quot;&quot;</span>
+        <span class="n">xneg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xverts</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_xverts</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">yneg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_yverts</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_yverts</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span>
+        
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">xneg</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">yneg</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">PolygonError</span><span class="p">(</span><span class="s">&quot;Negative verticies can result in unusual behavior&quot;</span>
+                               <span class="s">&quot;in resulting drawn indicies.  Not currently supported&quot;</span><span class="p">)</span>
+
+    
+    <span class="k">def</span> <span class="nf">_get_center</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Get mean cx, cy from _xverts, _yverts &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span> <span class="n">rmeanint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_xverts</span><span class="p">),</span> <span class="n">rmeanint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_yverts</span><span class="p">)</span> <span class="p">)</span>
+
+    
+    <span class="k">def</span> <span class="nf">_get_rr_cc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Very similar to Particle_get_rr_cc(), except rotates verticies then</span>
+<span class="sd">        draws rr_cc instead of rotating rr_cc itself.&quot;&quot;&quot;</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">phi</span> <span class="o">%</span> <span class="mf">360.0</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xverts</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_yverts</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">center</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">center</span>            
+            <span class="n">centered</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xymatrix</span> <span class="o">-</span> <span class="n">center</span>
+            <span class="n">rr_cc_rot</span> <span class="o">=</span> <span class="n">rotate_vector</span><span class="p">(</span><span class="n">centered</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">phi</span><span class="p">,</span> <span class="n">rint</span><span class="o">=</span><span class="s">&#39;up&#39;</span><span class="p">)</span>
+            <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span> <span class="o">=</span> <span class="p">(</span><span class="n">rr_cc_rot</span> <span class="o">+</span> <span class="n">center</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>            
+
+        <span class="k">return</span> <span class="n">draw</span><span class="o">.</span><span class="n">polygon</span><span class="p">(</span><span class="n">ys</span><span class="p">,</span> <span class="n">xs</span><span class="p">)</span>      
+    
+    
+    <span class="c">#May be useful for users, not used by class</span>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Polygon.xysets"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.polygons.Polygon.xysets">[docs]</a>    <span class="k">def</span> <span class="nf">xysets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Array of (x,y) pairs; can be passed directly into rotation.  </span>
+<span class="sd">            Note that unzipping is just zip(*(pairs) )&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_xverts</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_yverts</span><span class="p">))</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Polygon.xymatrix"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.polygons.Polygon.xymatrix">[docs]</a>    <span class="k">def</span> <span class="nf">xymatrix</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; N, 2 array, columns are x and y arrays &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_xverts</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_yverts</span><span class="p">)</span> <span class="p">)</span><span class="o">.</span><span class="n">T</span>
+    
+    <span class="c"># Prevents users from changing verticies</span></div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">xverts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xverts</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">yverts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_yverts</span>      
+    
+    <span class="nd">@yverts.setter</span>
+<div class="viewcode-block" id="Polygon.yverts"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.polygons.Polygon.yverts">[docs]</a>    <span class="k">def</span> <span class="nf">yverts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">PolygonError</span><span class="p">(</span><span class="s">&quot;Verticies are polygon are immutable; please&quot;</span>
+                           <span class="s">&quot;initialialize a new polygon.&quot;</span><span class="p">)</span>
+    </div>
+    <span class="nd">@xverts.setter</span>
+<div class="viewcode-block" id="Polygon.xverts"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.polygons.Polygon.xverts">[docs]</a>    <span class="k">def</span> <span class="nf">xverts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">PolygonError</span><span class="p">(</span><span class="s">&quot;Verticies are polygon are immutable; please&quot;</span>
+                           <span class="s">&quot;initialialize a new polygon.&quot;</span><span class="p">)</span>        
+    </div>
+<div class="viewcode-block" id="Polygon.as_patch"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.polygons.Polygon.as_patch">[docs]</a>    <span class="k">def</span> <span class="nf">as_patch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Explictly rotate vertex coords for patch. &quot;&quot;&quot;</span>
+        <span class="n">rotated_coords</span> <span class="o">=</span> <span class="n">rotate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xymatrix</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">phi</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">center</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">mpatch</span><span class="o">.</span><span class="n">Polygon</span><span class="p">(</span><span class="n">rotated_coords</span><span class="p">,</span> <span class="n">closed</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    </div>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Polygon.from_verts"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.polygons.Polygon.from_verts">[docs]</a>    <span class="k">def</span> <span class="nf">from_verts</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&#39;xverts&#39;</span><span class="p">,</span> <span class="n">XVERTS</span><span class="p">)</span>
+        <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&#39;yverts&#39;</span><span class="p">,</span> <span class="n">YVERTS</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cls</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>     
+    </div>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Polygon.from_xypairs"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.polygons.Polygon.from_xypairs">[docs]</a>    <span class="k">def</span> <span class="nf">from_xypairs</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Set verticies from list of (x, y) pairs &quot;&quot;&quot;</span>
+        <span class="n">sets</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;sets&#39;</span><span class="p">)</span>
+        <span class="n">xv</span><span class="p">,</span> <span class="n">yv</span> <span class="o">=</span> <span class="n">unzip_array</span><span class="p">(</span><span class="n">sets</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cls</span><span class="p">(</span><span class="n">xverts</span><span class="o">=</span><span class="n">xv</span><span class="p">,</span> <span class="n">yverts</span><span class="o">=</span><span class="n">yv</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+               </div>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Polygon.auto_init"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.polygons.Polygon.auto_init">[docs]</a>    <span class="k">def</span> <span class="nf">auto_init</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; For Particles with multiple constructors (eg polygons), this method</span>
+<span class="sd">        will infer which constructor to call based on the keywords.  For classes</span>
+<span class="sd">        with only one constructor (ie __init__), doesn&#39;t do anything. </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="c"># Define all of the auto_init methods for all polygons, instead of for</span>
+        <span class="c"># each class</span>
+        
+        <span class="k">for</span> <span class="n">meth</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;from_length_width&#39;</span><span class="p">,</span> <span class="s">&#39;from_length&#39;</span><span class="p">,</span> 
+                     <span class="s">&#39;from_xypairs&#39;</span><span class="p">,</span> <span class="s">&#39;from_verts&#39;</span><span class="p">]:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">meth</span><span class="p">)(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">EXC</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">EXC</span><span class="p">,</span> <span class="n">PolyConstructError</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">EXC</span><span class="p">,</span> <span class="n">PolygonError</span><span class="p">):</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="s">&quot;FAILED AT METHOD </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">meth</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="n">EXC</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Passing on polygon constructor ERROR </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">EXC</span><span class="p">)</span>
+
+        <span class="k">raise</span> <span class="n">EXC</span>
+    
+    <span class="c"># If user tries to construct polygon with length/width</span></div>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Polygon.from_length_width"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.polygons.Polygon.from_length_width">[docs]</a>    <span class="k">def</span> <span class="nf">from_length_width</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>       
+        <span class="n">_invalid_constructor</span><span class="p">(</span><span class="s">&#39;width&#39;</span><span class="p">,</span> <span class="n">cname</span><span class="o">=</span><span class="n">cls</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>  
+        </div>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Polygon.from_length"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.polygons.Polygon.from_length">[docs]</a>    <span class="k">def</span> <span class="nf">from_length</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>       
+        <span class="n">_invalid_constructor</span><span class="p">(</span><span class="s">&#39;length&#39;</span><span class="p">,</span> <span class="n">cname</span><span class="o">=</span><span class="n">cls</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>          
+                
+    </div></div>
+<div class="viewcode-block" id="Triangle"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.polygons.Triangle">[docs]</a><span class="k">class</span> <span class="nc">Triangle</span><span class="p">(</span><span class="n">Polygon</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Not very restrictive; only imposes 3-coordinates. &quot;&quot;&quot;</span>
+    <span class="n">ptype</span> <span class="o">=</span> <span class="n">Str</span><span class="p">(</span><span class="s">&#39;triangle&#39;</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_validate_verts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
+        <span class="c"># super already validates x, y same length, so only check x</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Triangle</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_validate_verts</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_xverts</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">PolygonError</span><span class="p">(</span><span class="s">&#39;Triangle requires 3 verticies!&#39;</span><span class="p">)</span>
+
+        
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Triangle.from_length"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.polygons.Triangle.from_length">[docs]</a>    <span class="k">def</span> <span class="nf">from_length</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="n">CDEF</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="n">RECTLEN</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Equilateral triangle! &quot;&quot;&quot;</span>
+        <span class="n">cx</span><span class="p">,</span> <span class="n">cy</span> <span class="o">=</span> <span class="n">center</span>
+        <span class="n">center_to_corner</span> <span class="o">=</span> <span class="n">length</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>     
+        
+        <span class="c"># Draw four corners from bottom left, clockwise, relative to cx+l/2</span>
+        <span class="n">thetas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span> <span class="p">(</span><span class="mi">210</span><span class="p">,</span> <span class="mi">90</span><span class="p">,</span> <span class="o">-</span><span class="mi">30</span><span class="p">)</span> <span class="p">)</span>
+        <span class="n">xs</span> <span class="o">=</span> <span class="n">cx</span> <span class="o">+</span> <span class="p">(</span><span class="n">center_to_corner</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">thetas</span><span class="p">))</span>
+        <span class="n">ys</span> <span class="o">=</span> <span class="n">cy</span> <span class="o">+</span> <span class="p">(</span><span class="n">center_to_corner</span> <span class="o">*</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">thetas</span><span class="p">))</span> <span class="c">#for upright orientation</span>
+        <span class="k">return</span> <span class="n">cls</span><span class="p">(</span> <span class="n">xverts</span><span class="o">=</span><span class="n">xs</span><span class="p">,</span> <span class="n">yverts</span><span class="o">=</span><span class="n">ys</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span> <span class="p">)</span>
+    
+    </div></div>
+<div class="viewcode-block" id="Rectangle"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.polygons.Rectangle">[docs]</a><span class="k">class</span> <span class="nc">Rectangle</span><span class="p">(</span><span class="n">Polygon</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Longest axis is considered length &quot;&quot;&quot;</span>
+    <span class="n">ptype</span> <span class="o">=</span> <span class="n">Str</span><span class="p">(</span><span class="s">&#39;rectangle&#39;</span><span class="p">)</span>    
+    
+    <span class="c"># Used to reduce boilerplate with subclasses</span>
+    <span class="n">_n_unique</span> <span class="o">=</span> <span class="mi">4</span> <span class="c"># unique values in set() of rectangle coords</span>
+            
+    <span class="k">def</span> <span class="nf">_validate_verts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Ensure length of coords passed is 4, and they contain 3 unique values&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Rectangle</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_validate_verts</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_xverts</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">4</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_yverts</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ShapeError</span><span class="p">(</span><span class="s">&quot;Rectange requires exactly 4 (x,y) verticies&quot;</span><span class="p">)</span>
+        
+        <span class="n">xvset</span><span class="p">,</span> <span class="n">yvset</span><span class="p">,</span> <span class="n">nu</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_xverts</span><span class="p">),</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_yverts</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_unique</span> 
+        
+        <span class="c">#if len(xvset) != nu or len(yvset) != nu or xvset != yvset:</span>
+            <span class="c">#raise ShapeError(&quot;Rectangle must contain exactly %s unique values&quot;</span>
+                            <span class="c">#&quot; EG: (1,2), (1,3), (8,3), (8,2)  --&gt; 1,5,8&quot; % nu)   </span>
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Rectangle.from_length_width"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.polygons.Rectangle.from_length_width">[docs]</a>    <span class="k">def</span> <span class="nf">from_length_width</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="n">CDEF</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="n">RECTLEN</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">RECTWID</span><span class="p">,</span> 
+                          <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">cx</span><span class="p">,</span> <span class="n">cy</span> <span class="o">=</span> <span class="n">center</span>
+        <span class="n">half_length</span><span class="p">,</span> <span class="n">half_width</span> <span class="o">=</span> <span class="n">rint</span><span class="p">(</span><span class="n">length</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="p">,</span> <span class="n">rint</span><span class="p">(</span><span class="n">width</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>        
+        
+        <span class="c"># Draw four corners from bottom left, clockwise, relative to cx+l/2</span>
+        <span class="n">thetas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span> <span class="p">(</span> <span class="mi">225</span><span class="p">,</span> <span class="mi">135</span><span class="p">,</span> <span class="mi">45</span><span class="p">,</span> <span class="mi">315</span><span class="p">)</span> <span class="p">)</span>
+        <span class="n">xs</span> <span class="o">=</span> <span class="n">cx</span> <span class="o">+</span> <span class="p">(</span><span class="n">half_length</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">thetas</span><span class="p">))</span>
+        <span class="n">ys</span> <span class="o">=</span> <span class="n">cy</span> <span class="o">+</span> <span class="p">(</span><span class="n">half_width</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">thetas</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">cls</span><span class="p">(</span> <span class="n">xverts</span><span class="o">=</span><span class="n">xs</span><span class="p">,</span> <span class="n">yverts</span><span class="o">=</span><span class="n">ys</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span> <span class="p">)</span>
+
+    
+    <span class="c"># Need some semblance of order in the pairs</span></div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Rectangle.diagonal"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.polygons.Rectangle.diagonal">[docs]</a>    <span class="k">def</span> <span class="nf">diagonal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; diagonal length &quot;&quot;&quot;</span>
+        <span class="n">l</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="n">Rectangle</span><span class="o">.</span><span class="n">long_small</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xverts</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">yverts</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">l</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">s</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Rectangle.length"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.polygons.Rectangle.length">[docs]</a>    <span class="k">def</span> <span class="nf">length</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; longest side &quot;&quot;&quot;</span>
+        <span class="n">longest</span> <span class="o">=</span> <span class="n">Rectangle</span><span class="o">.</span><span class="n">long_small</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xverts</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">yverts</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">longest</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">longest</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+    </div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Rectangle.width"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.polygons.Rectangle.width">[docs]</a>    <span class="k">def</span> <span class="nf">width</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; shortest side &quot;&quot;&quot;</span>
+        <span class="n">shortest</span> <span class="o">=</span> <span class="n">Rectangle</span><span class="o">.</span><span class="n">long_small</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xverts</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">yverts</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">shortest</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">shortest</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>    
+</div>
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="Rectangle.long_small"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.polygons.Rectangle.long_small">[docs]</a>    <span class="k">def</span> <span class="nf">long_small</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Find longest value separtion in pairs. &quot;&quot;&quot;</span>
+        <span class="n">amax</span><span class="p">,</span> <span class="n">amin</span><span class="p">,</span> <span class="n">bmax</span><span class="p">,</span> <span class="n">bmin</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">a</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">b</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">b</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">amax</span> <span class="o">-</span> <span class="n">amin</span><span class="p">)</span> <span class="o">&gt;</span> <span class="p">(</span><span class="n">bmax</span> <span class="o">-</span> <span class="n">bmin</span><span class="p">):</span>
+            <span class="n">longest</span> <span class="o">=</span> <span class="n">a</span>
+            <span class="n">smallest</span> <span class="o">=</span> <span class="n">b</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">longest</span> <span class="o">=</span> <span class="n">b</span>
+            <span class="n">smallest</span> <span class="o">=</span> <span class="n">a</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">longest</span><span class="p">,</span> <span class="n">smallest</span><span class="p">)</span>    
+    
+    </div></div>
+<div class="viewcode-block" id="Square"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.polygons.Square">[docs]</a><span class="k">class</span> <span class="nc">Square</span><span class="p">(</span><span class="n">Rectangle</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
+    <span class="n">ptype</span> <span class="o">=</span> <span class="n">Str</span><span class="p">(</span><span class="s">&#39;square&#39;</span><span class="p">)</span>      
+    <span class="n">_n_unique</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c"># _validate_verts() from rectangle</span>
+    
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Square.from_length_width"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.polygons.Square.from_length_width">[docs]</a>    <span class="k">def</span> <span class="nf">from_length_width</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>       
+        <span class="n">_invalid_constructor</span><span class="p">(</span><span class="s">&#39;width&#39;</span><span class="p">,</span> <span class="n">cname</span><span class="o">=</span><span class="n">cls</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>   
+    </div>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Square.from_length"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.polygons.Square.from_length">[docs]</a>    <span class="k">def</span> <span class="nf">from_length</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="n">CDEF</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="n">RECTLEN</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Pass to rectangle&#39;s constructor &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">Square</span><span class="p">,</span> <span class="n">cls</span><span class="p">)</span><span class="o">.</span><span class="n">from_length_width</span><span class="p">(</span><span class="n">center</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="Line"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.polygons.Line">[docs]</a><span class="k">class</span> <span class="nc">Line</span><span class="p">(</span><span class="n">Rectangle</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Line is just a thin rectangle &quot;&quot;&quot;</span>
+
+    <span class="n">ptype</span> <span class="o">=</span> <span class="n">Str</span><span class="p">(</span><span class="s">&#39;line&#39;</span><span class="p">)</span>       
+    
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Line.from_length"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.polygons.Line.from_length">[docs]</a>    <span class="k">def</span> <span class="nf">from_length</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="n">CDEF</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="n">LINELEN</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Use LINEWID as default width &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">cls</span><span class="o">.</span><span class="n">from_length_width</span><span class="p">(</span><span class="n">center</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">LINEWID</span><span class="p">,</span> 
+                                     <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    </div>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Line.from_length_width"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.polygons.Line.from_length_width">[docs]</a>    <span class="k">def</span> <span class="nf">from_length_width</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="n">CDEF</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="n">LINELEN</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">LINEWID</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">rect</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">Line</span><span class="p">,</span> <span class="n">cls</span><span class="p">)</span><span class="o">.</span><span class="n">from_length_width</span><span class="p">(</span><span class="n">center</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span>
+                                                <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">E1</span><span class="p">:</span>
+            <span class="n">cx</span><span class="p">,</span> <span class="n">cy</span> <span class="o">=</span> <span class="n">center</span>
+            <span class="n">half_length</span><span class="p">,</span> <span class="n">half_width</span> <span class="o">=</span> <span class="n">rint</span><span class="p">(</span><span class="n">length</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="p">,</span> <span class="n">rint</span><span class="p">(</span><span class="n">width</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>  
+
+            <span class="k">try</span><span class="p">:</span>       
+                <span class="n">rect</span> <span class="o">=</span> <span class="n">LineSegment</span><span class="p">(</span><span class="n">xstart</span><span class="o">=</span><span class="n">cx</span><span class="o">-</span><span class="n">half_length</span><span class="p">,</span> <span class="n">xend</span> <span class="o">=</span> <span class="n">cx</span><span class="o">+</span><span class="n">half_length</span><span class="p">,</span> 
+                    <span class="n">ystart</span><span class="o">=</span><span class="n">cy</span><span class="o">-</span><span class="n">half_width</span><span class="p">,</span> <span class="n">yend</span><span class="o">=</span><span class="n">cy</span><span class="o">+</span><span class="n">half_width</span><span class="p">,</span>  <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> 
+                    <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>                
+    
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">E2</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ShapeError</span><span class="p">(</span><span class="s">&#39;Could not construct Line from Rectangle or &#39;</span>
+                <span class="s">&#39;LineSegment constructors.  From Rectangle: &quot;</span><span class="si">%s</span><span class="s">&quot;  &#39;</span>
+                <span class="s">&#39;From LineSegment: &quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">E1</span><span class="o">.</span><span class="n">message</span><span class="p">,</span> <span class="n">E2</span><span class="o">.</span><span class="n">message</span><span class="p">))</span>
+        
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Creating thin from Segment instead of Polygon&quot;</span><span class="p">)</span>
+                
+        <span class="k">return</span> <span class="n">rect</span>
+      
+        </div></div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">Line</span><span class="o">.</span><span class="n">from_length_width</span><span class="p">((</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">),</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">orientation</span><span class="o">=</span><span class="mf">50.0</span><span class="p">)</span>
+    <span class="n">Triangle</span><span class="o">.</span><span class="n">from_length</span><span class="p">((</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">),</span> <span class="mi">10</span><span class="p">)</span>
+    <span class="n">Square</span><span class="o">.</span><span class="n">from_length</span><span class="p">(</span><span class="n">length</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span><span class="mi">200</span><span class="p">),</span> <span class="n">orientation</span><span class="o">=</span><span class="mf">23.0</span><span class="p">)</span>
+    
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">pyparty 0.2 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Adam Hughes.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

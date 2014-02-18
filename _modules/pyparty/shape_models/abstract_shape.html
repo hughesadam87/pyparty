@@ -1,0 +1,397 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyparty.shape_models.abstract_shape &mdash; pyparty 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="pyparty 0.2 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">pyparty 0.2 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pyparty.shape_models.abstract_shape</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Shape Models API</span>
+<span class="sd">================</span>
+
+<span class="sd">This module stores abstract base classes for Particle models.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">radians</span><span class="p">,</span> <span class="n">cos</span><span class="p">,</span> <span class="n">atan2</span>
+
+<span class="kn">from</span> <span class="nn">traits.api</span> <span class="kn">import</span> <span class="n">Interface</span><span class="p">,</span> <span class="n">HasTraits</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Array</span><span class="p">,</span> \
+     <span class="n">Bool</span><span class="p">,</span> <span class="n">Property</span><span class="p">,</span> <span class="n">Str</span><span class="p">,</span> <span class="n">Int</span><span class="p">,</span> <span class="n">Instance</span><span class="p">,</span> <span class="n">Range</span><span class="p">,</span> <span class="n">Float</span><span class="p">,</span> <span class="n">cached_property</span>
+
+<span class="kn">import</span> <span class="nn">skimage.draw</span> <span class="kn">as</span> <span class="nn">draw</span>
+<span class="kn">from</span> <span class="nn">skimage.measure</span> <span class="kn">import</span> <span class="n">regionprops</span>
+<span class="kn">from</span> <span class="nn">skimage.measure._regionprops</span> <span class="kn">import</span> <span class="n">_RegionProperties</span>
+<span class="kn">from</span> <span class="nn">matplotlib.patches</span> <span class="kn">import</span> <span class="n">Path</span><span class="p">,</span> <span class="n">PathPatch</span>
+
+
+<span class="kn">from</span> <span class="nn">pyparty.utils</span> <span class="kn">import</span> <span class="n">rr_cc_box</span>
+<span class="kn">from</span> <span class="nn">pyparty.tools.arraytools</span> <span class="kn">import</span> <span class="n">rotate</span><span class="p">,</span> <span class="n">boolmask</span><span class="p">,</span> \
+    <span class="n">findcenter</span><span class="p">,</span> <span class="n">meancenter</span>
+<span class="kn">from</span> <span class="nn">pyparty.trait_types.intornone</span> <span class="kn">import</span> <span class="n">IntOrNone</span>
+<span class="kn">from</span> <span class="nn">pyparty.patterns.elements</span> <span class="kn">import</span> <span class="n">simple</span>
+<span class="kn">from</span> <span class="nn">pyparty.config</span> <span class="kn">import</span> <span class="n">RADIUS_DEFAULT</span><span class="p">,</span> <span class="n">CENTER_DEFAULT</span><span class="p">,</span> <span class="n">XSTART</span><span class="p">,</span> <span class="n">YSTART</span><span class="p">,</span> \
+     <span class="n">XEND</span><span class="p">,</span> <span class="n">YEND</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span> 
+
+<div class="viewcode-block" id="rint"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.abstract_shape.rint">[docs]</a><span class="k">def</span> <span class="nf">rint</span><span class="p">(</span><span class="n">x</span><span class="p">):</span> <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="ParticleError"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.abstract_shape.ParticleError">[docs]</a><span class="k">class</span> <span class="nc">ParticleError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span></div>
+<div class="viewcode-block" id="ShapeError"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.abstract_shape.ShapeError">[docs]</a><span class="k">class</span> <span class="nc">ShapeError</span><span class="p">(</span><span class="n">ParticleError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Specific to when drawing of a shape fails &quot;&quot;&quot;</span>
+     </div>
+<div class="viewcode-block" id="Particle"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.abstract_shape.Particle">[docs]</a><span class="k">class</span> <span class="nc">Particle</span><span class="p">(</span><span class="n">HasTraits</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Abstract class for storing particles as light objects which return</span>
+<span class="sd">        rr and cc indicies for ndarray indexing (see skimage.draw) </span>
+<span class="sd">    </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    </span>
+<span class="sd">    ptype : str</span>
+<span class="sd">       Descriptor, used by ParticleManager and other classes</span>
+<span class="sd">       to segregate out particle types.</span>
+<span class="sd">       </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Only traits in the contstructor (eg &#39;foo&#39; vs. Str(&#39;foo&#39;) and public </span>
+<span class="sd">    and public methods (eg foo() vs. _foo()) will be recognized when </span>
+<span class="sd">    implementation is enforced.</span>
+<span class="sd">       </span>
+<span class="sd">    &quot;&quot;&quot;</span>    
+
+    <span class="n">ptype</span> <span class="o">=</span> <span class="n">Str</span><span class="p">(</span><span class="s">&#39;general&#39;</span><span class="p">)</span>    
+    <span class="n">psource</span> <span class="o">=</span> <span class="n">Str</span><span class="p">(</span><span class="s">&#39;pyparty_builtin&#39;</span><span class="p">)</span>
+    <span class="n">ski_descriptor</span> <span class="o">=</span> <span class="n">Instance</span><span class="p">(</span><span class="n">_RegionProperties</span><span class="p">)</span>    
+
+    <span class="n">phi</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span> 
+    
+    <span class="n">center</span> <span class="o">=</span> <span class="n">Property</span><span class="p">(</span><span class="n">Tuple</span><span class="p">,</span> <span class="n">depends_on</span> <span class="o">=</span> <span class="s">&#39;unrotated_rr_cc&#39;</span><span class="p">)</span>    
+    <span class="n">cx</span> <span class="o">=</span> <span class="n">Property</span><span class="p">(</span><span class="n">Int</span><span class="p">,</span> <span class="n">depends_on</span> <span class="o">=</span> <span class="s">&#39;center&#39;</span><span class="p">)</span>
+    <span class="n">cy</span> <span class="o">=</span> <span class="n">Property</span><span class="p">(</span><span class="n">Int</span><span class="p">,</span> <span class="n">depends_on</span> <span class="o">=</span> <span class="s">&#39;center&#39;</span><span class="p">)</span>    
+    
+    <span class="c"># Arrays of INT</span>
+    <span class="n">rr_cc</span> <span class="o">=</span> <span class="n">Property</span><span class="p">(</span><span class="n">Array</span><span class="p">,</span> <span class="n">depends_on</span><span class="o">=</span><span class="s">&#39;orientation&#39;</span><span class="p">)</span>     
+    <span class="n">unrotated_rr_cc</span> <span class="o">=</span> <span class="n">Property</span><span class="p">(</span><span class="n">Array</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_get_rr_cc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Rotate unrotated_rr_cc through theta &quot;&quot;&quot;</span>
+        <span class="n">theta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phi</span>
+        <span class="n">center</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">center</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="c">#Necessary </span>
+        
+        <span class="k">if</span> <span class="n">theta</span> <span class="o">%</span> <span class="mf">360.0</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">unrotated_rr_cc</span>
+
+        <span class="c"># Rotate transposed rr_cc</span>
+        <span class="n">transposed</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">unrotated_rr_cc</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+        <span class="k">return</span> <span class="n">rotate</span><span class="p">(</span><span class="n">transposed</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="n">center</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">phi</span><span class="p">,</span> <span class="n">rint</span><span class="o">=</span><span class="s">&#39;up&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+    
+    <span class="c">#http://scikit-image.org/docs/dev/api/skimage.draw.html#circle</span>
+    <span class="k">def</span> <span class="nf">_get_unrotated_rr_cc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Subclasses must overwrite &quot;&quot;&quot;</span>        
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>    
+
+    <span class="k">def</span> <span class="nf">_set_unrotated_rr_cc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+    
+    <span class="k">def</span> <span class="nf">_get_center</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Center of mass of rr, cc&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">findcenter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">unrotated_rr_cc</span><span class="p">)</span>
+    
+    <span class="c"># Center Property Interface</span>
+    <span class="c"># ----------------</span>
+    <span class="k">def</span> <span class="nf">_get_cx</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    
+    <span class="k">def</span> <span class="nf">_get_cy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    
+    <span class="k">def</span> <span class="nf">_set_cx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cx</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span> <span class="c">#(later replace with translate)</span>
+        
+    <span class="k">def</span> <span class="nf">_set_cy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cy</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span> <span class="c">#(later replace with translate)        </span>
+          
+      
+    <span class="c"># May want this to return the translation coordinates</span>
+<div class="viewcode-block" id="Particle.boxed"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.abstract_shape.Particle.boxed">[docs]</a>    <span class="k">def</span> <span class="nf">boxed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns a minimal bounding box with object inside&quot;&quot;&quot;</span>
+        <span class="c"># Could work on unrotated, but probably would lead to issues with FastOriented</span>
+        <span class="k">return</span> <span class="n">rr_cc_box</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rr_cc</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="n">pad</span><span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="Particle.ski_descriptor"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.abstract_shape.Particle.ski_descriptor">[docs]</a>    <span class="k">def</span> <span class="nf">ski_descriptor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return scikit image descriptor. &quot;&quot;&quot;</span>
+        <span class="c"># Set RegionProps on first call</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;_ski_descriptor&#39;</span><span class="p">):</span>        <span class="c">#TEST IF FASTER W/ TRUE</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ski_descriptor</span> <span class="o">=</span> <span class="n">regionprops</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">boxed</span><span class="p">(),</span> <span class="n">cache</span><span class="o">=</span><span class="bp">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ski_descriptor</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+
+    </div>
+<div class="viewcode-block" id="Particle.as_patch"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.abstract_shape.Particle.as_patch">[docs]</a>    <span class="k">def</span> <span class="nf">as_patch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span> <span class="c">#Facecolor=&#39;r&#39;?, lw other args...</span>
+        <span class="sd">&quot;&quot;&quot; Return matplotlib PathPatch.  Subclasses may overwrite for optimized</span>
+<span class="sd">        shapes (ie circle ---&gt; CirclePatch.).  PathPatch is generated by perimeter</span>
+<span class="sd">        indicies returned by an outline function, then sorted by angle.&quot;&quot;&quot;</span>
+        
+        <span class="c"># Steps:</span>
+           <span class="c"># Get mean-centered outline</span>
+           <span class="c"># Index by sorted angles (via arctan2 function)</span>
+           <span class="c"># Re-center, and flip y/x because Path takes (y,x) coords it seems...?</span>
+            <span class="c"># - Either that or they are getting reversed (not transposed) somehow</span>
+
+        <span class="n">centered</span> <span class="o">=</span> <span class="n">meancenter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outline</span><span class="p">)</span>
+        <span class="n">angles</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">centered</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">centered</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="c"># y/x</span>
+        <span class="n">centered</span> <span class="o">=</span> <span class="p">(</span><span class="n">centered</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">angles</span><span class="p">)])</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">fliplr</span><span class="p">(</span><span class="n">centered</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">center</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">PathPatch</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="c">#facecolor doesn&#39;t realy matter        </span>
+
+</div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Particle.outline"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.abstract_shape.Particle.outline">[docs]</a>    <span class="k">def</span> <span class="nf">outline</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">scipy.ndimage.filters</span> <span class="kn">import</span> <span class="n">laplace</span>    
+        <span class="n">pbox</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">boxed</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">boolmask</span><span class="p">(</span><span class="n">laplace</span><span class="p">(</span><span class="n">pbox</span><span class="p">))</span>
+</div>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Particle.auto_init"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.abstract_shape.Particle.auto_init">[docs]</a>    <span class="k">def</span> <span class="nf">auto_init</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; For Particles with multiple constructors (eg polygons), this method</span>
+<span class="sd">        will infer which constructor to call based on the keywords.  For classes</span>
+<span class="sd">        with only one constructor (ie __init__), doesn&#39;t do anything. </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">cls</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        
+
+<span class="c"># For now this works, but is there a more intelligent way to design Particle</span>
+<span class="c"># to use this case adn remove CenteredParticle altogether?</span></div></div>
+<div class="viewcode-block" id="CenteredParticle"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.abstract_shape.CenteredParticle">[docs]</a><span class="k">class</span> <span class="nc">CenteredParticle</span><span class="p">(</span><span class="n">Particle</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Base class for particles whose center values are set by user (circle,</span>
+<span class="sd">    ellipse, etc...); thus unrotated_rr_cc depends on cx, cy rather than other way round.</span>
+<span class="sd">    Cx, Cy translations also become trivial.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">pytpe</span> <span class="o">=</span> <span class="n">Str</span><span class="p">(</span><span class="s">&#39;abstract_centered&#39;</span><span class="p">)</span>        
+    <span class="n">center</span> <span class="o">=</span> <span class="n">Tuple</span><span class="p">(</span> <span class="n">CENTER_DEFAULT</span> <span class="p">)</span> 
+    <span class="n">unrotated_rr_cc</span> <span class="o">=</span> <span class="n">Property</span><span class="p">(</span><span class="n">Array</span><span class="p">,</span> <span class="n">depends_on</span><span class="o">=</span><span class="s">&#39;center&#39;</span><span class="p">)</span>    
+    
+    <span class="k">def</span> <span class="nf">_set_cx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cx</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">center</span> <span class="o">=</span> <span class="p">(</span><span class="n">cx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cy</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">_set_cy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cy</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">center</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cx</span><span class="p">,</span> <span class="n">cy</span><span class="p">)</span>           
+        
+        </div>
+<div class="viewcode-block" id="FastOriented"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.abstract_shape.FastOriented">[docs]</a><span class="k">class</span> <span class="nc">FastOriented</span><span class="p">(</span><span class="n">Particle</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Base calss for particles that can modify orientiaion before drawing.</span>
+<span class="sd">    For example, a square can be drawn first by rotating the corner verticies,</span>
+<span class="sd">    rather than the slower operation of drawning the full array and rotating it.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">_get_unrotated_rr_cc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">ParticleError</span><span class="p">(</span><span class="s">&quot;FastOriented does not store unrotated rr_cc&quot;</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_get_rr_cc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Subclasses must overwrite &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+</div>
+<div class="viewcode-block" id="Segment"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.abstract_shape.Segment">[docs]</a><span class="k">class</span> <span class="nc">Segment</span><span class="p">(</span><span class="n">Particle</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Base class to reduce boiler plate in BezierCurve and Line &quot;&quot;&quot;</span>
+
+    <span class="n">ptype</span> <span class="o">=</span> <span class="n">Str</span><span class="p">(</span><span class="s">&#39;segment&#39;</span><span class="p">)</span>    
+    
+    <span class="n">ystart</span> <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="n">YSTART</span><span class="p">)</span> <span class="c">#start position row</span>
+    <span class="n">xstart</span> <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="n">XSTART</span><span class="p">)</span>
+    <span class="n">yend</span> <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="n">YEND</span><span class="p">)</span>
+    <span class="n">xend</span> <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="n">XEND</span><span class="p">)</span>
+    
+    <span class="n">unrotated_rr_cc</span> <span class="o">=</span> <span class="n">Property</span><span class="p">(</span><span class="n">Array</span><span class="p">,</span> <span class="n">depends_on</span><span class="o">=</span><span class="s">&#39;ystart, xstart, yend, xend&#39;</span><span class="p">)</span> 
+    
+    <span class="k">def</span> <span class="nf">_get_unrotated_rr_cc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">draw</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ystart</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xstart</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">yend</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xend</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="SimplePattern"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.abstract_shape.SimplePattern">[docs]</a><span class="k">class</span> <span class="nc">SimplePattern</span><span class="p">(</span><span class="n">CenteredParticle</span><span class="p">):</span> <span class="c">#FAST ORIENT</span>
+    <span class="sd">&quot;&quot;&quot;  This should also derive from FastOrient, but due to multiple inheritance</span>
+<span class="sd">    headaches, just copy-pased the _get_unrotated method</span>
+<span class="sd">         </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Base class to wrap patterns.elements.simple.  Mainly implemented to reduce</span>
+<span class="sd">    boilderplate.  _offangle is the angle between a line conncecting particle </span>
+<span class="sd">    centers vs. a line connecting the center of a paritcle to the center of the </span>
+<span class="sd">    object.  For a dimer, obviously, this is 0 (ie the same).  The cosine </span>
+<span class="sd">    between them is important for ensuring the partciles are not touching unless</span>
+<span class="sd">    overlap is specificed.&quot;&quot;&quot;</span>
+    
+    <span class="n">ptype</span> <span class="o">=</span> <span class="n">Str</span><span class="p">(</span><span class="s">&#39;abstract_simple_element&#39;</span><span class="p">)</span>    
+        
+    <span class="n">radius_1</span> <span class="o">=</span> <span class="n">IntOrNone</span><span class="p">(</span><span class="n">RADIUS_DEFAULT</span><span class="p">)</span>
+    <span class="n">radius_2</span> <span class="o">=</span> <span class="n">IntOrNone</span> <span class="c">#defaults to None</span>
+    <span class="n">radius_3</span> <span class="o">=</span> <span class="n">IntOrNone</span>
+    <span class="n">radius_4</span> <span class="o">=</span> <span class="n">IntOrNone</span>
+    <span class="n">rs</span> <span class="o">=</span> <span class="n">Property</span><span class="p">(</span><span class="n">Array</span><span class="p">,</span> <span class="n">depends_on</span> <span class="o">=</span> <span class="s">&#39;radius_1, radius_2, radius_3, radius_4&#39;</span><span class="p">)</span>
+    
+    <span class="n">overlap</span> <span class="o">=</span> <span class="n">Range</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">skeleton</span> <span class="o">=</span> <span class="n">Property</span><span class="p">()</span>    
+    
+    <span class="n">_offangle</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+    <span class="n">_n</span> <span class="o">=</span> <span class="n">Int</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Let r1, r2, r3 be shortcuts for radius1, radius 2 etc...&quot;&quot;&quot;</span>
+        <span class="c"># Default radii based on kwargs        </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">radius_1</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;r1&#39;</span><span class="p">,</span> <span class="n">RADIUS_DEFAULT</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">radius_2</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;r2&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">radius_3</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;r3&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">radius_4</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;r4&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+
+        <span class="c"># Set radii from args</span>
+        <span class="k">if</span> <span class="n">args</span><span class="p">:</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">arg</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">idx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">radius_1</span> <span class="o">=</span> <span class="n">arg</span>
+                <span class="k">elif</span> <span class="n">idx</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">radius_2</span> <span class="o">=</span> <span class="n">arg</span>
+                <span class="k">elif</span> <span class="n">idx</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">radius_3</span> <span class="o">=</span> <span class="n">arg</span>
+                <span class="k">elif</span> <span class="n">idx</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">radius_4</span> <span class="o">=</span> <span class="n">arg</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">ParticleError</span><span class="p">(</span><span class="s">&quot;Please enter no more than 4 radii&quot;</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">SimplePattern</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_get_unrotated_rr_cc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">ParticleError</span><span class="p">(</span><span class="s">&quot;FastOriented does not store unrotated rr_cc&quot;</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_get_skeleton</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">):</span>
+        <span class="c"># NEGATIVE THETA BECAUSE PARTICLE USES -THETA, SO BE CONSISTENT IN API</span>
+        <span class="n">rs</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">overlap</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rs</span> <span class="o">/</span> <span class="n">cos</span><span class="p">(</span><span class="n">radians</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_offangle</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="n">simple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cy</span><span class="p">,</span> <span class="n">rs</span><span class="p">,</span>  <span class="n">phi</span><span class="o">=-</span><span class="bp">self</span><span class="o">.</span><span class="n">phi</span><span class="p">)</span>
+    
+<div class="viewcode-block" id="SimplePattern.draw_skeleton"><a class="viewcode-back" href="../../../API/pyparty.shape_models.html#pyparty.shape_models.abstract_shape.SimplePattern.draw_skeleton">[docs]</a>    <span class="k">def</span> <span class="nf">draw_skeleton</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Would like to draw lines connecting verticies returned from skeleton.</span>
+<span class="sd">            From center.  So line(center, r1) line(center, r2)&quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+    </div>
+    <span class="nd">@cached_property</span>
+    <span class="k">def</span> <span class="nf">_get_rs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns current values of radius 1-4; if any of 2,3,4 is None,</span>
+<span class="sd">        returns the value of r1&quot;&quot;&quot;</span>
+        
+        <span class="n">r1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">radius_1</span>
+        <span class="n">r2</span><span class="p">,</span> <span class="n">r3</span><span class="p">,</span> <span class="n">r4</span> <span class="o">=</span> <span class="n">r1</span><span class="p">,</span> <span class="n">r1</span><span class="p">,</span> <span class="n">r1</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">radius_2</span><span class="p">:</span>
+            <span class="n">r2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">radius_2</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">radius_3</span><span class="p">:</span>
+            <span class="n">r3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">radius_3</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">radius_4</span><span class="p">:</span>
+            <span class="n">r4</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">radius_4</span>
+            
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="p">(</span><span class="n">r1</span><span class="p">,</span> <span class="n">r2</span><span class="p">,</span> <span class="n">r3</span><span class="p">,</span> <span class="n">r4</span><span class="p">)</span> <span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">_n</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_get_rr_cc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Draws circle for each vertex pair returned by self.skeleton, then</span>
+<span class="sd">        concatenates them in a final (rr, cc) array. &quot;&quot;&quot;</span>
+
+        <span class="n">rr_all</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">cc_all</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="p">(</span><span class="n">vx</span><span class="p">,</span> <span class="n">vy</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">skeleton</span><span class="p">):</span>
+            <span class="n">rs</span><span class="p">,</span> <span class="n">cs</span> <span class="o">=</span> <span class="n">draw</span><span class="o">.</span><span class="n">circle</span><span class="p">(</span> <span class="n">vy</span><span class="p">,</span> <span class="n">vx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rs</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="p">)</span>
+            <span class="n">rr_all</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rs</span><span class="p">)</span>
+            <span class="n">cc_all</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cs</span><span class="p">)</span>
+        
+        <span class="n">rr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span> <span class="n">rr_all</span> <span class="p">)</span>
+        <span class="n">cc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span> <span class="n">cc_all</span> <span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">rr</span><span class="p">,</span> <span class="n">cc</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">pyparty 0.2 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Adam Hughes.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
