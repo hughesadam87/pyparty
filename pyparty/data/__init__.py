@@ -6,14 +6,21 @@ import os.path as op
 from skimage.io import imread
 from pyparty import data_dir
 
-
 __all__ = ['gwu', 
            'spectrum',
            'lena_who',
            'nanogold',
            'nanolabels',
            'nanobinary',
+	   'test_plain',
+	   'test_contrast',
+           'test_salty'	   
            ]
+
+def help():
+    """ What's canonical way to add help to modules?"""
+    return 'Sample images: %s' % ",".join(__all__)
+
 
 def load(f):
     """Load an image file located in the data directory.
@@ -57,3 +64,16 @@ def nanolabels():
 def nanobinary():
     """ binarized nanogold using trainable pixel classification """
     return load("nanobinary.tif")
+
+def test_plain():
+    """ 1024 x1024 resolution; 30nm Diameter circles; 
+    pure white (1,1,1) on gray (.5,.5,.5) background. """
+    return load("test_plain.png")
+
+def test_contrast():
+    """ See test_plain().__doc__.  Added local contrast fluctuations. """
+    return load("test_contrast.png")
+
+def test_salty():
+    """ See test_contrast.__doc__.  Added 45% salt (1,1,1) noise. """
+    return load("test_salty.png")
