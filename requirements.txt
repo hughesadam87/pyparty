@@ -1,3 +1,0 @@
-scikit-image>=0.9
-traits==4.3.0
-
