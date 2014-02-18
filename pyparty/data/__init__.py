@@ -17,11 +17,6 @@ __all__ = ['gwu',
            'test_salty'	   
            ]
 
-def help():
-    """ What's canonical way to add help to modules?"""
-    return 'Sample images: %s' % ",".join(__all__)
-
-
 def load(f):
     """Load an image file located in the data directory.
 
