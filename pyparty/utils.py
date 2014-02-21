@@ -372,8 +372,9 @@ def grayhist(img, *args, **histkwargs):
     cdf : bool(False) 
         Plot cumulative distribution function over histogram.
         
-    xlim : Set xlimits of histogram.
-        Very common to histogram so decided to promote it.
+    xlim : set (xs, xf) or "auto" 
+        Return cropped histogram between x-limits.  If "auto", min and max
+	brigntess of image are used.  
     
     Returns
     -------
@@ -427,6 +428,8 @@ def grayhist(img, *args, **histkwargs):
     xmin, xmax = pp_dtype_range(img)
 
     if xlim:
+	if xlim =='auto':
+	    xlim = img.min(), img.max()
         rmin, rmax = xlim
         if rmin < xmin or rmax > xmax:
             raise UtilsError("Range %s out of bounds (%s, %s)" %
