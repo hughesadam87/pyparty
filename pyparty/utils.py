@@ -345,106 +345,6 @@ def splot(*args, **kwds):
     else:
         return args
 
-# Used with crop
-def _get_xyshape(image):
-    """Returns first two dimensions of an image, whether it is 2d or 3d, 
-       as is the case of colored images.
-
-    Parameters
-    ----------
-    image: a ndarray
-
-    Returns:
-    -----------
-    img_xf, img_yf: shape of first and second dimension of array
-
-    Raises
-    ------
-    UtilsError
-        If image shape is not 2 or 3.
-
-    """
-
-    ndim = len(image.shape)
-
-    if ndim == 3:
-        img_xf, img_yf, z = image.shape
-
-    elif ndim == 2:
-        img_xf, img_yf = image.shape
-
-    else:
-        raise UtilsError('Image must have dimensions 2 or 3 (received %s)' % ndim)
-
-    return img_xf, img_yf
-
-
-def crop(image, coords):
-    """Crops a rectangle (xi, yi, xf, yf) from an image.  If image
-       is 3-dimenionsal (eg color image), slices on first two dimensions.
-
-    Parameters
-    ----------
-    image: a ndarray
-    coords : (xi, yi, xf, yf)
-        lenngth-4 iterable with coordiantes corresponding to rectangle corners
-    in order (xi, yi, xf, yf)
-
-    Notes
-    -----
-    Allows for xf/yf > xi/yi for more flexible rectangle drawing.
-    Please refer to the numpy indexing API for de-facto slicing. 
-
-    Raises
-    ------
-    UtilsError
-    	If more or less than 4 coordinates are passed.
-        If x or y rectangle coordinates exceed the range of image (image.shape)
-
-
-    Examples
-    --------
-    >>> from skimage import data
-    >>> lena = img_as_float(data.lena())
-    >>> crop(lena, (0,0,400,300))	
-
-    """
-
-    img_xf, img_yf = _get_xyshape(image)
-
-    try:
-        xi, yi, xf, yf = coords
-    except Exception:
-        raise UtilsError("Coordinates must be lenth four iterable of form"
-                         "(xi, yi, xf, yf).  Instead, received %s" % coords)
-
-
-    # Make sure crop limits are in range of image
-    for x in (xi, xf):
-        if x < 0 or x > img_xf:
-            raise UtilsError('Cropping bounds (%s, %s) exceed'
-                             ' image horizontal range (%s, %s)' % (xi, xf, 0, img_xf))
-
-    for y in (yi, yf):
-        if y < 0 or y > img_yf:
-            raise UtilsError('Cropping bounds (%s, %s) exceed'
-                             ' image vertical range (%s, %s)' % (yi, yf, 0, img_yf))
-
-    # Reverse bounds if final exceeds initial
-    if yf < yi:
-        yi, yf = yf, yi
-
-    if xf < xi:
-        xi, xf = xf, xi
-
-    ndim = len(image.shape)
-    if ndim == 3:
-        image = image[yi:yf, xi:xf, :]
-    else:
-        image = image[yi:yf, xi:xf]   
-
-    return image
-
 def mem_address(obj):
     """ Return memory address string for a python object.  Object must have
     default python object __repr__ (ie it would look something like:
@@ -558,6 +458,7 @@ def rgbhist(img, *args, **kwargs):
     # Can probably just call histograam 3 times w/ color arg
     raise NotImplementedError
 
+
 def pp_dtype_range(img):
     """ Similar to skimage.utils.dtype_range, returns upper and lower limits
     on image of 1-channel and 3-channel.  Can't use skimage because it
@@ -568,3 +469,220 @@ def pp_dtype_range(img):
     elif img.ndim == 3:
         xmin, xmax =  (0,0,0), (1,1,1) 
     return xmin, xmax
+
+# ------- ZOOMING AND CROPPING 
+
+
+# Used with crop
+def _get_xyshape(image):
+    """Returns first two dimensions of an image, whether it is 2d or 3d, 
+       as is the case of colored images.
+
+    Parameters
+    ----------
+    image: a ndarray
+
+    Returns:
+    -----------
+    img_xf, img_yf: shape of first and second dimension of array
+
+    Raises
+    ------
+    UtilsError
+        If image shape is not 2 or 3.
+
+    """
+
+    ndim = len(image.shape)
+
+    if ndim == 3:
+        img_xf, img_yf, z = image.shape
+
+    elif ndim == 2:
+        img_xf, img_yf = image.shape
+
+    else:
+        raise UtilsError('Image must have dimensions 2 or 3 (received %s)' % ndim)
+
+    return img_xf, img_yf
+
+
+def crop(image, coords):
+    """Crops a rectangle (xi, yi, xf, yf) from an image.  If image
+       is 3-dimenionsal (eg color image), slices on first two dimensions.
+
+    Parameters
+    ----------
+    image: a ndarray
+    coords : (xi, yi, xf, yf)
+        lenngth-4 iterable with coordiantes corresponding to rectangle corners
+    in order (xi, yi, xf, yf)
+
+    Notes
+    -----
+    Allows for xf/yf > xi/yi for more flexible rectangle drawing.
+    Please refer to the numpy indexing API for de-facto slicing. 
+
+    Raises
+    ------
+    UtilsError
+    	If more or less than 4 coordinates are passed.
+        If x or y rectangle coordinates exceed the range of image (image.shape)
+
+
+    Examples
+    --------
+    >>> from skimage import data
+    >>> lena = img_as_float(data.lena())
+    >>> crop(lena, (0,0,400,300))	
+
+    """
+
+    img_xf, img_yf = _get_xyshape(image)
+
+    try:
+        xi, yi, xf, yf = coords
+    except Exception:
+        raise UtilsError("Coordinates must be lenth four iterable of form"
+                         "(xi, yi, xf, yf).  Instead, received %s" % coords)
+
+
+    # Make sure crop limits are in range of image
+    for x in (xi, xf):
+        if x < 0 or x > img_xf:
+            raise UtilsError('Cropping bounds (%s, %s) exceed'
+                             ' image horizontal range (%s, %s)' % (xi, xf, 0, img_xf))
+
+    for y in (yi, yf):
+        if y < 0 or y > img_yf:
+            raise UtilsError('Cropping bounds (%s, %s) exceed'
+                             ' image vertical range (%s, %s)' % (yi, yf, 0, img_yf))
+
+    # Reverse bounds if final exceeds initial
+    if yf < yi:
+        yi, yf = yf, yi
+
+    if xf < xi:
+        xi, xf = xf, xi
+
+    ndim = len(image.shape)
+    if ndim == 3:
+        image = image[yi:yf, xi:xf, :]
+    else:
+        image = image[yi:yf, xi:xf]   
+    return image
+
+def zoom(image, coords, *imshowargs, **imshowkwds):
+    """
+    Plot zoomed-in region of rectangularly cropped image'
+   
+    Parameters
+    ----------
+    image: a ndarray
+    coords : (xi, yi, xf, yf)
+        lenngth-4 iterable with coordiantes corresponding to rectangle corners
+	in order (xi, yi, xf, yf)
+    *imshowargs, **imshowkwds : plotting *args, **kwargs
+        Passed directly to matplotlib imshow()
+
+    Returns
+    -------
+    Matplotlib Axes
+        This is the output of imshow(image, *imshowargs, **imshowkwds)
+
+    Notes
+    -----
+    Simple wrapper that calls crop, then imshow() on the cropped image.
+
+    Examples
+    --------
+    >>> from skimage import data
+    >>> lena = img_as_float(data.lena())
+    >>> zoom(lena, (0,0,400,300), plt.cm.gray);
+
+    """    
+
+    cropped_image = crop(image, coords)
+    return scaleshow(cropped_image, *imshowargs, **imshowkwds)    
+
+
+def zoomshow(image, coords, *imshowargs, **imshowkwds):
+    """
+    Plot full and cropped image side-by-side. 
+    Draws a rectangle on full image to show zooming coordinate.
+             
+    Parameters
+    ----------
+    image: a ndarray
+    coords : (xi, yi, xf, yf)
+        lenngth-4 iterable with coordiantes corresponding to rectangle corners
+	in order (xi, yi, xf, y
+      
+    *imshowargs, **imshowkwds : plotting *args, **kwargs
+         Passed directly to matplotlib imshow() after removing special keywords
+	 (SEE NOTES)
+	  
+     Returns
+     -------
+     cropped_image, (plots) : tuple
+	   image, (ax_full, ax_zoomed) 
+ 
+     Notes
+     -----
+     Returns both the cropped image and the plots for flexibility.  Plots 
+     are returned in this manner to allow user to further draw on them before
+     calling show().
+     
+     Rectangle has special plotting keywords- "lw", "ls", "color", "orient"
+     
+     Examples
+     --------
+     >>> from skimage import data
+     >>> lena = img_as_float(data.lena())
+     >>> zoomshow(lena, (0,0,400,300), plt.cm.gray, orient='v', color='r');
+
+    """
+    
+    # Pop keywords for rectangle
+    lw = imshowkwds.pop('lw', '2')
+    ls = imshowkwds.pop('ls', '-')
+    color = imshowkwds.pop('color', 'y')
+    orient = imshowkwds.pop('orient', 'h')
+    
+    if orient in ['h', 'horizontal']:
+        subshape = {'nrows':1, 'ncols':2}
+    elif orient in ['v', 'vertical']:
+        subshape = {'nrows':2, 'ncols':1}
+    else:
+        raise UtilsError('Plot orientation "%s" not understood' % orient)
+    
+    # Normalize coordinates for axhline/axvline
+    img_ymax, img_xmax = _get_xyshape(image)
+
+    if len(coords) != 4:
+	raise UtilsError("Coordinates must be lenth four iterable of form"
+	    "(xi, yi, xf, yf).  Instead, received %s" % coords)
+
+    xi, yi, xf, yf = coords
+
+    xi_norm, xf_norm = xi / img_xmax, xf / img_xmax
+    yi_norm, yf_norm = (img_ymax - yi) / img_ymax, \
+        (img_ymax - yf) / img_ymax
+    
+    f, (ax_full, ax_zoomed) = plt.subplots(**subshape)
+               
+    ax_full.imshow(image, *imshowargs, **imshowkwds)      
+    cropped_image = crop(image, coords) 
+    ax_zoomed.imshow(cropped_image, *imshowargs, **imshowkwds)
+
+    # Add rectangle
+    ax_full.axhline(y=yi, xmin=xi_norm, xmax=xf_norm, 
+        linewidth=lw, color=color, ls=ls)
+    ax_full.axhline(y=yf, xmin=xi_norm, xmax=xf_norm, 
+        linewidth=lw, color=color, ls=ls)
+    ax_full.axvline(x=xi, ymax=yi_norm, ymin=yf_norm, 
+        linewidth=lw, color=color, ls=ls)
+    ax_full.axvline(x=xf, ymax=yi_norm, ymin=yf_norm, 
+        linewidth=lw, color=color, ls=ls)
+    return cropped_image, (ax_full, ax_zoomed)
+
