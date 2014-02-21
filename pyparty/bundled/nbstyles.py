@@ -36,7 +36,7 @@ __all__ = {
 # work of Brian Granger; all credit to him for this and his help in general
 # discussions of notebooks styling.
 # https://github.com/ellisonbg/talk-cplug2013/blob/master/load_style.py
-def load_style(s):
+def load_style(s, figsize=None, loghide=False):
     """Load a CSS stylesheet in the notebook either by builtin styles, or
     from a file, or from a URL.
 
@@ -66,8 +66,25 @@ def load_style(s):
                ' Valid builtins are "%s"' % '","'.join(__all__.keys() ))
 
     out = '<style>\n{style}\n</style>'.format(style=style)
+    
+    if figsize:
+        if figsize == True:
+            figsize = 8, 5.5
+        else:
+            try:
+                fx, fy = figsize
+            except Exception:
+                fx, fy = figsize, figsize
+            
+        fstring = "\ninput:pylab.rcParams['figure.figsize'] = %s, %s\n" \
+            % (fx,fy)
+        out += fstring
+
     display(HTML(out))
     
+    if loghide:
+        import warnings #supress non-pyparty log msgs
+        warnings.filterwarnings('ignore')             
     
 def load_ipython_extension(ip):
     """Load the extension in IPython."""
