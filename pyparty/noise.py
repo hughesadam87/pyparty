@@ -20,7 +20,8 @@ def _parse_intensity(img, intensity):
         raise NoiseError('Intensity/color cannot be an array.')
     intensity = to_normrgb(intensity)
     if img.ndim == 2:
-        intensity = rgb2uint(intensity)
+        r,g,b = intensity
+        intensity = 0.2125 * r + 0.7154 * g + 0.0721 * b
     return intensity        
 
             

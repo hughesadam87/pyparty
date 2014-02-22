@@ -131,7 +131,7 @@ def any2rgb(array, name=''):
     if array.max() > 1:
         # For 8-bit, divide by 255!
         if array.max() > COLORTYPE[1]:
-            raise BackgroundError("Only 8bit ints are supported for now")
+            raise ColorError("Only 8bit ints are supported for now")
         array = array / COLORTYPE[1] 
 
     if array.ndim == 3:
@@ -142,7 +142,7 @@ def any2rgb(array, name=''):
                     % name)
         return gray2rgb(array)
 
-    raise BackgroundError('%s must be 2 or 3 dimensional array!' % name )    
+    raise ColorError('%s must be 2 or 3 dimensional array!' % name )    
 
 
 def coords_in_image(rr_cc, shape):
@@ -369,8 +369,12 @@ def grayhist(img, *args, **histkwargs):
     ----------
     bins : (Number bins, defaults to 256)
 
-    cdf : bool(False) 
+    cdf : bool(False) or str(color)
         Plot cumulative distribution function over histogram.
+	If cdf = color, interpreted as line color eg (cdf = 'r') 
+	plots a red line for CDF.   
+	
+    lw / ls : CDF Line styles
         
     xlim : set (xs, xf) or "auto" 
         Return cropped histogram between x-limits.  If "auto", min and max
@@ -392,12 +396,12 @@ def grayhist(img, *args, **histkwargs):
     # Histogram plotting kwargs
     bins = histkwargs.pop('bins', 256) #used several places
     cdf = histkwargs.pop('cdf', False)
+    title = histkwargs.pop('title', None)
     histkwargs.setdefault('color', 'black')
     histkwargs.setdefault('alpha', 0.5)
     histkwargs.setdefault('orientation', 'vertical')
     
     # CDF line plotting kwargs
-    lcolor = histkwargs.pop('lcolor', 'red')
     lw = histkwargs.pop('lw', 2)    
     ls = histkwargs.pop('ls', '-')
     
@@ -419,6 +423,8 @@ def grayhist(img, *args, **histkwargs):
     
     # Display cumulative distribution
     if cdf:
+	if cdf is not True:
+	    lcolor = cdf
         ax_cdf = axes.twinx()
         img_cdf, bins = exposure.cumulative_distribution(img, bins)
         ax_cdf.plot(bins, img_cdf, color=lcolor, lw=lw, ls=ls)
@@ -437,7 +443,8 @@ def grayhist(img, *args, **histkwargs):
         else:
             xmin, xmax = xlim
     axes.set_xlim(xmin, xmax)
-
+    if title:
+	axes.set_title(title)
     return histout
     
     
