@@ -425,6 +425,8 @@ def grayhist(img, *args, **histkwargs):
     if cdf:
 	if cdf is not True:
 	    lcolor = cdf
+	else:
+	    lcolor = 'r'
         ax_cdf = axes.twinx()
         img_cdf, bins = exposure.cumulative_distribution(img, bins)
         ax_cdf.plot(bins, img_cdf, color=lcolor, lw=lw, ls=ls)
