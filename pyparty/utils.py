@@ -456,7 +456,7 @@ def grayhist(img, *args, **histkwargs):
         img_cdf, bins = exposure.cumulative_distribution(img, bins)
         ax_cdf.plot(bins, img_cdf, color=lcolor, lw=lw, ls=ls)
     
-    axes.set_xlim(xmin, xmax)
+    axes.set_xlim(xmin, xmax) #is necessary
     if title:
 	axes.set_title(title)
     return axes
@@ -697,7 +697,13 @@ def zoomshow(image, coords, *imshowargs, **imshowkwds):
                
     ax_full.imshow(image, *imshowargs, **imshowkwds)      
     cropped_image = crop(image, coords) 
-    ax_zoomed.imshow(cropped_image, *imshowargs, **imshowkwds)
+    ax_zoomed.imshow(image, *imshowargs, **imshowkwds)
+
+    ax_zoomed.set_xlim(xi, xf)
+    ax_zoomed.set_ylim(yf, yi)
+
+#    ax_zoomed.set_xlim(xi, xf) #WTF?
+#    ax_zoomed.set_ylim(yi, yf)
 
     # Add rectangle
     ax_full.axhline(y=yi, xmin=xi_norm, xmax=xf_norm, 
@@ -708,8 +714,11 @@ def zoomshow(image, coords, *imshowargs, **imshowkwds):
         linewidth=lw, color=color, ls=ls)
     ax_full.axvline(x=xf, ymax=yi_norm, ymin=yf_norm, 
         linewidth=lw, color=color, ls=ls)
+    
+
     return cropped_image, (ax_full, ax_zoomed)
 
 if __name__ == '__main__':
     warpedbg = np.random.randint(0, 255, size=(500,500) )
-    grayhist(warpedbg, xlim='auto', title='Gray Histogram',cdf=True);
+    zoomshow(warpedbg, (40,40,333,333))
+#    grayhist(warpedbg, xlim='auto', title='Gray Histogram',cdf=True);

@@ -22,6 +22,6 @@ class Tetramer(SimplePattern):
     """ Four adjacent circles around center coordinates.  Default shape is
     square-like (but can't name class "Square" due to conflicts) """
 
-    ptype = Str('Tetramer')          
+    ptype = Str('tetramer')          
     _offangle = Float(45.0)    
     _n = Int(4)

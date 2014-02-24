@@ -665,13 +665,13 @@ class Canvas(HasTraits):
 
     @property
     def pixcount(self):
-        """ Counts # pixels in image """
+        """ Image pixel count """
         l, w = self.rez
         return int(l * w)
 
     @property
     def pixarea(self):
-        """ What's the best way to get this? """
+        """ Area white pixels in pbinary """
         return float(np.sum(self.pbinary)) / self.pixcount
 
     @property
@@ -908,10 +908,23 @@ class Canvas(HasTraits):
     # ------------
     @classmethod
     def copy(cls, obj):
-        """ Returns a copied canvas object. """
-        newgrid = copy.copy(obj.grid)
-        return cls(background=obj.background, particles=obj._particles, 
-                        rez=obj.rez, grid=newgrid, _threshfcn=obj._threshfcn)        
+        """ Returns a copied canvas object. 
+        
+        Notes
+        -----
+        copy grid, bg and particles separately as they are 
+        deep objects.  Particles is especially finiky so just
+        create a completely new instance of it."""
+    
+        grid = copy.copy(obj.grid)
+        bg = copy.copy(obj.background)
+        pnew = ParticleManager(plist=obj.plist, copy=True)
+        
+        return cls(background=bg, 
+                   particles=pnew, 
+                   rez=obj.rez, 
+                   grid=grid, 
+                   _threshfcn=obj._threshfcn)        
 
     
     # Extend to polygons/other partciles in future
