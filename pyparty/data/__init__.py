@@ -5,6 +5,7 @@
 import os.path as op
 from skimage.io import imread
 from pyparty import data_dir
+from pyparty.utils import crop
 
 __all__ = ['gwu', 
            'spectrum',
@@ -17,58 +18,68 @@ __all__ = ['gwu',
            'test_salty'	   
            ]
 
-def load(f):
+def load(f, rez=None):
     """Load an image file located in the data directory.
 
     Parameters
     ----------
     f : string
         File name.
+    
+    rez : (int, int) or None
+        Crop image to desired length by width.
 
     Returns
     -------
     img : ndarray
         Image loaded from skimage.data_dir.
     """
-    return imread(op.join(data_dir, f))
+    img = imread(op.join(data_dir, f))
+    if rez:
+        rx, ry = rez
+        img = crop(img, (0,0,rx,ry))
+    return img
 
-
-def gwu():
+def gwu(*args, **kwargs):
     """ New George Washington University Logo """
-    return load("gwu.png")
+    return load("gwu.png", *args, **kwargs)
 
 def spectrum():
     """ 3d Spectrum : original image by pyparty author """
-    return load("spectrum.jpg")
+    return load("spectrum.jpg", *args, **kwargs)
 
 def lena_who():
     """ Yound lady, released with her full permission """
-    return load("lena_who.jpg")
+    return load("lena_who.jpg", *args, **kwargs)
 
 def nanogold():
     """ Scanning electron image of Gold Nanoparticles 100,000 X 
     magnification.  Original image is property of Adam Hughes, 
     Reeves Cond. Matter Physics Group, and released for public
     distribution."""
-    return load("nanogold.tif")
+    return load("nanogold.tif", *args, **kwargs)
 
 def nanolabels():
     """ size-segmented (nanogold); see nanogold description"""
-    return load("nanolabels.tif")
+    return load("nanolabels.tif", *args, **kwargs)
 
 def nanobinary():
     """ binarized nanogold using trainable pixel classification """
-    return load("nanobinary.tif")
+    return load("nanobinary.tif", *args, **kwargs)
 
 def test_plain():
     """ 1024 x1024 resolution; 30nm Diameter circles; 
     pure white (1,1,1) on gray (.5,.5,.5) background. """
-    return load("test_plain.png")
+    return load("test_plain.png", *args, **kwargs)
 
 def test_contrast():
     """ See test_plain().__doc__.  Added local contrast fluctuations. """
-    return load("test_contrast.png")
+    return load("test_contrast.png", *args, **kwargs)
 
 def test_salty():
     """ See test_contrast.__doc__.  Added 45% salt (1,1,1) noise. """
-    return load("test_salty.png")
+    return load("test_salty.png", *args, **kwargs)
+
+if __name__ == '__main__':
+    print gwu(rez=(50,5000)).shape  
+    

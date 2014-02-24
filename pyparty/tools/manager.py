@@ -468,7 +468,7 @@ class ParticleManager(HasTraits):
     @property
     def ptypes(self):
         """ All UNIQUE particle types. """
-        return sorted(set(p.ptype for p in self.plist))
+        return tuple(sorted(set(p.ptype for p in self.plist)))
         
     @property
     def ptype_count(self):

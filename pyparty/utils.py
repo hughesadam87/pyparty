@@ -575,12 +575,12 @@ def crop(image, coords):
     for x in (xi, xf):
         if x < 0 or x > img_xf:
             raise UtilsError('Cropping bounds (%s, %s) exceed'
-                             ' image horizontal range (%s, %s)' % (xi, xf, 0, img_xf))
+                             ' image X range (%s, %s)' % (xi, xf, 0, img_xf))
 
     for y in (yi, yf):
         if y < 0 or y > img_yf:
             raise UtilsError('Cropping bounds (%s, %s) exceed'
-                             ' image vertical range (%s, %s)' % (yi, yf, 0, img_yf))
+                             ' image Y range (%s, %s)' % (yi, yf, 0, img_yf))
 
     # Reverse bounds if final exceeds initial
     if yf < yi:
