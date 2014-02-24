@@ -386,6 +386,13 @@ def grayhist(img, *args, **histkwargs):
 
     Notes
     -----
+    Unlike standard histogram, this returns axes rather than the
+    histogram parameters.  Because this method changes api for xlim,
+    IE user can prescribe xlimits through call signature, it is easier to just
+    crop the image instead of changing the plot limits to account for the
+    various cases.  Therefore, it would return output for cropped image
+    histogram, which could lead to confusion.
+    
     See matplotlib hist API for all plt.hist() parameters.
     http://matplotlib.org/api/pyplot_api.html
     """
@@ -406,6 +413,24 @@ def grayhist(img, *args, **histkwargs):
     ls = histkwargs.pop('ls', '-')
     
     xlim = histkwargs.pop('xlim', None)
+    
+    # Set the range based on scikit image dtype range 
+    # (not quite right for rgb)
+    xmin, xmax = pp_dtype_range(img)
+        
+    if xlim:
+	# ALSO SET VLIM FROM AUTO!
+	if xlim =='auto':
+	    xlim = img.min(), img.max()
+	    
+        rmin, rmax = xlim
+        if rmin < xmin or rmax > xmax:
+            raise UtilsError("Range %s out of bounds (%s, %s)" %
+                             (xlim, xmin, xmax))
+        else:
+            xmin, xmax = xlim    
+    
+    raveled_img = img[(img >= xmin) & (img <= xmax)]
 
     if histkwargs['orientation'] == 'horizontal':
         raise UtilsError("horizontal orientation not supported.")
@@ -417,7 +442,7 @@ def grayhist(img, *args, **histkwargs):
         fig, axes = plt.subplots()
     
     # Display histogram
-    histout = axes.hist(img.ravel(), bins=bins, **histkwargs)
+    histout = axes.hist(raveled_img, bins=bins, **histkwargs)
     axes.ticklabel_format(axis='y', style='scientific', scilimits=(0, 0))
     axes.set_xlabel('Pixel intensity')
     
@@ -431,23 +456,10 @@ def grayhist(img, *args, **histkwargs):
         img_cdf, bins = exposure.cumulative_distribution(img, bins)
         ax_cdf.plot(bins, img_cdf, color=lcolor, lw=lw, ls=ls)
     
-    # Set the range based on scikit image dtype range 
-    # (not quite right for rgb)
-    xmin, xmax = pp_dtype_range(img)
-
-    if xlim:
-	if xlim =='auto':
-	    xlim = img.min(), img.max()
-        rmin, rmax = xlim
-        if rmin < xmin or rmax > xmax:
-            raise UtilsError("Range %s out of bounds (%s, %s)" %
-                             (xlim, xmin, xmax))
-        else:
-            xmin, xmax = xlim
     axes.set_xlim(xmin, xmax)
     if title:
 	axes.set_title(title)
-    return histout
+    return axes
     
     
 def rgbhist(img, *args, **kwargs):
@@ -698,3 +710,6 @@ def zoomshow(image, coords, *imshowargs, **imshowkwds):
         linewidth=lw, color=color, ls=ls)
     return cropped_image, (ax_full, ax_zoomed)
 
+if __name__ == '__main__':
+    warpedbg = np.random.randint(0, 255, size=(500,500) )
+    grayhist(warpedbg, xlim='auto', title='Gray Histogram',cdf=True);
