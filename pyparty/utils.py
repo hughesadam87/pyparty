@@ -67,6 +67,16 @@ def copyarray(fcn):
     return wrapper
 
 
+def invert(image):
+    """ Invert a boolean, gray or rgb image.  Inversions are done through
+    by subtracts (255-img or (1,1,1) - img).  Image and its inverse should
+    sum to white!"""
+    if image.dtype == 'bool':
+	return np.invert(image)
+    if image.ndim == 2:
+	return  255 - image
+    return (1,1,1) - image       
+
 def to_normrgb(color):
     """ Returns an rgb len(3) tuple on range 0.0-1.0 with several input styles; 
         wraps matplotlib.color.ColorConvert.  If None, returns config.PCOLOR by
@@ -181,7 +191,7 @@ def rgb2uint(image, warnmsg=False):
         if isinstance(warnmsg, str):
             logger.warn(warnmsg)
         else:
-            logger.warn("3-Channel image converted to 1-channel gray.")
+            logger.warn("3-Channel converted to 1-channel (gray).")
     return grayimg    
     
 
