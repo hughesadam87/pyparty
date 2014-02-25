@@ -279,12 +279,15 @@ class ParticleManager(HasTraits):
         """ Apply a function to all particles.  Can also use functools.partial"""
         self.plist[:] = [fcn(p, *args, **kwargs) for p in self.plist]
         
+        
     def reverse(self):
         """ In place since list is inplace """
         self.plist.reverse()
+
     
     def pop(self, idx):
         self.plist.pop(idx)
+
     
     def idx(self, *names):
         """ Return index given names """
@@ -292,6 +295,7 @@ class ParticleManager(HasTraits):
         if len(out) == 1:
             out = out[0]
         return out
+
     
     def _unmask_index(self, idx):
         """ Test if object is an integer, string, or isntance of 
@@ -441,6 +445,13 @@ class ParticleManager(HasTraits):
         """ Returns all rr_cc coord concatenated into one (rr, cc) """
         rr, cc = zip(*(p.rr_cc for p in self.plist))
         return ( np.concatenate(rr), np.concatenate(cc) )
+        
+    def of_ptypes(self, *types):    
+        """ Keep plist of specified types.  Opted not to allow for inplace,
+        and implemented it at the Canvas level.
+        """
+        self.plist[:] = [p for p in self.plist if p.ptype in types]
+                
         
     # Full attribute container sorted mappers        
     def sortby(self, attr='name', inplace=False, ascending=True):

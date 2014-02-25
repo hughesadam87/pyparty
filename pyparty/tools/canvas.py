@@ -142,7 +142,10 @@ class Canvas(HasTraits):
         
     @property
     def threshfcn(self):
-        return self._threshtype
+        try:
+            return self._threshtype
+        except AttributeError:
+            return None
     
     @threshfcn.setter
     def threshfcn(self):
@@ -196,6 +199,19 @@ class Canvas(HasTraits):
             cout = Canvas.copy(self)
             cout._particles.map(fcn, *fcnargs, **fcnkwargs)
             return cout    
+
+
+    def of_ptypes(self, *types, **kwargs):
+        """ Retain only particles pertaining to specified *types; 
+        optionally inplace."""
+
+        inplace = kwargs.pop('inplace', False)
+        if inplace:
+            self._particles.of_ptypes(*types)
+        else:
+            cout = Canvas.copy(self)
+            cout._particles.of_ptypes(*types)
+            return cout
 
 
     def pixelmap(self, fcn, axis=0, *fcnargs, **fcnkwargs):
@@ -503,6 +519,7 @@ class Canvas(HasTraits):
             skimage.io.imsave(path, image)
                         
         return axes 
+
 
     def _draw_particles(self, image, force_binary=False):
         """ Draws particles over any image (ie background, background+grid.
@@ -841,9 +858,6 @@ class Canvas(HasTraits):
     def __setitem__(self, key, particle):
         return self._particles.__setitem__(key, particles)
 
-    def create(self, attr, *args, **kwargs):
-        print 'hi'
-        return getattr(self._particles, attr)(*args, **kwargs)
 
     def __getattr__(self, attr):
         """ Look for missing attributes on particle manager.
@@ -907,24 +921,40 @@ class Canvas(HasTraits):
     # Class methods
     # ------------
     @classmethod
-    def copy(cls, obj):
-        """ Returns a copied canvas object. 
+    def copy(cls, obj, grid=None, background=None, particles=None,
+             rez=None, _threshfcn = None):
+        """ Returns a copied canvas object.  __init__ params are taken from
+        object unless explicitly passed.  
         
         Notes
         -----
         copy grid, bg and particles separately as they are 
         deep objects.  Particles is especially finiky so just
-        create a completely new instance of it."""
-    
-        grid = copy.copy(obj.grid)
-        bg = copy.copy(obj.background)
-        pnew = ParticleManager(plist=obj.plist, copy=True)
+        create a completely new instance of it.
         
-        return cls(background=bg, 
-                   particles=pnew, 
-                   rez=obj.rez, 
+        Explicit passing is useful, for insance, if one wants to copy a
+        canvas with new particles.  This makes the operation quicker than
+        copying the old particles and then overwriting.
+        """
+    
+        if not grid:
+            grid = copy.copy(obj.grid)
+        if not background:        
+            background = copy.copy(obj.background)
+        if not particles:
+            particles = ParticleManager(plist=obj.plist, copy=True)
+            
+        if not rez:
+            rez = obj.rez
+            
+        if not _threshfcn:
+            _threshfcn = obj.threshfcn
+        
+        return cls(background=background, 
+                   particles=particles, 
+                   rez=rez, 
                    grid=grid, 
-                   _threshfcn=obj._threshfcn)        
+                   _threshfcn=_threshfcn)        
 
     
     # Extend to polygons/other partciles in future
