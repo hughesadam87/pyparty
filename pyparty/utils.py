@@ -44,12 +44,12 @@ def rand_color(style=None):
     elif style == 'bright':
         r = lambda: random.uniform(.5, 1.0)
         return ( r(), r(), r() )
-        
+
     else:
         r = lambda: random.random()
         return  ( r(), r(), r() )
-    
-    
+
+
 def _pix_norm(value, imax=CBITS):
     """ Normalize pixel intensity to colorbit """
     if value > imax:
@@ -71,11 +71,8 @@ def invert(image):
     """ Invert a boolean, gray or rgb image.  Inversions are done through
     by subtracts (255-img or (1,1,1) - img).  Image and its inverse should
     sum to white!"""
-    if image.dtype == 'bool':
-	return np.invert(image)
-    if image.ndim == 2:
-	return  255 - image
-    return (1,1,1) - image       
+    return pp_dtype_range(image) - image     
+
 
 def to_normrgb(color):
     """ Returns an rgb len(3) tuple on range 0.0-1.0 with several input styles; 
@@ -100,7 +97,7 @@ def to_normrgb(color):
 
         else:
             raise ColorError("Multi-channel color style ambiguous. (r, g, b)"
-                " elements must all be < 1 or all > 1 (normalized to %s pixels)" 
+                             " elements must all be < 1 or all > 1 (normalized to %s pixels)" 
                              % CBITS)
 
     if isinstance(color, str):
@@ -181,7 +178,7 @@ def coords_in_image(rr_cc, shape):
 def rgb2uint(image, warnmsg=False):
     """ Returns color image as 8-bit unsigned (0-255) int.  Unsigned 8bit gray 
     values are safer to plotting; so enforced throughout pyparty."""
-     # img 127 --> ubyte of 123... 
+        # img 127 --> ubyte of 123... 
         # Try this:
         #	print c.grayimage.max(), c.image.max() * 255, img_as_uint(lena()).max()
 
@@ -193,7 +190,7 @@ def rgb2uint(image, warnmsg=False):
         else:
             logger.warn("3-Channel converted to 1-channel (gray).")
     return grayimg    
-    
+
 
 def where_is_particle(rr_cc, shape):
     """ Quickly evaluates if particle rr, cc is fully within, partically in,
@@ -226,7 +223,7 @@ def where_is_particle(rr_cc, shape):
         return 'out'
     else:
         return 'edge'
-    
+
 
 def rr_cc_box(rr_cc, pad=0):
     """ Center the rr_cc values in a binarized box."""
@@ -254,7 +251,7 @@ def rr_cc_box(rr_cc, pad=0):
 
 def _parse_path(path):
     """ Validate a path; if None, set to cwd with timestamp."""
-    
+
     if path==True:
         from time import time as tstamp
         dirname, basename = os.getcwd(), 'canvas_%.0f.png' % tstamp()
@@ -263,11 +260,11 @@ def _parse_path(path):
     path = op.expanduser(path)
     if op.exists(path):
         raise UtilsError('Path exists: "%s"' % path)    
-    
+
     # PIL raises ambiguous KeyError 
     if not op.splitext(path)[1]:
         raise UtilsError("Please add an extension to save path")
-    
+
     return path
 
 
@@ -288,30 +285,30 @@ def _parse_ax(*args, **kwargs):
         else:
             args = list(args)
             axes = args.pop(indicies[0])      
-            
+
     if args and not cmap:
         if len(args) > 1:
             raise UtilsError("Please only pass a colormap and/or Axes"
-                 " subplot to Canvas plotting")
+                             " subplot to Canvas plotting")
         elif len(args) == 1:
             kwargs['cmap'] = args[0]            
-            
+
     # If string, replace cmap with true cmap instance (used by show())
     if 'cmap' in kwargs:
         cmap = kwargs['cmap']
         if isinstance(cmap, str):
             if cmap != 'pbinary' and cmap != 'pbinary_r': #special canvas word
                 kwargs['cmap'] = cm.get_cmap(cmap)    
-        
+
     return axes, kwargs
 
 # showim(img, ax)
 def showim(image, *args, **kwargs):
     """ Similar to imshow with a few more keywords"""
-    
+
     if not isinstance(image, np.ndarray):
         raise UtilsError("First argument to showim() must be an ndarray/image, "
-            "got %s instead." % type(image))
+                         "got %s instead." % type(image))
 
     title = kwargs.pop('title', None)
     axes, kwargs = _parse_ax(*args, **kwargs)
@@ -367,29 +364,29 @@ def mem_address(obj):
                          "Recieved following message: %s" % E.message)
     else:
         return out.strip("'").strip('>')
-    
-    
+
+
 def grayhist(img, *args, **histkwargs):
     """Plot an image along with its histogram and cumulative histogram.
-    
+
     ADAPTED FROM SCIKIT IMAGE GALLERY
     http://scikit-image.org/docs/dev/auto_examples/plot_local_equalize.html
-    
+
     Parameters
     ----------
     bins : (Number bins, defaults to 256)
 
     cdf : bool(False) or str(color)
         Plot cumulative distribution function over histogram.
-	If cdf = color, interpreted as line color eg (cdf = 'r') 
-	plots a red line for CDF.   
-	
+    If cdf = color, interpreted as line color eg (cdf = 'r') 
+    plots a red line for CDF.   
+
     lw / ls : CDF Line styles
-        
+
     xlim : set (xs, xf) or "auto" 
         Return cropped histogram between x-limits.  If "auto", min and max
-	brigntess of image are used.  
-    
+    brigntess of image are used.  
+
     Returns
     -------
     tuple : (n, bins, patches) or ([n0, n1, ...], bins, [patches0, patches1,...])
@@ -402,14 +399,14 @@ def grayhist(img, *args, **histkwargs):
     crop the image instead of changing the plot limits to account for the
     various cases.  Therefore, it would return output for cropped image
     histogram, which could lead to confusion.
-    
+
     See matplotlib hist API for all plt.hist() parameters.
     http://matplotlib.org/api/pyplot_api.html
     """
-    
+
     if img.ndim == 3:
         img = rgb2uint(img, warnmsg = True)
-    
+
     # Histogram plotting kwargs
     bins = histkwargs.pop('bins', 256) #used several places
     cdf = histkwargs.pop('cdf', False)
@@ -417,61 +414,61 @@ def grayhist(img, *args, **histkwargs):
     histkwargs.setdefault('color', 'black')
     histkwargs.setdefault('alpha', 0.5)
     histkwargs.setdefault('orientation', 'vertical')
-    
+
     # CDF line plotting kwargs
     lw = histkwargs.pop('lw', 2)    
     ls = histkwargs.pop('ls', '-')
-    
+
     xlim = histkwargs.pop('xlim', None)
-    
+
     # Set the range based on scikit image dtype range 
     # (not quite right for rgb)
     xmin, xmax = pp_dtype_range(img)
-        
+
     if xlim:
-	# ALSO SET VLIM FROM AUTO!
-	if xlim =='auto':
-	    xlim = img.min(), img.max()
-	    
+        # ALSO SET VLIM FROM AUTO!
+        if xlim =='auto':
+            xlim = img.min(), img.max()
+
         rmin, rmax = xlim
         if rmin < xmin or rmax > xmax:
             raise UtilsError("Range %s out of bounds (%s, %s)" %
                              (xlim, xmin, xmax))
         else:
             xmin, xmax = xlim    
-    
+
     raveled_img = img[(img >= xmin) & (img <= xmax)]
 
     if histkwargs['orientation'] == 'horizontal':
         raise UtilsError("horizontal orientation not supported.")
-    
+
     axes, kwargs = _parse_ax(*args, **histkwargs)    
-    
+
     # Matplotlib
     if not axes:
         fig, axes = plt.subplots()
-    
+
     # Display histogram
     histout = axes.hist(raveled_img, bins=bins, **histkwargs)
     axes.ticklabel_format(axis='y', style='scientific', scilimits=(0, 0))
     axes.set_xlabel('Pixel intensity')
-    
+
     # Display cumulative distribution
     if cdf:
-	if cdf is not True:
-	    lcolor = cdf
-	else:
-	    lcolor = 'r'
+        if cdf is not True:
+            lcolor = cdf
+        else:
+            lcolor = 'r'
         ax_cdf = axes.twinx()
         img_cdf, bins = exposure.cumulative_distribution(img, bins)
         ax_cdf.plot(bins, img_cdf, color=lcolor, lw=lw, ls=ls)
-    
+
     axes.set_xlim(xmin, xmax) #is necessary
     if title:
-	axes.set_title(title)
+        axes.set_title(title)
     return axes
-    
-    
+
+
 def rgbhist(img, *args, **kwargs):
     """ See imagej version """
     if img.ndim == 2:
@@ -480,15 +477,15 @@ def rgbhist(img, *args, **kwargs):
 
     bins = histkwargs.pop('bins', 256) #used several places
     cdf = histkwargs.pop('cdf', False)
-        
+
     axes, kwargs = _parse_ax(*args, **histkwargs) 
     if not axes:
         fig, axes = plt.subplots()    
-        
+
     # MAYBE STILL USE DTYPE FROM SKIMAGE IN CASE USERS PASS THEIR OWN RGB
     # IMAGE IN HERE OUTISDE OF PYPARTY?
     xmin, xmax = 0, 1
-        
+
     # Can probably just call histograam 3 times w/ color arg
     raise NotImplementedError
 
@@ -497,7 +494,9 @@ def pp_dtype_range(img):
     """ Similar to skimage.utils.dtype_range, returns upper and lower limits
     on image of 1-channel and 3-channel.  Can't use skimage because it
     allows for negative floats, which we avoid in 3-channel images."""
-    
+
+    if img.dtype == 'bool':
+        xmin, xmax = False, True
     if img.ndim == 2:
         xmin, xmax = 0, 255
     elif img.ndim == 3:
@@ -609,13 +608,13 @@ def crop(image, coords):
 def zoom(image, coords, *imshowargs, **imshowkwds):
     """
     Plot zoomed-in region of rectangularly cropped image'
-   
+
     Parameters
     ----------
     image: a ndarray
     coords : (xi, yi, xf, yf)
         lenngth-4 iterable with coordiantes corresponding to rectangle corners
-	in order (xi, yi, xf, yf)
+    in order (xi, yi, xf, yf)
     *imshowargs, **imshowkwds : plotting *args, **kwargs
         Passed directly to matplotlib imshow()
 
@@ -644,31 +643,31 @@ def zoomshow(image, coords, *imshowargs, **imshowkwds):
     """
     Plot full and cropped image side-by-side. 
     Draws a rectangle on full image to show zooming coordinate.
-             
+
     Parameters
     ----------
     image: a ndarray
     coords : (xi, yi, xf, yf)
         lenngth-4 iterable with coordiantes corresponding to rectangle corners
-	in order (xi, yi, xf, y
-      
+    in order (xi, yi, xf, y
+
     *imshowargs, **imshowkwds : plotting *args, **kwargs
          Passed directly to matplotlib imshow() after removing special keywords
-	 (SEE NOTES)
-	  
+    (SEE NOTES)
+
      Returns
      -------
      cropped_image, (plots) : tuple
-	   image, (ax_full, ax_zoomed) 
- 
+    image, (ax_full, ax_zoomed) 
+
      Notes
      -----
      Returns both the cropped image and the plots for flexibility.  Plots 
      are returned in this manner to allow user to further draw on them before
      calling show().
-     
+
      Rectangle has special plotting keywords- "lw", "ls", "color", "orient"
-     
+
      Examples
      --------
      >>> from skimage import data
@@ -676,35 +675,35 @@ def zoomshow(image, coords, *imshowargs, **imshowkwds):
      >>> zoomshow(lena, (0,0,400,300), plt.cm.gray, orient='v', color='r');
 
     """
-    
+
     # Pop keywords for rectangle
     lw = imshowkwds.pop('lw', '2')
     ls = imshowkwds.pop('ls', '-')
     color = imshowkwds.pop('color', 'y')
     orient = imshowkwds.pop('orient', 'h')
-    
+
     if orient in ['h', 'horizontal']:
         subshape = {'nrows':1, 'ncols':2}
     elif orient in ['v', 'vertical']:
         subshape = {'nrows':2, 'ncols':1}
     else:
         raise UtilsError('Plot orientation "%s" not understood' % orient)
-    
+
     # Normalize coordinates for axhline/axvline
     img_ymax, img_xmax = _get_xyshape(image)
 
     if len(coords) != 4:
-	raise UtilsError("Coordinates must be lenth four iterable of form"
-	    "(xi, yi, xf, yf).  Instead, received %s" % coords)
+        raise UtilsError("Coordinates must be lenth four iterable of form"
+                         "(xi, yi, xf, yf).  Instead, received %s" % coords)
 
     xi, yi, xf, yf = coords
 
     xi_norm, xf_norm = xi / img_xmax, xf / img_xmax
     yi_norm, yf_norm = (img_ymax - yi) / img_ymax, \
         (img_ymax - yf) / img_ymax
-    
+
     f, (ax_full, ax_zoomed) = plt.subplots(**subshape)
-               
+
     ax_full.imshow(image, *imshowargs, **imshowkwds)      
     cropped_image = crop(image, coords) 
     ax_zoomed.imshow(image, *imshowargs, **imshowkwds)
@@ -717,14 +716,14 @@ def zoomshow(image, coords, *imshowargs, **imshowkwds):
 
     # Add rectangle
     ax_full.axhline(y=yi, xmin=xi_norm, xmax=xf_norm, 
-        linewidth=lw, color=color, ls=ls)
+                    linewidth=lw, color=color, ls=ls)
     ax_full.axhline(y=yf, xmin=xi_norm, xmax=xf_norm, 
-        linewidth=lw, color=color, ls=ls)
+                    linewidth=lw, color=color, ls=ls)
     ax_full.axvline(x=xi, ymax=yi_norm, ymin=yf_norm, 
-        linewidth=lw, color=color, ls=ls)
+                    linewidth=lw, color=color, ls=ls)
     ax_full.axvline(x=xf, ymax=yi_norm, ymin=yf_norm, 
-        linewidth=lw, color=color, ls=ls)
-    
+                    linewidth=lw, color=color, ls=ls)
+
 
     return cropped_image, (ax_full, ax_zoomed)
 
