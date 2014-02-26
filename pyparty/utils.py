@@ -71,7 +71,7 @@ def invert(image):
     """ Invert a boolean, gray or rgb image.  Inversions are done through
     by subtracts (255-img or (1,1,1) - img).  Image and its inverse should
     sum to white!"""
-    return pp_dtype_range(image) - image     
+    return pp_dtype_range(image)[1] - image     
 
 
 def to_normrgb(color):

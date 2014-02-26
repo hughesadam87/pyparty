@@ -17,7 +17,6 @@ from skimage.measure import regionprops
 from skimage.measure._regionprops import _RegionProperties
 from matplotlib.patches import Path, PathPatch
 
-
 from pyparty.utils import rr_cc_box
 from pyparty.tools.arraytools import rotate, boolmask, \
      findcenter, meancenter
