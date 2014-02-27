@@ -5,6 +5,9 @@ from pyparty.utils import UtilsError
 class ArrayUtilsError(UtilsError):
     """ """
 
+class ArraySetError(ArrayUtilsError):
+    """ Reserved for set operations """
+
 def astype_rint(array):
     """ Converts ndarray to int, but rounds integers.  Sometimes don't want 
     accurate rounding, such as with grids"""
@@ -124,4 +127,25 @@ def nearest(array, value):
     '''Find nearest value in an array, return index and array value'''
     idx=(np.abs(array-value)).argmin()
     return idx, array[idx]  
+    
+# Set operations
+def _parse_set(array1, array2):
+    """ Ensure arrays are of same type and shape; no attempt to correct."""
+    ndim1, ndim2 = array1.ndim, array2.ndim
+    type1, type2 = array1.dtype, array2.dtype
+    if ndim1 != ndim2:
+        raise ArraySetError("Ndim mismatch: %s vs. %s" % (ndim1, ndim2))
+    if type1 != type2:
+        raise ArraySetError("Dtype mismatch: %s vs. %s" % (type1, type2))
+    
+
+def intersect(array1, array2, bgout=None):
+    """ Return array1 only where pixel values are identical to array2."""
+    _parse_set(array1, array2)
+    return (array1 == array2) * array1    
+   
+    
+def differ(array1, array2, bgount=None):
+    _parse_set(array1, array2)
+    return (array1 != array2) * array1
     
