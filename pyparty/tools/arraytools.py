@@ -131,10 +131,10 @@ def nearest(array, value):
 # Set operations
 def _parse_set(array1, array2):
     """ Ensure arrays are of same type and shape; no attempt to correct."""
-    ndim1, ndim2 = array1.ndim, array2.ndim
+    s1, s2 = array1.shape, array2.shape
     type1, type2 = array1.dtype, array2.dtype
-    if ndim1 != ndim2:
-        raise ArraySetError("Ndim mismatch: %s vs. %s" % (ndim1, ndim2))
+    if s1 != s2:
+        raise ArraySetError("Shape mismatch: %s vs. %s" % (ndim1, ndim2))
     if type1 != type2:
         raise ArraySetError("Dtype mismatch: %s vs. %s" % (type1, type2))
     
@@ -148,4 +148,29 @@ def intersect(array1, array2, bgout=None):
 def differ(array1, array2, bgount=None):
     _parse_set(array1, array2)
     return (array1 != array2) * array1
+    
+def segment_summary(binary1, binary2):
+    """ False pos and neg of the white pixels in binary1 vs. binary2.  
+ 
+    Returns : Tuple (false pos, false neg, error)
+    -------
+    False positive (FP) is white pixels in bin1 not in bin2.
+    False negative (FN) is white pixels in bin2 not in bin1.
+    Error is FP + FN / Total Pixels
+
+    Notes
+    -----
+    Our use case is that binary1 is a thresholded imgae, and
+    binary2 is the true binarization from sample data, but this works in general
+    for any two binary image.  Images must be same shape, and both binary.
+    """
+    _parse_set(binary1, binary2)
+    if binary1.dtype != 'bool':
+        raise ArraySetError("Boolean arrays required.")
+
+    pixels = binary1.shape[0] * binary1.shape[1]
+    fp = differ(binary1, binary2).sum()
+    fn = differ(binary2, binary1).sum()
+    net_error = float(fp.sum() + fn.sum()) / pixels
+    return fp, fn, net_error
     
