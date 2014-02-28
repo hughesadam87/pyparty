@@ -51,9 +51,11 @@ div.cell { /* set cell width to about 80 chars */
 
 /* Set font of coding cells (DONT KNOW WHY BUT NEED THIS) */
 .CodeMirror {
-    font-family: Sawasdee;
+    /* Preferred font is bold sawasdee, but here are backups */
+    font-family: "Sawasdee", "Lucida Sans Typewriter","Lucida Typewriter", 
+         "Lucida Typewriter", "Courier New", Courier, monospace;;
     font-size: normal;
-    font-weight: 700;
+    font-weight: 700; 
 }
 
 div.cell.code_cell { /* Total code cell, in and out */
