@@ -22,6 +22,10 @@ def louic():
     http://blog.louic.nl/?p=683"""
     return load('louic.css')
 
+def gwu():
+   """ Ivory background; Computer Modern Roman for text """
+   return load('gwu.css')
+
 def purisa():
     return load('purisa.css')
 

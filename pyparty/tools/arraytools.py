@@ -123,10 +123,20 @@ def array2sphere(xyz_array):
         raise ArrayUtilsError("xyz_array must be of shape (N,2) or (N,3) (ie "
             "rows of xy or xyz vectors), recived: %s" % str(xyz_array.shape))
     
+    
 def nearest(array, value):
-    '''Find nearest value in an array, return index and array value'''
-    idx=(np.abs(array-value)).argmin()
-    return idx, array[idx]  
+    """Find nearest value in an array, return index."""
+    return (np.abs(array-value)).argmin()
+    
+    
+def slice_by_value(array, vi=0, vf=None):
+    """Slice an array by value from vi-vf.  Don't forget to sort
+    your array!"""
+    if vf is None:
+        vf = len(array)
+        
+    xi, xf = nearest(array, vi), nearest(array, vf)
+    return array[xi:xf]
     
 # Set operations
 def _parse_set(array1, array2):
