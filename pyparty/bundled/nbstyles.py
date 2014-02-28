@@ -9,6 +9,10 @@ def load(path):
     with open((op.join(bundled_dir, path)), 'r') as f:
         return f.read()
 
+def gwu():
+    """ Ivory background; Computer Modern Roman for text """
+    return load('gwu.css')
+
 def plain():
     return ''
 
@@ -22,14 +26,13 @@ def louic():
     http://blog.louic.nl/?p=683"""
     return load('louic.css')
 
-def gwu():
-   """ Ivory background; Computer Modern Roman for text """
-   return load('gwu.css')
 
 def purisa():
+    """ Goofy """
     return load('purisa.css')
 
 __all__ = {
+           'gwu': gwu(),
            'plain' : plain(),
            'slender' : slender(),
            'louic' : louic(),
