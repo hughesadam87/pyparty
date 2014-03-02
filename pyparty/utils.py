@@ -5,6 +5,8 @@ import random
 import os
 import os.path as op
 import functools
+from types import GeneratorType
+
 
 import numpy as np
 import matplotlib.colors as colors
@@ -69,12 +71,15 @@ def _parse_generator(generator, astype=tuple):
     Mostly useful for operations that in some cases return a dictionary, 
     but also might be useful as a list of kv pairs etc...
     """        
-    if not isinstance(generator, 'generator'):
+    if not isinstance(generator, GeneratorType):
         raise UtilsError("Generator required; got %s" % type(generator))
-    if isinstance(astype, 'str'):
+    
+    if isinstance(astype, str):
         astype = eval(astype)        
+
     if astype:
         return astype(generator)
+
     else:
         return generator    
 

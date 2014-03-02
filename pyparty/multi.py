@@ -50,8 +50,7 @@ def multi_mask(img, *names, **kwargs):
         
         else: #len(names) > len(unique)
             logger.warn("length : %s names provided by %s unique"
-                       "labels were found" % (len(names), len(unique)) )  
-            
+                       "labels were found" % (len(names), len(unique)) )     
     else:
         names[:] = unique[:]
             
@@ -68,7 +67,7 @@ class MultiKeyError(MultiError):
 class MultiCanvas(HasTraits):
     """ Basic container for storing multiple canvases"""
    
-    # Probably want these are property lists to prevent user idiocy
+    # Probably want these are property lists to prevent user fault
     canvii = List(Instance(Canvas))
     names = List(Str)  # Names are unique, maybe enforce through property
     
@@ -81,10 +80,11 @@ class MultiCanvas(HasTraits):
         if len(self.canvii) != len(self.names):
             raise MultiError("Names and canvii must have same length")
        
-
+    # HANDLE THIS
     def _names_changed(self, newval):
         if len(newval) != len(self.canvii):
             print "NAMES NOT EQUAL LENGTH"
+            
         
     @classmethod
     def from_canvas(cls, canvas, *names):
@@ -126,19 +126,36 @@ class MultiCanvas(HasTraits):
                         in enumerate(self.canvii) )
         return _parse_generator(gen_out, astype)
         
-
+        
     def super_map(self):
         """ """
+        NotImplemented
+
+                
+    def transmute(self, attr=None, as_type=tuple):
+        """ Return a container of names, attributes.  
         
-    def transmogrify(self, attr=None, as_type=tuple):
-        """ Return (names, canvas) as dict, tuple pairs etc.. """
+        Parameters
+        ----------
+        attr : str or None
+            Value to be returned paired to name.  Must be valid canvas 
+            attribute, or None to return full canvas.
+
+        astype : container type (tuple, list, dict) or None
+            Return values in tuple, list etc... if None, generator. 
+        """
         if not attr:
             gen_out = ( (self.names[idx], c) for idx, c 
                             in enumerate(self.canvii) )            
         else:
+            if hasattr(attr, '__iter__'):
+                raise NotImplementedError("Please select a single canvas"
+                        "attribute or None to return the entire canvas.")            
+
             gen_out = ( (self.names[idx], getattr(c, attr)) for idx, c 
                         in enumerate(self.canvii) )
-        return _parse_generator(gen_out, astype)        
+
+        return _parse_generator(gen_out, as_type)        
         
         
     # Better this way than as functions?
@@ -148,11 +165,12 @@ class MultiCanvas(HasTraits):
         If not *None*, is a string or function used to label the
         wedges with their numeric value.  The label will be placed inside
         the wedge.  If it is a format string, the label will be ``fmt%pct``.
-        If it is a function, it will be called.  """
-        
-        # ADD SOME SPECIAL KWARGS TO MAKE AUTOPCT EASIER
+        If it is a function, it will be called. 
+        """
         attr = chartkwargs.pop('attr', None)
-        annotate = chartkwargs.pop('annotate', True)           
+        annotate = chartkwargs.pop('annotate', True)     
+        autopct = chartkwargs.get('autopct', 'percent')
+
         axes, chartkwargs = _parse_ax(*chartargs, **chartkwargs)	
         if not axes:
             fig, axes = plt.subplots()       
@@ -163,9 +181,24 @@ class MultiCanvas(HasTraits):
         else:
             attr_list = [sum(getattr(c, attr)) for c in self.canvii]
         
-        chartkwargs.setdefault('labels', self.names)                
-        chartkwargs.setdefault('autopct', '%1.1f%%')  #Label size and position                       
-        chartkwargs.setdefault('shadow', True)                       
+        chartkwargs.setdefault('labels', self.names) # In annotate?              
+        chartkwargs.setdefault('shadow', False)      
+        
+        # Percentage or true values
+        if autopct == 'percent':
+            chartkwargs['autopct'] = '%1.1f%%' #Label size and position                       
+
+        elif autopct == 'count':
+            chartkwargs['autopct'] = \
+                lambda(p): '{:.0f}'.format(p * sum(attr_list) / 100)
+
+        elif autopct == 'both':
+            def double_autopct(pct):
+                total = sum(attr_list)
+                val = int(round(pct*total/100.0,0))
+                return '{p:.1f}%  ({v:d})'.format(p=pct,v=val)            
+            chartkwargs['autopct'] = double_autopct
+            
         axes.pie(attr_list, *chartargs, **chartkwargs)
         # This even worth doing?
         if annotate:
@@ -250,7 +283,9 @@ if __name__ == '__main__':
     mc = MultiCanvas([c1,c2], ['foo','bar'])
     print mc
     print mc.names, mc.canvii
-    mc.pie(annotate=True, autopct=' '.join(mc.names))
+    print mc.transmute(attr='area', as_type=dict)
+    print mc.canvii
+#    mc.pie(autopct='both', colors=['r','y'])
 #    mc.pie_chart(attr=None)
-    plt.show()
+#    plt.show()
         
