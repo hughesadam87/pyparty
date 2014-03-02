@@ -56,6 +56,27 @@ def _pix_norm(value, imax=CBITS):
         raise ColorError("Pixel intensity cannot exceed %s" % imax)
     return float(value) / imax
 
+def _parse_generator(generator, astype=tuple):
+    """ Convert generator as tuple, list, dict or generator.
+        
+    Parameters
+    ----------
+    astype : container type (tuple, list, dict) or None
+        Return expression as tuple, list... if None, return as generator. 
+
+    Notes
+    -----
+    Mostly useful for operations that in some cases return a dictionary, 
+    but also might be useful as a list of kv pairs etc...
+    """        
+    if not isinstance(generator, 'generator'):
+        raise UtilsError("Generator required; got %s" % type(generator))
+    if isinstance(astype, 'str'):
+        astype = eval(astype)        
+    if astype:
+        return astype(generator)
+    else:
+        return generator    
 
 def copyarray(fcn):
     """ Decorator to return copy of an array. ARRAY MUST BE FIRST ARG!! """

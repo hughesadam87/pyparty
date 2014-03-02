@@ -1,17 +1,18 @@
 import numpy as np
 import logging
-from pyparty.tools import Canvas, ParticleManager
 import skimage.morphology as morphology
+import matplotlib.pyplot as plt
+from traits.api import HasTraits, List, Instance, Str
+from pyparty.tools import Canvas, ParticleManager
+from pyparty.utils import _parse_generator, _parse_ax
 
 logger = logging.getLogger(__name__) 
 
-class MultiError(Exception):
-    """ """
-
 def multi_mask(img, *names, **kwargs):
-    """ """
-    
-    sort = kwargs.pop('sort', True)
+    """ 
+    """
+    sort = kwargs.pop('sort', False)
+    astype = kwargs.pop('astype', tuple)
     ignore = kwargs.pop('ignore', 0)
     names = list(names)
     
@@ -56,58 +57,200 @@ def multi_mask(img, *names, **kwargs):
             
     # Make the mask dict as generator
     out = ((str(names[idx]), (img==v)) for idx, v in enumerate(unique))
-                            
-    if sort:
-        try:
-            from collections import OrderedDict
-        except ImportError:
-            raise ImportError('Mask sorting requires OrderedDict form '
-                'python.collection package; package is standard in 2.7 and '
-                'higher')
-        return OrderedDict(out)
-    
-    return dict(out)
-          
-def multi_labels(masks, as_canvas=True, prefix=None, neighbors=4, **pmankwargs):
-    """ Masks can be lists of masked array corresponding to labels from 
-    multimask, or the dict returned directly from multi_mask().
-    
-    Notes:
-    ------
-    Masks beings list or dict adds a lot of wonkyness.  For example, if list,
-    a temporary key value structure is created w/ keys "foo" which are just 
-    ignored anyway upon output."""
-    
-    # Are masks a list, dict or ordered dict?
-    try:
-        masks.items()
-    except AttributeError:
-        #Make a temp dict for iterating, faux keys
-        outfcn = list
-        masks_iter = (('foo', mask) for mask in masks)
-    else:
-        outfcn = type(masks)
-        masks_iter = masks.items()
-    
-    out = []
-    for key, mask in masks_iter:
+    return _parse_generator(out, astype)
 
-        labels = morphology.label(mask, neighbors, background=False)                
-        
-        if prefix:
-            if prefix == True:
-                prefix = key
-            pmankwargs['prefix'] = prefix               
-        
-        particles = ParticleManager.from_labels(labels, **pmankwargs)
+class MultiError(Exception):
+    """ """
+    
+class MultiKeyError(MultiError):
+    """ """
 
-        if as_canvas:
-            canvas = Canvas(particles=particles, rez=mask.shape)
-            out.append( (key, canvas) )
-        else:
-            out.append( (key, particles) )
+class MultiCanvas(HasTraits):
+    """ Basic container for storing multiple canvases"""
+   
+    # Probably want these are property lists to prevent user idiocy
+    canvii = List(Instance(Canvas))
+    names = List(Str)  # Names are unique, maybe enforce through property
+    
+    def __init__(self, canvii, names):
+        
+        self.canvii = canvii
+        self.names = names
+        
+        # General trait change to make sure these are same legnth
+        if len(self.canvii) != len(self.names):
+            raise MultiError("Names and canvii must have same length")
+       
+
+    def _names_changed(self, newval):
+        if len(newval) != len(self.canvii):
+            print "NAMES NOT EQUAL LENGTH"
+        
+    @classmethod
+    def from_canvas(cls, canvas, *names):
+        """ Split a single canvas into multiple canvas by particle type"""
+        # Later, optionall exclude ptypes?
+        
+        #PARSE NAMES()
+        
+    @classmethod
+    def from_labeled(cls, img, *names, **kwargs):
+        """ Labels an image and creates multi-canvas, one for each species
+        in the image."""
+        
+        sort = kwargs.pop('sort', False) 
+        astype = kwargs.pop('astype', tuple)
+        ignore = kwargs.pop('ignore', 0)        
+        masks = multi_mask(img, *names, sort=sort,
+                           astype=astype, ignore=ignore)
+
+        for idx, mask in enumerate(masks):
+            name = names[idx]
+            labels = morphology.label(mask, neighbors, background=False)                                 
+            particles = ParticleManager.from_labels(labels, 
+                            prefix=names[idx], **kwargs)
+            canvii.append(Canvas(particles=particles, rez=mask.shape) )
             
-    if outfcn is list:
-        out = (v for k,v in out)
+        return cls(canvii=canvii, names=names)          
 
-    return outfcn(out)    
+            
+    def to_masks(self, astype=tuple):
+        """ Return masks as tuple, list, dict or generator.
+        
+        Parameters
+        ----------
+        astype : container type (tuple, list, dict) or None
+            Return masks in tuple, list etc... if None, generator. 
+        """        
+        gen_out = ( (self.names[idx], c.pbinary) for idx, c 
+                        in enumerate(self.canvii) )
+        return _parse_generator(gen_out, astype)
+        
+
+    def super_map(self):
+        """ """
+        
+    def transmogrify(self, attr=None, as_type=tuple):
+        """ Return (names, canvas) as dict, tuple pairs etc.. """
+        if not attr:
+            gen_out = ( (self.names[idx], c) for idx, c 
+                            in enumerate(self.canvii) )            
+        else:
+            gen_out = ( (self.names[idx], getattr(c, attr)) for idx, c 
+                        in enumerate(self.canvii) )
+        return _parse_generator(gen_out, astype)        
+        
+        
+    # Better this way than as functions?
+    def pie(self, *chartargs, **chartkwargs):
+        """
+        *autopct*: [ *None* | format string | format function ]
+        If not *None*, is a string or function used to label the
+        wedges with their numeric value.  The label will be placed inside
+        the wedge.  If it is a format string, the label will be ``fmt%pct``.
+        If it is a function, it will be called.  """
+        
+        # ADD SOME SPECIAL KWARGS TO MAKE AUTOPCT EASIER
+        attr = chartkwargs.pop('attr', None)
+        annotate = chartkwargs.pop('annotate', True)           
+        axes, chartkwargs = _parse_ax(*chartargs, **chartkwargs)	
+        if not axes:
+            fig, axes = plt.subplots()       
+        
+        if attr is None or attr == 'count':
+            attr_list = [len(c) for c in self.canvii]
+            attr = 'number' # for title
+        else:
+            attr_list = [sum(getattr(c, attr)) for c in self.canvii]
+        
+        chartkwargs.setdefault('labels', self.names)                
+        chartkwargs.setdefault('autopct', '%1.1f%%')  #Label size and position                       
+        chartkwargs.setdefault('shadow', True)                       
+        axes.pie(attr_list, *chartargs, **chartkwargs)
+        # This even worth doing?
+        if annotate:
+            axes.set_title('%s Distribution' % attr.title())
+        return axes   
+        
+        
+    def hist(self, *histargs, **histkwargs):
+        """ """
+        
+        annotate = histkwargs.pop('annotate', True)   
+        attr = histkwargs.pop('attr', 'area')  
+        histkwargs.setdefault('stacked', True)
+        histkwargs.setdefault('label', self.names)     
+        
+        axes, histkwargs = _parse_ax(*histargs, **histkwargs)	
+        if not axes:
+            fig, axes = plt.subplots()        
+        
+        attr_list = [getattr(c, attr) for c in self.canvii]            
+
+        axes.hist(attr_list, *histargs, **histkwargs)         
+        if annotate:
+            axes.set_xlabel(attr.title()) #Capitalize first letter
+            axes.set_ylabel('Counts')
+            axes.legend()
+        return axes
+
+    # Slicing Interface
+    def __getitem__(self, keyslice):
+        """ Single name lookup; otherwise single or sliced indicies."""
+        if hasattr(keyslice, '__iter__'):
+            canvii = [self.canvii[idx] for idx in keyslice]              
+            names = [self.names[idx] for idx in keyslice]              
+        else:
+            if isinstance(keyslice, int):
+                idx = keyslice   #keyslice is index 
+            else: 
+                idx = self.names.index(keyslice)  #keyslice is name              
+
+        canvii, names = self.canvii[idx], self.names[idx]
+        
+        # Can't attr check canvii because it has iter and len()!
+        if not hasattr(names, '__iter__'):
+            names, canvii = [names], [canvii]
+            
+        return MultiCanvas(canvii=canvii, names=names)
+
+    def __delitem__(self, keyslice):
+        """ Delete a single name, or a keyslice from names/canvas """        
+        NotImplemented
+
+    def __setitem__(self, key, canvas):
+        """ """
+        idx = self.names.index(key)        
+        self.pop(idx)
+        self.names.insert(idx, key)
+        # Traits checks that this is valid type, right? TEST!
+        self.canvii.insert(idx, canvas)
+
+    def summary(self):
+        """ """
+        # Breakdown of c things in names
+        NotImplemented
+
+    def pop(self, idx):
+        self.names.pop(idx)
+        self.canvii.pop(idx)        
+        
+    def show(layers):
+        """ layered verison of show?  Useful?"""
+        # Maybe imshow multiplot ax1, ax2
+        NotImplemented
+        
+    def __repr__(self):
+        return super(MultiCanvas, self).__repr__()
+        
+        
+if __name__ == '__main__':
+    c1=Canvas.random_circles(n=25)
+    c2=Canvas.random_circles(n=75)
+    mc = MultiCanvas([c1,c2], ['foo','bar'])
+    print mc
+    print mc.names, mc.canvii
+    mc.pie(annotate=True, autopct=' '.join(mc.names))
+#    mc.pie_chart(attr=None)
+    plt.show()
+        

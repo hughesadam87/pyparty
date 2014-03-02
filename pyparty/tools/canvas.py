@@ -359,7 +359,6 @@ class Canvas(HasTraits):
 
         if cmap:
             bg = self.graybackground
-
         else:
             bg = self.background
             
@@ -676,7 +675,7 @@ class Canvas(HasTraits):
 
     @property
     def pout(self):
-        """ Returns all particles appearing FULLY outside the image"""
+        """ All particles appearing FULLY outside the image"""
         return self._particles[self._whereis('out')]    
 
 
@@ -685,6 +684,7 @@ class Canvas(HasTraits):
         """ Image pixel count """
         l, w = self.rez
         return int(l * w)
+    
 
     @property
     def pixarea(self):

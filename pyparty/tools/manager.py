@@ -198,9 +198,8 @@ class ParticleManager(HasTraits):
    
     @cached_property
     def _get__namemap(self):
-        """ Store light map of name to index for faster name lookup.  I verified
-            that this updates when plist elemnts are updated as well as obj itself.
-            """
+        """ Map name to index for faster name lookup.  I verified this 
+        updates when plist elemnts are updated as well as obj itself. """
         return dict( (pobj.name, idx) for idx, pobj in enumerate(self.plist))    
             
 
@@ -327,7 +326,7 @@ class ParticleManager(HasTraits):
         return self.plist.__iter__()
     
     def __getitem__(self, keyslice):
-        """ Supports single name lookup; otherwise defers to list delitem"""
+        """ Supports single name lookup; otherwise defers to list getitem"""
 
         if hasattr(keyslice, '__iter__'):
             # Boolean indexing
