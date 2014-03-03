@@ -88,11 +88,11 @@ The current documentation (and in-a-pinch test suite) is a series of example not
    - `Basic Operations: Primary Tutorial`_ 
    - `Intro to Shapes`_
    - `Intro to Grids`_
+   - `Intro to MultiCanvas`_
    - `Particles from Image Labels`_
    - `Dimers / Trimers: Multi-Group Labels`_
    - `Watershedding Example Adapted`_
    - `Matplotlib Color Maps`_
-   - `MultiCanvas Tutorial`_
    
    .. _`Basic Operations: Primary Tutorial`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/basictests.ipynb?create=1
    .. _`Intro to Shapes`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/shapes.ipynb?create=1
