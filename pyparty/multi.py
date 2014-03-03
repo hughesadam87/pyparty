@@ -78,6 +78,8 @@ class MultiCanvas(HasTraits):
         self.canvii = canvii
         self.names = list(names) #Allow tuple input
         
+        # NO DUPLICATES IN NAMES!!
+        
         # General trait change to make sure these are same legnth
         if len(self.canvii) != len(self.names):
             raise MultiError("Names and canvii must have same length")
@@ -288,10 +290,10 @@ class MultiCanvas(HasTraits):
     def __getitem__(self, keyslice):
         """ Single name lookup; otherwise single or sliced indicies."""
         if hasattr(keyslice, '__iter__'):
-            canvii = [self.canvii[idx] for idx in keyslice]              
-            names = [self.names[idx] for idx in keyslice]              
+            canvii = self.canvii.__getitem__(keyslice)    
+            names = self.names.__getitem__(keyslice)
         else:
-            if isinstance(keyslice, int):
+            if isinstance(keyslice, int) or isinstance(keyslice, slice):
                 idx = keyslice   #keyslice is index 
             else: 
                 idx = self.names.index(keyslice)  #keyslice is name              
@@ -312,7 +314,7 @@ class MultiCanvas(HasTraits):
             idx = self.names.index(keyslice)        
             self.pop(idx)
         else:
-            raise NotImplementedError
+            raise NotImplementedError("Deletion only supports single entry")
 
     def __setitem__(self, key, canvas):
         """ """
