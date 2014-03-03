@@ -1,17 +1,19 @@
+import operator
 import numpy as np
 import logging
 import skimage.morphology as morphology
 import matplotlib.pyplot as plt
 from traits.api import HasTraits, List, Instance, Str
+
 from pyparty.tools import Canvas, ParticleManager
-from pyparty.utils import _parse_generator, _parse_ax
+from pyparty.utils import mem_address, _parse_generator, _parse_ax
+from pyparty.config import MAXOUT, _PAD
 
 logger = logging.getLogger(__name__) 
 
 def multi_mask(img, *names, **kwargs):
     """ 
     """
-    sort = kwargs.pop('sort', False)
     astype = kwargs.pop('astype', tuple)
     ignore = kwargs.pop('ignore', 0)
     names = list(names)
@@ -68,7 +70,7 @@ class MultiCanvas(HasTraits):
     """ Basic container for storing multiple canvases"""
    
     # Probably want these are property lists to prevent user fault
-    canvii = List(Instance(Canvas))
+    canvii = List(Instance(Canvas)) #MUST BE LISTS FOR SETTING AND SO FORTH
     names = List(Str)  # Names are unique, maybe enforce through property
     
     def __init__(self, canvii, names):
@@ -98,12 +100,10 @@ class MultiCanvas(HasTraits):
         """ Labels an image and creates multi-canvas, one for each species
         in the image."""
         
-        sort = pmankwargs.pop('sort', False) 
         ignore = pmankwargs.pop('ignore', 0)        
         neighbors = pmankwargs.pop('neighbors', 4)
         
-        name_masks = multi_mask(img, *names, sort=sort,
-                           astype=tuple, ignore=ignore)
+        name_masks = multi_mask(img, *names, astype=tuple, ignore=ignore)
         canvii = []
         for (name, mask) in name_masks:
             labels = morphology.label(mask, neighbors, background=False)                                 
@@ -126,6 +126,17 @@ class MultiCanvas(HasTraits):
                         in enumerate(self.canvii) )
         return _parse_generator(gen_out, astype)
         
+
+    # Is there some magic method to bury this in?  Can't find it.  DO NOT USE SORTED
+    def sort(self, inplace=False):
+        """ Sort by names.  DO NOT USE sorted(multicanvas)!"""
+        z = zip(self.names, self.canvii)
+        z.sort(key=operator.itemgetter(0))
+        names, canvii = map(list, zip(*z)) #unzip into lists instead of tuple
+        if inplace:
+            self.names, self.canvii = names, canvii
+        else:
+            return MultiCanvas(names=names, canvii=canvii)
         
     def super_map(self):
         """ """
@@ -160,20 +171,47 @@ class MultiCanvas(HasTraits):
         
     # Better this way than as functions?
     def pie(self, *chartargs, **chartkwargs):
-        """
+        """ Pie chart wrapper to matplotlib.
         
-        *autopct*: [ *None* | format string | format function ]
-        If not *None*, is a string or function used to label the
-        wedges with their numeric value.  The label will be placed inside
-        the wedge.  If it is a format string, the label will be ``fmt%pct``.
-        If it is a function, it will be called. 
+        Parameters
+        ----------
+        attr : Str or None
+            Sum of variable to show in the pie.  Generally particle 
+            descriptor (eg area).  If None or "count", the particle
+            counts by species are used.
+            
+        annotate : Bool (True)
+            Add auto title to piechart.
+            
+        autopct : str or fcn or None
+            Label of pie slices.  Some built in short cuts include
+            "count", "percentage", "both".  Note results in no labels.
+            See matplotlib.pie for more.
+
+        usetex : bool (True)
+            Label of pie slcies use latex rendering.  If matplotlib.rcparams
+            usetex = False, then set this to False.
+        
         """
         attr = chartkwargs.pop('attr', None)
         annotate = chartkwargs.pop('annotate', True)     
-        autopct = chartkwargs.get('autopct', 'percent')
-        usetex = chartkwargs.pop('usetex', True)
+        usetex = chartkwargs.pop('usetex', True)     
+        chartkwargs.setdefault('shadow', False)      
+        
+        if annotate:
+            autopct = chartkwargs.get('autopct', 'percent')
+            chartkwargs.setdefault('labels', self.names)                        
+        else:
+            autopct = chartkwargs.get('autopct', None)
+            
+            
+        
+        if 'color' in chartkwargs:
+            raise MultiError('Found "color" in kwargs; '
+                             'mpl.pie requires "colors".')
+        # Could also possible check that colors, if iterable, are correct
+        # length as self.names; this results in a non-obvious error
     
-
         axes, chartkwargs = _parse_ax(*chartargs, **chartkwargs)	
         if not axes:
             fig, axes = plt.subplots()       
@@ -183,10 +221,7 @@ class MultiCanvas(HasTraits):
             attr = 'number' # for title
         else:
             attr_list = [sum(getattr(c, attr)) for c in self.canvii]
-        
-        chartkwargs.setdefault('labels', self.names) # In annotate?              
-        chartkwargs.setdefault('shadow', False)      
-        
+                
         # Percentage or true values
         if autopct == 'percent':
             if usetex:
@@ -203,6 +238,7 @@ class MultiCanvas(HasTraits):
                     lambda(p): '{:.0f}'.format(p * sum(attr_list) / 100)                    
 
         elif autopct == 'both':
+            
             def double_autopct(pct):
                 total = sum(attr_list)
                 val = int(round(pct*total/100.0, 0))
@@ -210,24 +246,28 @@ class MultiCanvas(HasTraits):
                     texstring = r'{v} ({p:.1f}\%)'.format(p=pct,v=val)   
                     return r'\bf{%s}' % texstring  
                 else:
-                    return '{v}\n({p:.1f}%)'.format(p=pct,v=val)   
-                                 
+                    return '{v}\n({p:.1f}%)'.format(p=pct,v=val)                                    
+
             chartkwargs['autopct'] = double_autopct
-            
+
         axes.pie(attr_list, **chartkwargs)
-        # This even worth doing?
         if annotate:
             axes.set_title('%s Distribution' % attr.title())
         return axes   
         
         
     def hist(self, *histargs, **histkwargs):
-        """ """
+        """ matplotlib histogram wrapper. """
         
         annotate = histkwargs.pop('annotate', True)   
         attr = histkwargs.pop('attr', 'area')  
         histkwargs.setdefault('stacked', True)
-        histkwargs.setdefault('label', self.names)     
+        histkwargs.setdefault('label', self.names)  
+        histkwargs.setdefault('bins', 10)
+        
+        if 'colors' in histkwargs:
+            raise MultiError('Found "colors" in kwargs; '
+                             'mpl.hist requires "color".')        
         
         axes, histkwargs = _parse_ax(*histargs, **histkwargs)	
         if not axes:
@@ -239,6 +279,8 @@ class MultiCanvas(HasTraits):
         if annotate:
             axes.set_xlabel(attr.title()) #Capitalize first letter
             axes.set_ylabel('Counts')
+            axes.set_title('%s Distribution (%s bins)' % 
+                           (attr.title(), histkwargs['bins']) )
             axes.legend()
         return axes
 
@@ -292,6 +334,11 @@ class MultiCanvas(HasTraits):
         self.names.pop(idx)
         cout = self.canvii.pop(idx)        
         return cout
+    
+    @property
+    def _address(self):
+        """ Property to make easily accesible by multicanvas """
+        return mem_address(super(MultiCanvas, self).__repr__())    
         
     def show(layers):
         """ layered verison of show?  Useful?"""
@@ -299,20 +346,45 @@ class MultiCanvas(HasTraits):
         NotImplemented
         
     def __repr__(self):
-        return super(MultiCanvas, self).__repr__()
+        outstring = "%s at %s: " % \
+            (self.__class__.__name__, self._address)     
+        Ln = len(self)
         
-        
+        if Ln == 0:                
+            outstring += '0 canvii'
+
+        elif Ln >= MAXOUT:
+            outstring +=  '%s canvii (%s ... %s)' % \
+                (Ln, self.names[0], self.names[-1])                        
+            
+        else:
+            outstring += '\n'
+            for idx, name in enumerate(self.names):
+                c = self.canvii[idx]
+                cx, cy = c.rez
+                outstring += "%s%s:   Canvas (%s) : %s X %s : %s particles\n" \
+                    % (_PAD, name, c._address, cx, cy, len(c))             
+
+        return outstring            
+
+
 if __name__ == '__main__':
-    c1=Canvas.random_circles(n=25)
-    c2=Canvas.random_circles(n=175)
-    mc = MultiCanvas([c1,c2], ['foo','bar'])
-    print mc
-    print mc.names, mc.canvii
-    print mc.transmute(attr='area', as_type=dict)
-    print mc.canvii
-#    mc.pie(autopct='both', colors=['r','y'])
-    plt.rc('text', usetex=True)
-    mc.pie(attr=None, autopct='count')
     
-    plt.show()
+    # MAKE SMALL TUTORIAL THIS WAY!
+    cs=[]; names=[]
+    for i in range(5,10):
+        names.append('foo_%s'%i)
+        cs.append(Canvas.random_circles(n=i))
+
+    mc = MultiCanvas(cs, names)
+    mc.sorted()
+    print mc
+    #print mc.names, mc.canvii
+    #print mc.transmute(attr='area', as_type=dict)
+    #print mc.canvii
+    #mc.pie(attr='area', annotate=True, usetex=False)#, colors=['r','y'])
+    ##plt.rc('text', usetex=False)
+    ##mc.pie(attr=None, autopct='count')
+    
+    #plt.show()
         

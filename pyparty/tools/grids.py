@@ -297,7 +297,6 @@ class TiledGrid(Grid):
 
     @property
     def hlines(self):
-
         gx = self.gradient[0]
         out = np.zeros(gx.shape)
         # Mask every other column

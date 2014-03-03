@@ -883,25 +883,26 @@ class Canvas(HasTraits):
         raise CanvasError("Iteration on canvas is ambiguous.  Iterate over "
                           "canvas.image or canvas.particles")
 
+    @property
+    def _address(self):
+        """ Property to make easily accesible by multicanvas """
+        return mem_address(super(Canvas, self).__repr__())
+        
+    
     def __repr__(self):
         _bgstyle = self._bgstyle #REPLACE
         res = '(%s X %s)' % (self.rx, self.ry ) 
-        address = mem_address(super(Canvas, self).__repr__())
         
         g=self.grid
         xd, yd = g.xdiv, g.ydiv 
         gridstring = "%sxygrid[%s] -->  (%sp X %sp) : (%.1f X %.1f) [pix/tile]" \
             % (_PAD, xd*yd, xd, yd, g.xspacing, g.yspacing)
-        
-                                                         # For sublcassing
-        outstring = "%s at %s:\n" % (self.__class__.__name__, address)
 
+        outstring = "%s at %s:\n" % (self.__class__.__name__, self._address)
         outstring += "%sbackground  -->  %s : %s\n" % (_PAD, res, _bgstyle) 
-
         outstring += "%sparticles   -->  %s particles : %s types\n" % (_PAD, \
             len(self._particles), len(self._particles.ptype_count))
-        outstring += gridstring
-        
+        outstring += gridstring        
         return outstring
 
     def __len__(self):
