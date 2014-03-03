@@ -63,9 +63,6 @@ def multi_mask(img, *names, **kwargs):
 class MultiError(Exception):
     """ """
     
-class MultiKeyError(MultiError):
-    """ """
-
 class MultiCanvas(HasTraits):
     """ Basic container for storing multiple canvases"""
    
