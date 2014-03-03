@@ -74,7 +74,7 @@ class MultiCanvas(HasTraits):
     def __init__(self, canvii, names):
         
         self.canvii = canvii
-        self.names = names
+        self.names = list(names) #Allow tuple input
         
         # General trait change to make sure these are same legnth
         if len(self.canvii) != len(self.names):
@@ -83,7 +83,7 @@ class MultiCanvas(HasTraits):
     # HANDLE THIS
     def _names_changed(self, newval):
         if len(newval) != len(self.canvii):
-            print "NAMES NOT EQUAL LENGTH"
+            logger.warn("NAMES NOT EQUAL LENGTH")
             
         
     @classmethod
@@ -94,21 +94,21 @@ class MultiCanvas(HasTraits):
         #PARSE NAMES()
         
     @classmethod
-    def from_labeled(cls, img, *names, **kwargs):
+    def from_labeled(cls, img, *names, **pmankwargs):
         """ Labels an image and creates multi-canvas, one for each species
         in the image."""
         
-        sort = kwargs.pop('sort', False) 
-        astype = kwargs.pop('astype', tuple)
-        ignore = kwargs.pop('ignore', 0)        
-        masks = multi_mask(img, *names, sort=sort,
-                           astype=astype, ignore=ignore)
-
-        for idx, mask in enumerate(masks):
-            name = names[idx]
+        sort = pmankwargs.pop('sort', False) 
+        ignore = pmankwargs.pop('ignore', 0)        
+        neighbors = pmankwargs.pop('neighbors', 4)
+        
+        name_masks = multi_mask(img, *names, sort=sort,
+                           astype=tuple, ignore=ignore)
+        canvii = []
+        for (name, mask) in name_masks:
             labels = morphology.label(mask, neighbors, background=False)                                 
             particles = ParticleManager.from_labels(labels, 
-                            prefix=names[idx], **kwargs)
+                            prefix=name, **pmankwargs)
             canvii.append(Canvas(particles=particles, rez=mask.shape) )
             
         return cls(canvii=canvii, names=names)          
@@ -161,6 +161,7 @@ class MultiCanvas(HasTraits):
     # Better this way than as functions?
     def pie(self, *chartargs, **chartkwargs):
         """
+        
         *autopct*: [ *None* | format string | format function ]
         If not *None*, is a string or function used to label the
         wedges with their numeric value.  The label will be placed inside
@@ -170,6 +171,8 @@ class MultiCanvas(HasTraits):
         attr = chartkwargs.pop('attr', None)
         annotate = chartkwargs.pop('annotate', True)     
         autopct = chartkwargs.get('autopct', 'percent')
+        usetex = chartkwargs.pop('usetex', True)
+    
 
         axes, chartkwargs = _parse_ax(*chartargs, **chartkwargs)	
         if not axes:
@@ -186,20 +189,32 @@ class MultiCanvas(HasTraits):
         
         # Percentage or true values
         if autopct == 'percent':
-            chartkwargs['autopct'] = '%1.1f%%' #Label size and position                       
+            if usetex:
+                chartkwargs['autopct'] = r'\bf{%.1f\%%}' #Label size and position                      
+            else:
+                chartkwargs['autopct'] = '%.1f%%' #Label size and position                                      
 
         elif autopct == 'count':
-            chartkwargs['autopct'] = \
-                lambda(p): '{:.0f}'.format(p * sum(attr_list) / 100)
+            if usetex:
+                chartkwargs['autopct'] = \
+                    lambda(p): r'\bf{:.0f}'.format(p * sum(attr_list) / 100)
+            else:
+                chartkwargs['autopct'] = \
+                    lambda(p): '{:.0f}'.format(p * sum(attr_list) / 100)                    
 
         elif autopct == 'both':
             def double_autopct(pct):
                 total = sum(attr_list)
-                val = int(round(pct*total/100.0,0))
-                return '{p:.1f}%  ({v:d})'.format(p=pct,v=val)            
+                val = int(round(pct*total/100.0, 0))
+                if usetex:
+                    texstring = r'{v} ({p:.1f}\%)'.format(p=pct,v=val)   
+                    return r'\bf{%s}' % texstring  
+                else:
+                    return '{v}\n({p:.1f}%)'.format(p=pct,v=val)   
+                                 
             chartkwargs['autopct'] = double_autopct
             
-        axes.pie(attr_list, *chartargs, **chartkwargs)
+        axes.pie(attr_list, **chartkwargs)
         # This even worth doing?
         if annotate:
             axes.set_title('%s Distribution' % attr.title())
@@ -241,15 +256,21 @@ class MultiCanvas(HasTraits):
 
         canvii, names = self.canvii[idx], self.names[idx]
         
-        # Can't attr check canvii because it has iter and len()!
+        # If single item, return Canvas, else, return new MultiCanvas
+        # Canonical; best choice, don't change unless good reason
         if not hasattr(names, '__iter__'):
-            names, canvii = [names], [canvii]
-            
-        return MultiCanvas(canvii=canvii, names=names)
+            return canvii
+        else:            
+            return MultiCanvas(canvii=canvii, names=names)
 
     def __delitem__(self, keyslice):
         """ Delete a single name, or a keyslice from names/canvas """        
-        NotImplemented
+
+        if isinstance(keyslice, str):
+            idx = self.names.index(keyslice)        
+            self.pop(idx)
+        else:
+            raise NotImplementedError
 
     def __setitem__(self, key, canvas):
         """ """
@@ -258,6 +279,9 @@ class MultiCanvas(HasTraits):
         self.names.insert(idx, key)
         # Traits checks that this is valid type, right? TEST!
         self.canvii.insert(idx, canvas)
+        
+    def __len__(self):
+        return len(self.names)
 
     def summary(self):
         """ """
@@ -266,7 +290,8 @@ class MultiCanvas(HasTraits):
 
     def pop(self, idx):
         self.names.pop(idx)
-        self.canvii.pop(idx)        
+        cout = self.canvii.pop(idx)        
+        return cout
         
     def show(layers):
         """ layered verison of show?  Useful?"""
@@ -279,13 +304,15 @@ class MultiCanvas(HasTraits):
         
 if __name__ == '__main__':
     c1=Canvas.random_circles(n=25)
-    c2=Canvas.random_circles(n=75)
+    c2=Canvas.random_circles(n=175)
     mc = MultiCanvas([c1,c2], ['foo','bar'])
     print mc
     print mc.names, mc.canvii
     print mc.transmute(attr='area', as_type=dict)
     print mc.canvii
 #    mc.pie(autopct='both', colors=['r','y'])
-#    mc.pie_chart(attr=None)
-#    plt.show()
+    plt.rc('text', usetex=True)
+    mc.pie(attr=None, autopct='count')
+    
+    plt.show()
         

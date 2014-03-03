@@ -44,39 +44,39 @@ def gwu(*args, **kwargs):
     """ New George Washington University Logo """
     return load("gwu.png", *args, **kwargs)
 
-def spectrum():
+def spectrum(*args, **kwargs):
     """ 3d Spectrum : original image by pyparty author """
     return load("spectrum.jpg", *args, **kwargs)
 
-def lena_who():
+def lena_who(*args, **kwargs):
     """ Yound lady, released with her full permission """
     return load("lena_who.jpg", *args, **kwargs)
 
-def nanogold():
+def nanogold(*args, **kwargs):
     """ Scanning electron image of Gold Nanoparticles 100,000 X 
     magnification.  Original image is property of Adam Hughes, 
     Reeves Cond. Matter Physics Group, and released for public
     distribution."""
     return load("nanogold.tif", *args, **kwargs)
 
-def nanolabels():
+def nanolabels(*args, **kwargs):
     """ size-segmented (nanogold); see nanogold description"""
     return load("nanolabels.tif", *args, **kwargs)
 
-def nanobinary():
+def nanobinary(*args, **kwargs):
     """ binarized nanogold using trainable pixel classification """
     return load("nanobinary.tif", *args, **kwargs)
 
-def test_plain():
+def test_plain(*args, **kwargs):
     """ 1024 x1024 resolution; 30nm Diameter circles; 
     pure white (1,1,1) on gray (.5,.5,.5) background. """
     return load("test_plain.png", *args, **kwargs)
 
-def test_contrast():
+def test_contrast(*args, **kwargs):
     """ See test_plain().__doc__.  Added local contrast fluctuations. """
     return load("test_contrast.png", *args, **kwargs)
 
-def test_salty():
+def test_salty(*args, **kwargs):
     """ See test_contrast.__doc__.  Added 45% salt (1,1,1) noise. """
     return load("test_salty.png", *args, **kwargs)
 
