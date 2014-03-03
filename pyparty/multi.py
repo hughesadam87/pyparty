@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 from traits.api import HasTraits, List, Instance, Str
 
 from pyparty.tools import Canvas, ParticleManager
-from pyparty.utils import mem_address, _parse_generator, _parse_ax
+from pyparty.utils import mem_address, _parse_generator, _parse_ax, rgb2uint
+import pyparty.tools.arraytools as ptools
 from pyparty.config import MAXOUT, _PAD
 
 logger = logging.getLogger(__name__) 
@@ -18,21 +19,22 @@ def multi_mask(img, *names, **kwargs):
     ignore = kwargs.pop('ignore', 0)
     names = list(names)
     
-    # Fix late; requires ignore to be a list
-    if hasattr(ignore, '__iter__'):
-        raise MultiError("Only can ignore one item at a time")
+    if img.ndim == 3:
+        img = rgb2uint(img, warnmsg=True)
+    
+    # Labels requires on grayscale; npunique also doesn't play nice w/ rgb
     
     if ignore == 'black':
         ignore = 0
         if img.ndim == 3:
-            ignore = (0,0,0)
+            ignore = (0.0,0.0,0.0)
 
     elif ignore == 'white':
         ignore = 255    
         if img.ndim == 3:
-            ignore = (1,1,1)
+            ignore = (1.0,1.0,1.0)
     
-    unique = np.unique(img)
+    unique = ptools.unique(img)
 
     if ignore not in unique:
         logger.warn("Ignore set to %s but was not found on image." % ignore)
@@ -274,7 +276,7 @@ class MultiCanvas(HasTraits):
         
         attr_list = [getattr(c, attr) for c in self.canvii]            
 
-        axes.hist(attr_list, *histargs, **histkwargs)         
+        axes.hist(attr_list, **histkwargs)         
         if annotate:
             axes.set_xlabel(attr.title()) #Capitalize first letter
             axes.set_ylabel('Counts')
@@ -313,13 +315,20 @@ class MultiCanvas(HasTraits):
         else:
             raise NotImplementedError("Deletion only supports single entry")
 
-    def __setitem__(self, key, canvas):
+    def __setitem__(self, name, canvas):
         """ """
-        idx = self.names.index(key)        
-        self.pop(idx)
-        self.names.insert(idx, key)
-        # Traits checks that this is valid type, right? TEST!
-        self.canvii.insert(idx, canvas)
+        if name in self.names:
+            idx = self.names.index(name)        
+            self.pop(name)
+            self.insert(idx, name, canvas)
+        else:
+            self.names.append(name)
+            self.canvii.append(canvas)
+        
+    def __contains__(self, name):
+        if name in self.names:
+            return True
+        return False
         
     def __len__(self):
         return len(self.names)
@@ -333,6 +342,10 @@ class MultiCanvas(HasTraits):
         self.names.pop(idx)
         cout = self.canvii.pop(idx)        
         return cout
+    
+    def insert(self, idx, name, canvas):
+        self.names.insert(idx, name)
+        self.canvii.insert(idx, canvas)    
     
     @property
     def _address(self):
@@ -376,7 +389,7 @@ if __name__ == '__main__':
         cs.append(Canvas.random_circles(n=i))
 
     mc = MultiCanvas(cs, names)
-    mc.sorted()
+    mc.sort()
     print mc
     #print mc.names, mc.canvii
     #print mc.transmute(attr='area', as_type=dict)

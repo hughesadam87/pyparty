@@ -138,6 +138,24 @@ def slice_by_value(array, vi=0, vf=None):
     xi, xf = nearest(array, vi), nearest(array, vf)
     return array[xi:xf]
     
+def unique(array):
+    """ Find unique values in array of arbitrary ndim.  If array.ndim < 3,
+    returns np.unique.  If 3 or greater, returns values as expected; 
+    whereas np.unique always flattens, and hence fails for rgb images.
+    """
+    if array.ndim < 3:
+        return np.unique(array)
+    
+    L,W = array.shape[0:2]
+    rest = array.shape[2::]
+    if len(rest) == 1:
+        rest = rest[0]
+        
+    array_reshaped = array.reshape(L*W, rest)    
+    o = [tuple(row) for row in array_reshaped]
+    o_unique = tuple(set(o))
+    return np.array(o_unique)
+    
 # Set operations
 def _parse_set(array1, array2):
     """ Ensure arrays are of same type and shape; no attempt to correct."""
