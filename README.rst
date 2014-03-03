@@ -97,7 +97,7 @@ The current documentation (and in-a-pinch test suite) is a series of example not
    .. _`Basic Operations: Primary Tutorial`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/basictests.ipynb?create=1
    .. _`Intro to Shapes`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/shapes.ipynb?create=1
    .. _`Intro to Grids` : http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/grids.ipynb?create=1
-   .. _`MultiCanvas Tutorial` : https://github.com/hugadams/pyparty/blob/master/examples/Notebooks/multi_tutorial.ipynb?create=1
+   .. _`Intro to MultiCanvas` : https://github.com/hugadams/pyparty/blob/master/examples/Notebooks/multi_tutorial.ipynb?create=1
    .. _`Particles from Image Labels`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/Analyze_Particles.ipynb?create=1
    .. _`Dimers / Trimers: Multi-Group Labels` :  http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/groups_of_labels.ipynb?create=1
    .. _`Matplotlib Color Maps` : http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/gwu_maps.ipynb?create=1
