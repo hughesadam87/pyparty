@@ -204,14 +204,6 @@ class MultiCanvas(HasTraits):
             chartkwargs.setdefault('labels', self.names)                        
         else:
             autopct = chartkwargs.get('autopct', None)
-            
-            
-        
-        if 'color' in chartkwargs:
-            raise MultiError('Found "color" in kwargs; '
-                             'mpl.pie requires "colors".')
-        # Could also possible check that colors, if iterable, are correct
-        # length as self.names; this results in a non-obvious error
     
         axes, chartkwargs = _parse_ax(*chartargs, **chartkwargs)	
         if not axes:
@@ -266,9 +258,9 @@ class MultiCanvas(HasTraits):
         histkwargs.setdefault('label', self.names)  
         histkwargs.setdefault('bins', 10)
         
+        #MPL api asymmetry with pie
         if 'colors' in histkwargs:
-            raise MultiError('Found "colors" in kwargs; '
-                             'mpl.hist requires "color".')        
+            histkwargs['color'] = histkwargs.pop('colors')        
         
         axes, histkwargs = _parse_ax(*histargs, **histkwargs)	
         if not axes:
