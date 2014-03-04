@@ -317,38 +317,56 @@ class MultiCanvas(HasTraits):
             self.names.append(name)
             self.canvii.append(canvas)
         
-    def __contains__(self, name):
-        if name in self.names:
+        
+    def __contains__(self, name_or_canvas):
+        """ If name in self.names or canvas in self.canvii"""
+        if isinstance(name_or_canvas, str):
+            inspect = self.names
+        elif isinstance(name_or_canvas, Canvas):
+            inspect = self.canvii            
+        else:
+            raise MultiError("Invalid type %s; please enter a "
+                "name (str) or Canvas" % type(name_or_canvas) )
+            
+        if name_or_canvas in inspect:
             return True
-        return False
+        else:
+            return False
+        
         
     def __len__(self):
         return len(self.names)
+
 
     def summary(self):
         """ """
         # Breakdown of c things in names
         NotImplemented
 
+
     def pop(self, idx):
         self.names.pop(idx)
         cout = self.canvii.pop(idx)        
         return cout
     
+
     def insert(self, idx, name, canvas):
         self.names.insert(idx, name)
         self.canvii.insert(idx, canvas)    
     
+
     @property
     def _address(self):
         """ Property to make easily accesible by multicanvas """
         return mem_address(super(MultiCanvas, self).__repr__())    
         
+
     def show(layers):
         """ layered verison of show?  Useful?"""
         # Maybe imshow multiplot ax1, ax2
         NotImplemented
         
+
     def __repr__(self):
         outstring = "%s at %s: " % \
             (self.__class__.__name__, self._address)     
@@ -368,27 +386,4 @@ class MultiCanvas(HasTraits):
                 cx, cy = c.rez
                 outstring += "%s%s:   Canvas (%s) : %s X %s : %s particles\n" \
                     % (_PAD, name, c._address, cx, cy, len(c))             
-
-        return outstring            
-
-
-if __name__ == '__main__':
-    
-    # MAKE SMALL TUTORIAL THIS WAY!
-    cs=[]; names=[]
-    for i in range(5,10):
-        names.append('foo_%s'%i)
-        cs.append(Canvas.random_circles(n=i))
-
-    mc = MultiCanvas(cs, names)
-    mc.sort()
-    print mc
-    #print mc.names, mc.canvii
-    #print mc.transmute(attr='area', as_type=dict)
-    #print mc.canvii
-    #mc.pie(attr='area', annotate=True, usetex=False)#, colors=['r','y'])
-    ##plt.rc('text', usetex=False)
-    ##mc.pie(attr=None, autopct='count')
-    
-    #plt.show()
-        
+        return outstring     
