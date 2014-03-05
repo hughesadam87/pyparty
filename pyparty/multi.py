@@ -8,9 +8,40 @@ from traits.api import HasTraits, List, Instance, Str
 from pyparty.tools import Canvas, ParticleManager
 from pyparty.utils import mem_address, _parse_generator, _parse_ax, rgb2uint
 import pyparty.tools.arraytools as ptools
-from pyparty.config import MAXOUT, _PAD
+from pyparty.config import MAXOUT, PADDING, ALIGN
 
 logger = logging.getLogger(__name__) 
+
+
+def _parse_names(names, default_names):
+    """ Boilerplate: user enters *names to overwrite X default names.  
+    For example, if user enters 2 names but 5 unique labels in an image 
+    are found, and vice versa."""
+
+    default_names = list(default_names)
+    names = list(names)
+
+    # Handle various cases of names/values not being the same
+    if names:
+        if len(names) == len(default_names):
+            pass
+            
+        elif len(names) < len(default_names):
+            logger.warn("length : %s names provided but %s unique "
+                       "labels were found" % (len(names), len(default_names)) )              
+            default_names[0:len(names)] = names[:]
+            return default_names
+        
+        else: #len(names) >= len(default_names)
+            logger.warn("length : %s names provided but %s unique "
+                       "labels were found" % (len(names), len(default_names)) )     
+            return names[0:len(default_names)] 
+
+    else:
+        names[:] = default_names[:]
+        
+    return names
+
 
 def multi_mask(img, *names, **kwargs):
     """ 
@@ -40,23 +71,8 @@ def multi_mask(img, *names, **kwargs):
         logger.warn("Ignore set to %s but was not found on image." % ignore)
     else:
         unique = [v for v in unique if v != ignore]
-
-    # Handle various cases of names/values not being the same
-    if names:
-        if len(names) == len(unique):
-            pass
-            
-        elif len(names) < len(unique):
-            logger.warn("length : %s names provided by %s unique"
-                       "labels were found" % (len(names), len(unique)) )              
-            names.extend(unique)
-            names = names[:len(unique)]
         
-        else: #len(names) > len(unique)
-            logger.warn("length : %s names provided by %s unique"
-                       "labels were found" % (len(names), len(unique)) )     
-    else:
-        names[:] = unique[:]
+    names = _parse_names(names, unique)
             
     # Make the mask dict as generator
     out = ((str(names[idx]), (img==v)) for idx, v in enumerate(unique))
@@ -72,7 +88,7 @@ class MultiCanvas(HasTraits):
     canvii = List(Instance(Canvas)) #MUST BE LISTS FOR SETTING AND SO FORTH
     names = List(Str)  # Names are unique, maybe enforce through property
     
-    def __init__(self, canvii, names):
+    def __init__(self, canvii=[], names=[]):
         
         self.canvii = canvii
         self.names = list(names) #Allow tuple input
@@ -83,37 +99,11 @@ class MultiCanvas(HasTraits):
         if len(self.canvii) != len(self.names):
             raise MultiError("Names and canvii must have same length")
        
-    # HANDLE THIS
+    # XXXX HANDLE THIS
     def _names_changed(self, newval):
         if len(newval) != len(self.canvii):
-            logger.warn("NAMES NOT EQUAL LENGTH")
+            print "NAMES NOT EQUAL LENGTH"
             
-        
-    @classmethod
-    def from_canvas(cls, canvas, *names):
-        """ Split a single canvas into multiple canvas by particle type"""
-        # Later, optionall exclude ptypes?
-        
-        #PARSE NAMES()
-        
-    @classmethod
-    def from_labeled(cls, img, *names, **pmankwargs):
-        """ Labels an image and creates multi-canvas, one for each species
-        in the image."""
-        
-        ignore = pmankwargs.pop('ignore', 0)        
-        neighbors = pmankwargs.pop('neighbors', 4)
-        
-        name_masks = multi_mask(img, *names, astype=tuple, ignore=ignore)
-        canvii = []
-        for (name, mask) in name_masks:
-            labels = morphology.label(mask, neighbors, background=False)                                 
-            particles = ParticleManager.from_labels(labels, 
-                            prefix=name, **pmankwargs)
-            canvii.append(Canvas(particles=particles, rez=mask.shape) )
-            
-        return cls(canvii=canvii, names=names)          
-
             
     def to_masks(self, astype=tuple):
         """ Return masks as tuple, list, dict or generator.
@@ -189,15 +179,16 @@ class MultiCanvas(HasTraits):
             "count", "percentage", "both".  Note results in no labels.
             See matplotlib.pie for more.
 
-        usetex : bool (True)
+        usetex : bool (False)
             Label of pie slcies use latex rendering.  If matplotlib.rcparams
-            usetex = False, then set this to False.
+            usetex = True, then set this to True.
         
         """
         attr = chartkwargs.pop('attr', None)
         annotate = chartkwargs.pop('annotate', True)     
-        usetex = chartkwargs.pop('usetex', True)     
+        usetex = chartkwargs.pop('usetex', False)     
         chartkwargs.setdefault('shadow', False)      
+        metavar = chartkwargs.pop('metavar', None)
         
         if annotate:
             autopct = chartkwargs.get('autopct', 'percent')
@@ -244,7 +235,10 @@ class MultiCanvas(HasTraits):
             chartkwargs['autopct'] = double_autopct
 
         axes.pie(attr_list, **chartkwargs)
+
         if annotate:
+            if metavar:
+                attr = metavar
             axes.set_title('%s Distribution' % attr.title())
         return axes   
         
@@ -257,6 +251,7 @@ class MultiCanvas(HasTraits):
         histkwargs.setdefault('stacked', True)
         histkwargs.setdefault('label', self.names)  
         histkwargs.setdefault('bins', 10)
+        metavar = histkwargs.pop('metavar', None)        
         
         #MPL api asymmetry with pie
         if 'colors' in histkwargs:
@@ -272,12 +267,51 @@ class MultiCanvas(HasTraits):
         if annotate:
             axes.set_xlabel(attr.title()) #Capitalize first letter
             axes.set_ylabel('Counts')
+            if metavar:
+                attr = metavar
             axes.set_title('%s Distribution (%s bins)' % 
                            (attr.title(), histkwargs['bins']) )
             axes.legend()
         return axes
 
-    # Slicing Interface
+    def summary(self):
+        """ """
+        # Breakdown of c things in names
+        NotImplemented
+
+
+    def pop(self, idx):
+        self.names.pop(idx)
+        cout = self.canvii.pop(idx)        
+        return cout
+    
+    
+    def append(self, name, canvas):
+        if name in self.names:  #Trait handler should handle this
+            raise MultiError("%s name already exists" % name)
+        self.names.append(name)
+        self.canvii.append(canvas)
+
+
+    def insert(self, idx, name, canvas):
+        self.names.insert(idx, name)
+        self.canvii.insert(idx, canvas)    
+    
+
+    @property
+    def _address(self):
+        """ Property to make easily accesible by multicanvas """
+        return mem_address(super(MultiCanvas, self).__repr__())    
+        
+
+    def show(self, layers):
+        """ layered verison of show?  Useful?"""
+        # Maybe imshow multiplot ax1, ax2
+        NotImplemented
+
+    # ---------------
+    # Magic Methods
+    
     def __getitem__(self, keyslice):
         """ Single name lookup; otherwise single or sliced indicies."""
         if hasattr(keyslice, '__iter__'):
@@ -336,54 +370,91 @@ class MultiCanvas(HasTraits):
         
     def __len__(self):
         return len(self.names)
-
-
-    def summary(self):
-        """ """
-        # Breakdown of c things in names
-        NotImplemented
-
-
-    def pop(self, idx):
-        self.names.pop(idx)
-        cout = self.canvii.pop(idx)        
-        return cout
     
-
-    def insert(self, idx, name, canvas):
-        self.names.insert(idx, name)
-        self.canvii.insert(idx, canvas)    
-    
-
-    @property
-    def _address(self):
-        """ Property to make easily accesible by multicanvas """
-        return mem_address(super(MultiCanvas, self).__repr__())    
-        
-
-    def show(layers):
-        """ layered verison of show?  Useful?"""
-        # Maybe imshow multiplot ax1, ax2
-        NotImplemented
-        
 
     def __repr__(self):
-        outstring = "%s at %s: " % \
+        outstring = "%s (%s): " % \
             (self.__class__.__name__, self._address)     
         Ln = len(self)
         
         if Ln == 0:                
-            outstring += '0 canvii'
+            outstring += 'EMPTY'
 
         elif Ln >= MAXOUT:
             outstring +=  '%s canvii (%s ... %s)' % \
                 (Ln, self.names[0], self.names[-1])                        
             
         else:
+            SEP_CHARACTER = '-'
+            _NEWPAD =  (PADDING-1) * ' '  # REduce CONFIG PADDING by one space
+            just_fcn = {
+                'l': str.ljust,
+                'r': str.rjust,
+                'c': str.center}[ALIGN]            
+            
             outstring += '\n'
+            outrows=[]
             for idx, name in enumerate(self.names):
                 c = self.canvii[idx]
                 cx, cy = c.rez
-                outstring += "%s%s:   Canvas (%s) : %s X %s : %s particles\n" \
-                    % (_PAD, name, c._address, cx, cy, len(c))             
-        return outstring     
+                
+                col1 = '%s%s' % (_NEWPAD, name)
+                col2 = 'Canvas (%s) : %s X %s : %s particles' % \
+                    (c._address, cx, cy, len(c))
+                outrows.append([col1, SEP_CHARACTER, col2])
+         
+            widths = [max(map(len, col)) for col in zip(*outrows)]
+            outstring = outstring + '\n'.join( [ _NEWPAD.join((just_fcn(val,width) 
+                for val, width in zip(row, widths))) for row in outrows] )
+
+        return outstring
+
+    # Class methods
+    # ------------
+    @classmethod
+    def from_canvas(cls, canvas, *names):
+        """ Split a single canvas into multiple canvas by particle type"""
+        # PARSE NANMES()
+
+        ptypes = canvas.ptypes
+        names = _parse_names(names, ptypes)
+        
+        canvii = []
+        for p in ptypes:
+            canvii.append(canvas.of_ptypes(p))
+        return cls(names=names, canvii=canvii)          
+
+        
+                
+    @classmethod
+    def from_labeled(cls, img, *names, **pmankwargs):
+        """ Labels an image and creates multi-canvas, one for each species
+        in the image."""
+        
+        ignore = pmankwargs.pop('ignore', 0)        
+        neighbors = pmankwargs.pop('neighbors', 4)
+        maximum = pmankwargs.pop('maximum', 10)
+        
+        name_masks = multi_mask(img, *names, astype=tuple, ignore=ignore)
+        if len(name_masks) > maximum:
+            raise MultiError("%s labels found, exceeding maximum of %s"
+                " increasing maximum may result in slowdown" % maximum)
+        
+        canvii = []
+        for (name, mask) in name_masks:
+            labels = morphology.label(mask, neighbors, background=False)                                 
+            particles = ParticleManager.from_labels(labels, 
+                            prefix=name, **pmankwargs)
+            canvii.append(Canvas(particles=particles, rez=mask.shape) )
+            
+        return cls(canvii=canvii, names=names)          
+    
+if __name__ == '__main__':
+    c1 = Canvas.random_circles(n=10, pcolor='yellow')
+    c2 = Canvas.random_triangles(n=10, pcolor='red')
+    c3 = c1+ c2
+    mc =  MultiCanvas.from_canvas(c3)
+    print MultiCanvas.from_canvas(c3, 'yfoo', 'bar', 'baz')
+    mc.pop(0)
+    print mc
+    print MultiCanvas()

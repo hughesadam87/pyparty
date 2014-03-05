@@ -898,7 +898,9 @@ class Canvas(HasTraits):
         gridstring = "%sxygrid[%s] -->  (%sp X %sp) : (%.1f X %.1f) [pix/tile]" \
             % (_PAD, xd*yd, xd, yd, g.xspacing, g.yspacing)
 
-        outstring = "%s at %s:\n" % (self.__class__.__name__, self._address)
+        # MAY WANT TO USE COLUMN ALIGNMENT 
+
+        outstring = "%s (%s):\n" % (self.__class__.__name__, self._address)
         outstring += "%sbackground  -->  %s : %s\n" % (_PAD, res, _bgstyle) 
         outstring += "%sparticles   -->  %s particles : %s types\n" % (_PAD, \
             len(self._particles), len(self._particles.ptype_count))
@@ -964,18 +966,39 @@ class Canvas(HasTraits):
     def random_circles(cls, n=50, rmin=5, rmax=50, background=BGCOLOR, pcolor=None):
         """ Return a canvas populated with n randomly positioned circles.  
         Radius ranges vary randomly between 5 and 50."""
-        import random as r
+        from random import randint as RIT
                        
         particles = ParticleManager()            
         # Randomize particle centers within the image default dimensions
         for i in range(n):
-            cx, cy = r.randint(0, BGRES[0]), r.randint(0, BGRES[1])
-            radius = r.randint(rmin,rmax)
+            cx, cy = RIT(0, BGRES[0]), RIT(0, BGRES[1])
+            radius = RIT(rmin,rmax)
             particles.add('circle', center=(cx,cy), radius=radius, 
                           color=to_normrgb(pcolor))
         
         # Use default resolution and grid
         return cls(background=background, particles=particles)
+
+    @classmethod
+    def random_triangles(cls, n=50, lmin=5, lmax=50, background=BGCOLOR, pcolor=None):
+        """ Return a canvas populated with n randomly positioned circles.  
+        Radius ranges vary randomly between 5 and 50."""
+        from random import randint as RIT
+                       
+        particles = ParticleManager()            
+        # Randomize particle centers within the image default dimensions
+        for i in range(n):
+            # ADD PADDING ADHOC AT THE MOMENT!!
+            PAD = 2*lmax
+            cx, cy = RIT(0+PAD, BGRES[0]-PAD), RIT(0+PAD, BGRES[1]-PAD)
+            length = RIT(lmin,lmax)
+            particles.add('triangle', center=(cx,cy), length=length, 
+                          color=to_normrgb(pcolor))
+        
+        # Use default resolution and grid
+        return cls(background=background, particles=particles)
+    
+    
 
 class ScaledCanvas(Canvas):
     """ Canvas with a "scale" that maps system of coordinates from pixels

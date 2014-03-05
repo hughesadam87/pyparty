@@ -19,7 +19,7 @@ PRINTDISPLAY = ('name', 'ptype', 'center', 'phi')
 _COPYPARTICLES = True 
 
 # __repr__ indentation for Canvas/Grids
-_PAD = ' ' * 3  
+_PAD = ' ' * PADDING
 
 # Color-related
 # -------------

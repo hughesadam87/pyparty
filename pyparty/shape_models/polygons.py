@@ -92,10 +92,10 @@ class Polygon(FastOriented):
         yneg = self._yverts[self._yverts < 0]
         
         if len(xneg) != 0 or len(yneg) != 0:
-            raise PolygonError("Negative verticies can result in unusual behavior"
-                               "in resulting drawn indicies.  Not currently supported")
-
+            raise PolygonError("Polygon has one ore more negative verticies."
+                  " This can result in rendering problems.")
     
+
     def _get_center(self):
         """ Get mean cx, cy from _xverts, _yverts """
         return ( rmeanint(self._xverts), rmeanint(self._yverts) )
