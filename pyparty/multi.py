@@ -372,7 +372,7 @@ class MultiCanvas(HasTraits):
         return len(self.names)
     
     def __iter__(self):
-        """ Return names like in dictionary"""
+        """ Return names like dictionary"""
         return self.canvii.__iter__()
     
     def items(self):
