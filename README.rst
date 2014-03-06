@@ -23,7 +23,8 @@ Getting Started
 The current documentation (and in-a-pinch test suite) is a series of example notebooks 
 (`iPython Notebook`_), which cover most of the basics. These have been linked below:
 
-   - `Basic Operations: Primary Tutorial`_ 
+- ** TUTORIALS **:
+   - `Intro to Canvas: Basic Operations`_ 
    - `Intro to Shapes`_
    - `Intro to Grids`_
    - `Intro to MultiCanvas`_
