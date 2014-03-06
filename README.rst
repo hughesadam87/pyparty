@@ -59,8 +59,7 @@ For simple viewing, paste the github url of each notebook into the iPython Noteb
    .. _`Enthought Canopy`: https://www.enthought.com/products/canopy/
    .. _viewer: http://nbviewer.ipython.org/   
 
-.. ATTENTION::
-    These notebooks are free for redistribution.  If referencing, please cite as:
+**These notebooks are free for redistribution.  If referencing, please cite as:**
         - Hughes, A. (2012). [A Computational Framework for Plasmonic Nanobiosensing](https://www.researchgate.net/publication/236672995_A_Computational_Framework_for_Plasmonic_Nanobiosensing).  Python in Science Conference [SCIPY]. 
    
 Overview and Features
