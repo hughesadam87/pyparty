@@ -37,6 +37,32 @@ class UtilsError(Exception):
 class ColorError(Exception):
     """ Particular to color-utilities """   
 
+def _get_ccycle(upto=None):
+    """ Return a list of the current color cycle in MPL.
+    Hacky workaround to not being able to access the color
+    cycle container.  Creates and destroys intermedia figure.
+    upto will crop or repeat until cycle reaches enough entries.
+    """
+    fig, axfoo = plt.subplots()
+    c = axfoo._get_lines.color_cycle.next()
+    clist = []
+    
+    # Iterate until duplicate is found
+    while c not in clist:
+        clist.append(c)
+        c = axfoo._get_lines.color_cycle.next()        
+        
+    if upto is not None:
+        if upto <= len(clist):
+            pass
+        else:
+            while len(clist) < upto:
+                clist = clist+clist
+        clist = clist[0:upto]
+    # Remove the temporary figure (Dangerous?)
+    plt.close()
+    return clist
+
 def rand_color(style=None):
     """ Random color of various styles """
     if style == 'hex':

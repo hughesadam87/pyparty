@@ -1,12 +1,15 @@
 import operator
+import copy
 import numpy as np
+import itertools
 import logging
 import skimage.morphology as morphology
 import matplotlib.pyplot as plt
-from traits.api import HasTraits, List, Instance, Str
+from traits.api import HasTraits, List, Instance, Str, Dict, Property
 
 from pyparty.tools import Canvas, ParticleManager
-from pyparty.utils import mem_address, _parse_generator, _parse_ax, rgb2uint
+from pyparty.utils import _get_ccycle, mem_address, \
+    _parse_generator, _parse_ax, rgb2uint
 import pyparty.tools.arraytools as ptools
 from pyparty.config import MAXOUT, PADDING, ALIGN
 
@@ -81,29 +84,61 @@ def multi_mask(img, *names, **kwargs):
 class MultiError(Exception):
     """ """
     
+class MultiKeyError(MultiError):
+    """ """    
+
+    
 class MultiCanvas(HasTraits):
     """ Basic container for storing multiple canvases"""
    
     # Probably want these are property lists to prevent user fault
     canvii = List(Instance(Canvas)) #MUST BE LISTS FOR SETTING AND SO FORTH
     names = List(Str)  # Names are unique, maybe enforce through property
-    
+
+    # _mycolors does storage.  mycolors calls an update based on changes
+    # to names.  Thus _mycolors may be out of sync if names deleted/changed
+    _mycolors = Dict()
+    mycolors = Property() 
+
+    # THIS SHOULD TAKE COLORS TOOOOTOOOOTOOOOTOO (just call set colors)
     def __init__(self, canvii=[], names=[]):
         
         self.canvii = canvii
         self.names = list(names) #Allow tuple input
         
-        # NO DUPLICATES IN NAMES!!
+    def _names_changed(self, oldnames, newnames):
+
+        # Check duplicates
+        if len(newnames) != len(list(set(newnames))):
+            raise MultiError("Duplicate names found")
+
+        # Length of names and cavas
+        if len(newnames) != len(self.canvii):
+            raise MultiError("Names and canvii must have same length.")
+    
+    
+    def _get_mycolors(self):
+        """ Updates self._mycolors to reflect any changes to
+        names; eg user may have deleted or popped some"""
+        self._mycolors = dict((name, color) for name, color in 
+                      self._mycolors.items() if name in self.names)
+        return self._mycolors
+
+
+    def _request_plotcolors(self):
+        """ Gives a list of colors based on stored colors AND
+        plot color cycle."""
         
-        # General trait change to make sure these are same legnth
-        if len(self.canvii) != len(self.names):
-            raise MultiError("Names and canvii must have same length")
-       
-    # XXXX HANDLE THIS
-    def _names_changed(self, newval):
-        if len(newval) != len(self.canvii):
-            print "NAMES NOT EQUAL LENGTH"
-            
+        mplcolors = _get_ccycle(upto=len(self))
+        colors = []
+        
+        for idx, name in enumerate(self.names):
+            try:
+                colors.append(self.mycolors[name])
+            except KeyError:
+                colors.append(mplcolors.pop(0))               
+        return colors
+
             
     def to_masks(self, astype=tuple):
         """ Return masks as tuple, list, dict or generator.
@@ -116,6 +151,44 @@ class MultiCanvas(HasTraits):
         gen_out = ( (self.names[idx], c.pbinary) for idx, c 
                         in enumerate(self.canvii) )
         return _parse_generator(gen_out, astype)
+    
+    
+    def to_canvas(self, mapnames=False, mapcolors=False):
+        """ USE MAX RESOLUTION """
+        #WARNING IF REZ NOT SAME
+        #USERS CAN SET REZ, BACKGROUND ONE CANVAS MADE
+        all_rez = [c.rez for c in self.canvii]
+        rezmax, rezmin = max(all_rez), min(all_rez)
+        if rezmax != rezmin:
+            logger.warn('Resolutions vary on canvii from %s to %s; using '
+                        'maximum...' % (rezmin, rezmax))
+            
+        all_particles = []
+        mycolors = self.mycolors #Prevent property recompute each iteration
+
+        for idx, (name, c) in enumerate(self.items()):
+            particles = c.particles
+            if mapcolors:
+                try:
+                    mycolor = self.mycolors[name]
+                except KeyError:
+                    pass
+                else:
+                    for p in particles:
+                        p.color = mycolor
+                    
+            all_particles.append(particles)
+                
+            if mapnames:
+                for p in particles:
+                    p.ptype = name
+
+        # Collapse particle lists of lists down to single list
+        flat_particles = itertools.chain.from_iterable(all_particles)
+        pout = ParticleManager(plist = flat_particles)                
+                    
+        return Canvas(rez=rezmax, particles=pout)
+        
         
 
     # Is there some magic method to bury this in?  Can't find it.  DO NOT USE SORTED
@@ -190,6 +263,10 @@ class MultiCanvas(HasTraits):
         chartkwargs.setdefault('shadow', False)      
         metavar = chartkwargs.pop('metavar', None)
         
+        # If not colors, set colors based on _colors
+        if 'colors' not in chartkwargs:
+            chartkwargs['colors'] = self._request_plotcolors()        
+        
         if annotate:
             autopct = chartkwargs.get('autopct', 'percent')
             chartkwargs.setdefault('labels', self.names)                        
@@ -251,12 +328,17 @@ class MultiCanvas(HasTraits):
         histkwargs.setdefault('stacked', True)
         histkwargs.setdefault('label', self.names)  
         histkwargs.setdefault('bins', 10)
-        metavar = histkwargs.pop('metavar', None)        
+        metavar = histkwargs.pop('metavar', None)    
+        xlim = histkwargs.pop('xlim', None)     
         
         #MPL api asymmetry with pie
         if 'colors' in histkwargs:
             histkwargs['color'] = histkwargs.pop('colors')        
-        
+            
+        # If not colors, set colors based on _colors
+        if 'color' not in histkwargs:
+            histkwargs['color'] = self._request_plotcolors()
+            
         axes, histkwargs = _parse_ax(*histargs, **histkwargs)	
         if not axes:
             fig, axes = plt.subplots()        
@@ -264,6 +346,14 @@ class MultiCanvas(HasTraits):
         attr_list = [getattr(c, attr) for c in self.canvii]            
 
         axes.hist(attr_list, **histkwargs)         
+
+        if xlim is not None:
+            if xlim =='auto':
+                xmin = min( map(min, attr_list) )
+                xmax = max( map(max, attr_list) )
+                xlim = (xmin, xmax)
+            axes.set_xlim(xlim)
+        
         if annotate:
             axes.set_xlabel(attr.title()) #Capitalize first letter
             axes.set_ylabel('Counts')
@@ -279,6 +369,16 @@ class MultiCanvas(HasTraits):
         # Breakdown of c things in names
         NotImplemented
 
+    def copy(self): #, **kwargs):
+        """ Copy multicanvas """
+        names, canvii = [], []
+        names[:] = self.names[:]
+        canvii[:] = self.canvii[:]
+        _mycolors = dict((k,v) for k, v in self._mycolors.items())
+        mc_out = MultiCanvas(names=names, canvii=canvii)
+        mc_out._mycolors = _mycolors        
+        return mc_out
+        
 
     def pop(self, idx):
         self.names.pop(idx)
@@ -296,7 +396,63 @@ class MultiCanvas(HasTraits):
     def insert(self, idx, name, canvas):
         self.names.insert(idx, name)
         self.canvii.insert(idx, canvas)    
+              
     
+    def set_colors(self, *colors, **kwcolors):
+        """ Set colors through a list or name:color mapping.  If no
+        arguments, colors are purged."""
+        if colors and kwcolors:
+            raise MultiError("Please set colors from list or keyword, "
+                             "but not both.")
+        elif not colors and not kwcolors:
+            self._mycolors = {}
+            return
+        
+        if kwcolors:
+            names, colors = zip(*kwcolors.items())
+            for idx, name in enumerate(names):
+                if name not in self.names:
+                    raise MultiKeyError('"%s" not found' % name)
+                self._mycolors[name] = colors[idx]
+
+        else: #if *colors
+            for idx, name in enumerate(self.names):
+                self._mycolors[name] = colors[idx]
+
+
+    def rename(self, oldname, newname):
+        """ Change name; preserves color assignment. """
+
+        idx = self.names.index(oldname)
+        self.names.pop(idx)
+        self.names.insert(idx, newname)
+        
+        try:
+            self._mycolors[newname] = self._mycolors[oldname]
+        except KeyError:
+            pass        
+
+
+    def set_names(self, *names, **namemap):
+        if names and namemap:
+            raise MultiError("Please set names from list or keyword, "
+                             "but not both.")
+        
+        elif not names and not namemap:
+            return
+        
+        if namemap:
+            for oldname, newname in namemap.items():
+                self.rename(oldname, newname)
+                
+        else:  #if *names
+            if len(names) > len(self.names):
+                logger.warn("%s names passed; only %s canvii stored" %
+                            (len(names), len(self.names)))
+                            
+            for idx, newname in enumerate(names):
+                oldname = self.names[idx]
+                self.rename(oldname, newname)      
 
     @property
     def _address(self):
@@ -344,9 +500,10 @@ class MultiCanvas(HasTraits):
     def __setitem__(self, name, canvas):
         """ """
         if name in self.names:
-            idx = self.names.index(name)        
-            self.pop(name)
+            idx = self.names.index(name) 
+            self.pop(idx)
             self.insert(idx, name, canvas)
+            
         else:
             self.names.append(name)
             self.canvii.append(canvas)
@@ -460,8 +617,4 @@ if __name__ == '__main__':
     c1 = Canvas.random_circles(n=10, pcolor='yellow')
     c2 = Canvas.random_triangles(n=10, pcolor='red')
     c3 = c1+ c2
-    mc =  MultiCanvas.from_canvas(c3)
-    print MultiCanvas.from_canvas(c3, 'yfoo', 'bar', 'baz')
-    mc.pop(0)
-    print mc
-    print MultiCanvas()
+    mc =  MultiCanvas.from_canvas(c3, 'dimer', 'trimer')
