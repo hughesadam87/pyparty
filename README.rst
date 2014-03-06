@@ -30,19 +30,22 @@ The current documentation (and in-a-pinch test suite) is a series of example not
    - `Intro to MultiCanvas`_
    
 - **LABELS FROM IMAGES**:
-   - `Particles from Image Labels`_
-   - `Dimers / Trimers: Multi-Group Labels`_
+   - `Labeling an Image`_
+   - `Labeling Nanoparticle Species`_
 
 - **MISCELLANEOUS**:
    - `Matplotlib Color Maps`_
    - `Watershedding Example Adapted`_
+
+- **COMING SOON**:
+   - *Drawing artificial SEM/TEM images*
    
    .. _`Intro to Canvas: Basic Operations`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/basictests.ipynb?create=1
    .. _`Intro to Shapes`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/shapes.ipynb?create=1
    .. _`Intro to Grids` : http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/grids.ipynb?create=1
    .. _`Intro to MultiCanvas` : http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/multi_tutorial.ipynb?create=1
-   .. _`Particles from Image Labels`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/Analyze_Particles.ipynb?create=1
-   .. _`Dimers / Trimers: Multi-Group Labels` :  http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/groups_of_labels.ipynb?create=1
+   .. _`Labeling an Image`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/Analyze_Particles.ipynb?create=1
+   .. _`Labeling Nanoparticle Species` :  http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/groups_of_labels.ipynb?create=1
    .. _`Matplotlib Color Maps` : http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/gwu_maps.ipynb?create=1
    .. _`Watershedding Example Adapted` : http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/watershed.ipynb?create=1
 
@@ -59,7 +62,7 @@ For simple viewing, paste the github url of each notebook into the iPython Noteb
    .. _`Enthought Canopy`: https://www.enthought.com/products/canopy/
    .. _viewer: http://nbviewer.ipython.org/   
 
-**These notebooks are free for redistribution.  If referencing, please cite as:**
+**These notebooks are free for redistribution.  If referencing in publication, please cite as:**
         - Hughes, A. (2012). [A Computational Framework for Plasmonic Nanobiosensing](https://www.researchgate.net/publication/236672995_A_Computational_Framework_for_Plasmonic_Nanobiosensing).  Python in Science Conference [SCIPY]. 
    
 Overview and Features
