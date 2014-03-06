@@ -314,6 +314,7 @@ class Canvas(HasTraits):
         
         title = kwargs.pop('title', None)        
         bgonly = kwargs.pop('bgonly', False)
+        annotate = kwargs.pop('annotate', False)
 
         grid = kwargs.pop('grid', False)
         gcolor = kwargs.pop('gcolor', None)
@@ -406,15 +407,39 @@ class Canvas(HasTraits):
                     axes.add_collection(self.grid.as_patch(
                         edgecolors=gcolor, linestyles=gstyle))    
         
-        if title:
-            axes.set_title(title)        
-
+        axes = self._annotate_plot(axes, annotate, title)    
+        
         if save:
             path = _parse_path(save)
             plt.savefig(path, dpi=dpi, bbox_inches=bbox_inches)
-        
-        return axes 
+        return axes
 
+
+    def _annotate_plot(self, axes, annotate, title):
+        """ Hacky boiler plat reduction.  show() and patchshow() both do exact
+        same thing at end; didn't want to put it twice."""
+        if annotate:
+            axes.set_xlabel('px')
+            axes.set_ylabel('px')
+            if not title:
+                if len(self._particles) == 1:
+                    pcnt_str = '1 particle'
+                else:
+                    pcnt_str = '%s particles' % len(self._particles)
+
+                if len(self._particles.ptypes) == 1:
+                    ptype_str = '%s' % self._particles.ptypes[0]
+                else:
+                    ptype_str = '%s types' % len(self._particles.ptypes)
+                    
+                title = '%s (%s)    %.2f%% coverage' % \
+                    (pcnt_str, ptype_str, 100.0*self.pixarea)
+            
+        if title:
+            axes.set_title(title)                    
+            
+        return axes         
+        
 
     #http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.imshow
     def show(self, *args, **kwargs):
@@ -432,6 +457,7 @@ class Canvas(HasTraits):
         title = kwargs.pop('title', None)
         save = kwargs.pop('save', None)
         bgonly = kwargs.pop('bgonly', False)
+        annotate = kwargs.pop('annotate', False)
         
         grid = kwargs.pop('grid', False)
         gcolor = kwargs.pop('gcolor', None)
@@ -508,16 +534,12 @@ class Canvas(HasTraits):
             axes.imshow(image, **kwargs)
         else:     
             axes = plt.imshow(image, **kwargs).axes        
-
-        if title:
-            axes.set_title(title)
             
-        # Save image array (with grid)
+        axes = self._annotate_plot(axes, annotate, title)            
         if save:
             path = _parse_path(save)
-            skimage.io.imsave(path, image)
-                        
-        return axes 
+            skimage.io.imsave(path, image)   
+        return axes
 
 
     def _draw_particles(self, image, force_binary=False):
@@ -1011,4 +1033,8 @@ if __name__ == '__main__':
     #c.add('tetramer', 3, center=(250, 250), color=(1,0,0))
     #c.add('trimer', r1=30, center=(100,100), color=(.2,.2,.2))
     c.add('tetramer', radius_1=20, center=(400, 400), color=(0, .5, 0))    
+    c=Canvas.random_circles()
+#    c = c + Canvas.random_triangles()
     print c.names
+    c.patchshow(annotate=True)
+    plt.show()

@@ -34,11 +34,12 @@ The current documentation (and in-a-pinch test suite) is a series of example not
    - `Labeling Nanoparticle Species`_
 
 - **MISCELLANEOUS**:
+   - `Basic Artificial SEM Images and Noise`
    - `Matplotlib Color Maps`_
    - `Watershedding Example Adapted`_
 
 - **COMING SOON**:
-   - *Drawing artificial SEM/TEM images*
+   - *Advanced artificial SEM/TEM images*
    
    .. _`Intro to Canvas: Basic Operations`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/basictests.ipynb?create=1
    .. _`Intro to Shapes`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/shapes.ipynb?create=1
@@ -46,6 +47,7 @@ The current documentation (and in-a-pinch test suite) is a series of example not
    .. _`Intro to MultiCanvas` : http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/multi_tutorial.ipynb?create=1
    .. _`Labeling an Image`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/Analyze_Particles.ipynb?create=1
    .. _`Labeling Nanoparticle Species` :  http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/groups_of_labels.ipynb?create=1
+   .. _`Basic Artificial SEM Images and Noise` : http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/making_noise.ipynb?create=1
    .. _`Matplotlib Color Maps` : http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/gwu_maps.ipynb?create=1
    .. _`Watershedding Example Adapted` : http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/watershed.ipynb?create=1
 
