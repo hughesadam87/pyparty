@@ -33,7 +33,7 @@ The current documentation (and in-a-pinch test suite) is a series of example not
    - `Watershedding Example Adapted`_
    - `Matplotlib Color Maps`_
    
-   .. _`Basic Operations: Primary Tutorial`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/basictests.ipynb?create=1
+   .. _`ntro to Canvas: Basic Operations`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/basictests.ipynb?create=1
    .. _`Intro to Shapes`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/shapes.ipynb?create=1
    .. _`Intro to Grids` : http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/grids.ipynb?create=1
    .. _`Intro to MultiCanvas` : http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/multi_tutorial.ipynb?create=1
