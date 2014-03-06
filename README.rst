@@ -15,9 +15,48 @@ particles in 2d images.  ``pyparty`` was built primarily over the excellent
 image processing library, scikit-image_.
 
    .. _scikit-image: http://scikit-image.org
+
+
+Getting Started
+===============
+
+The current documentation (and in-a-pinch test suite) is a series of example notebooks 
+(`iPython Notebook`_), which cover most of the basics. These have been linked below:
+
+   - `Basic Operations: Primary Tutorial`_ 
+   - `Intro to Shapes`_
+   - `Intro to Grids`_
+   - `Intro to MultiCanvas`_
+   - `Particles from Image Labels`_
+   - `Dimers / Trimers: Multi-Group Labels`_
+   - `Watershedding Example Adapted`_
+   - `Matplotlib Color Maps`_
+   
+   .. _`Basic Operations: Primary Tutorial`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/basictests.ipynb?create=1
+   .. _`Intro to Shapes`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/shapes.ipynb?create=1
+   .. _`Intro to Grids` : http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/grids.ipynb?create=1
+   .. _`Intro to MultiCanvas` : http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/multi_tutorial.ipynb?create=1
+   .. _`Particles from Image Labels`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/Analyze_Particles.ipynb?create=1
+   .. _`Dimers / Trimers: Multi-Group Labels` :  http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/groups_of_labels.ipynb?create=1
+   .. _`Matplotlib Color Maps` : http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/gwu_maps.ipynb?create=1
+   .. _`Watershedding Example Adapted` : http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/watershed.ipynb?create=1
+
+Notebooks were initialized with ``pylab``:
+
+   ipython notebook --pylab=inline
+   
+Having trouble viewing/editing notebooks?  Consider using `Enthought
+Canopy`_, which has a notebook kernel builtin, as well as a graphical package manager. 
+For simple viewing, paste the github url of each notebook into the iPython Notebook viewer_. 
+ 
+   .. _documentation: http://hugadams.github.com/pyparty/
+   .. _`iPython Notebook`: http://ipython.org/notebook.html?utm_content=buffer83c2c&utm_source=buffer&utm_medium=twitter&utm_campaign=Buffer
+   .. _`Enthought Canopy`: https://www.enthought.com/products/canopy/
+   .. _viewer: http://nbviewer.ipython.org/   
+   
    
 Overview and Features
----------------------
+=====================
 
 ``pyparty`` provides a simple API for particle analysis in 2d images, while streamlining some
 common operations in the image processing pipeline.  
@@ -57,7 +96,7 @@ especially in regard to particle analysis.
    .. _`matplotlib patches` : http://matplotlib.org/examples/api/patch_collection.html
 
 What are some use cases, and will pyparty help to me?
------------------------------------------------------
+=====================================================
 
 Some operations that ``pyparty`` would be particularly suited for would be:
 
@@ -78,43 +117,6 @@ In short, you may consider using ``pyparty`` if you are doing image analysis and
 generating, managing or labeling particles as a bottleneck.  
 
    .. _patchcollection : http://matplotlib.org/examples/api/patch_collection.html
-
-Documentation
-=============
-
-The current documentation (and in-a-pinch test suite) is a series of example notebooks 
-(`iPython Notebook`_), which cover most of the basics. These have been linked below:
-
-   - `Basic Operations: Primary Tutorial`_ 
-   - `Intro to Shapes`_
-   - `Intro to Grids`_
-   - `Intro to MultiCanvas`_
-   - `Particles from Image Labels`_
-   - `Dimers / Trimers: Multi-Group Labels`_
-   - `Watershedding Example Adapted`_
-   - `Matplotlib Color Maps`_
-   
-   .. _`Basic Operations: Primary Tutorial`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/basictests.ipynb?create=1
-   .. _`Intro to Shapes`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/shapes.ipynb?create=1
-   .. _`Intro to Grids` : http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/grids.ipynb?create=1
-   .. _`Intro to MultiCanvas` : http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/multi_tutorial.ipynb?create=1
-   .. _`Particles from Image Labels`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/Analyze_Particles.ipynb?create=1
-   .. _`Dimers / Trimers: Multi-Group Labels` :  http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/groups_of_labels.ipynb?create=1
-   .. _`Matplotlib Color Maps` : http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/gwu_maps.ipynb?create=1
-   .. _`Watershedding Example Adapted` : http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/watershed.ipynb?create=1
-
-Notebooks were initialized with ``--pylab inline``; that is:
-
-   ipython notebook --pylab=inline
-   
-Having trouble viewing/editing notebooks?  Consider using `Enthought
-Canopy`_, which has a notebook kernel builtin, as well as a graphical package manager. 
-For simple viewing, paste the github url of each notebook into the iPython Notebook viewer_. 
- 
-   .. _documentation: http://hugadams.github.com/pyparty/
-   .. _`iPython Notebook`: http://ipython.org/notebook.html?utm_content=buffer83c2c&utm_source=buffer&utm_medium=twitter&utm_campaign=Buffer
-   .. _`Enthought Canopy`: https://www.enthought.com/products/canopy/
-   .. _viewer: http://nbviewer.ipython.org/
 
 History
 =======
