@@ -144,7 +144,7 @@ class Canvas(HasTraits):
     def threshfcn(self):
         try:
             return self._threshtype
-        except AttributeError:
+        except CanvasAttributeError:
             return None
     
     @threshfcn.setter
