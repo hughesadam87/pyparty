@@ -9,12 +9,13 @@ from traits.api import HasTraits, List, Instance, Str, Dict, Property
 
 from pyparty.tools import Canvas, ParticleManager
 from pyparty.utils import _get_ccycle, mem_address, \
-    _parse_generator, _parse_ax, rgb2uint
+    _parse_generator, _parse_ax, rgb2uint, rand_color, multi_axes
 import pyparty.tools.arraytools as ptools
 from pyparty.config import MAXOUT, PADDING, ALIGN
 
 logger = logging.getLogger(__name__) 
 
+MAXDEFAULT = 10
 
 def _parse_names(names, default_names):
     """ Boilerplate: user enters *names to overwrite X default names.  
@@ -319,6 +320,54 @@ class MultiCanvas(HasTraits):
             axes.set_title('%s Distribution' % attr.title())
         return axes   
         
+    def show(self, *args, **kwargs):
+        kwargs['showstyle'] = 'show'
+        return self._show(*args, **kwargs)
+    
+    def patchshow(self, *args, **kwargs):
+        kwargs['showstyle'] = 'patchshow'
+        return self._show(*args, **kwargs)        
+
+    # multishow?
+    def _show(self, *args, **kwargs):
+        # DESCRIBE KWARGS FROM MULTIAXES AND SHOW
+        names = kwargs.pop('names', False)
+        colors = kwargs.pop('colors', True)
+        showstyle = kwargs.pop('showstyle', 'show')
+        
+        if showstyle not in ['show', 'patchshow']:
+            raise MultiError("showstyle must be show or patchshow, "
+                             "not %s" % showstyle)
+        
+        axes, kwargs = _parse_ax(*args, **kwargs)	
+                
+        if not axes:
+            axes, kwargs = multi_axes(len(self), **kwargs)
+
+        if len(axes) < len(self):
+            logger.warn("MultiCanvas has %s canvas, but only %s axes recieved"
+                        " in show()" % (len(self), len(axes)))
+            upperlim = len(axes)
+
+        else:
+            upperlim = len(self)
+            
+        pcolors = self._request_plotcolors()
+        
+        for idx in range(upperlim):
+            c = self.canvii[idx]
+            if colors:
+                def cmap(p):
+                    p.color = pcolors[idx]
+                    return p             
+                c = c.pmap(cmap)
+            
+            if names:
+                kwargs['title'] = self.names[idx]
+
+            getattr(c, showstyle)(axes[idx], **kwargs)
+        return axes
+        
         
     def hist(self, *histargs, **histkwargs):
         """ matplotlib histogram wrapper. """
@@ -400,7 +449,11 @@ class MultiCanvas(HasTraits):
     
     def set_colors(self, *colors, **kwcolors):
         """ Set colors through a list or name:color mapping.  If no
-        arguments, colors are purged."""
+        arguments, colors are purged.  'fillnull' kwarg used if
+        color contains null values; replaced by random selection.
+        """
+        fillnull = kwcolors.pop('fillnull', False)
+                
         if colors and kwcolors:
             raise MultiError("Please set colors from list or keyword, "
                              "but not both.")
@@ -410,12 +463,18 @@ class MultiCanvas(HasTraits):
         
         if kwcolors:
             names, colors = zip(*kwcolors.items())
+            if fillnull:
+                colors = [c if c else rand_color(style='hex') for c in colors]                
+            
             for idx, name in enumerate(names):
                 if name not in self.names:
                     raise MultiKeyError('"%s" not found' % name)
                 self._mycolors[name] = colors[idx]
 
         else: #if *colors
+            if fillnull:
+                colors = [c if c else rand_color(style='hex') for c in colors]
+        
             for idx, name in enumerate(self.names):
                 self._mycolors[name] = colors[idx]
 
@@ -457,17 +516,11 @@ class MultiCanvas(HasTraits):
     @property
     def _address(self):
         """ Property to make easily accesible by multicanvas """
-        return mem_address(super(MultiCanvas, self).__repr__())    
-        
+        return mem_address(super(MultiCanvas, self).__repr__())   
 
-    def show(self, layers):
-        """ layered verison of show?  Useful?"""
-        # Maybe imshow multiplot ax1, ax2
-        NotImplemented
 
     # ---------------
-    # Magic Methods
-    
+    # Magic Methods  
     def __getitem__(self, keyslice):
         """ Single name lookup; otherwise single or sliced indicies."""
         if hasattr(keyslice, '__iter__'):
@@ -597,7 +650,7 @@ class MultiCanvas(HasTraits):
         
         ignore = pmankwargs.pop('ignore', 0)        
         neighbors = pmankwargs.pop('neighbors', 4)
-        maximum = pmankwargs.pop('maximum', 10)
+        maximum = pmankwargs.pop('maximum', MAXDEFAULT)
         
         name_masks = multi_mask(img, *names, astype=tuple, ignore=ignore)
         if len(name_masks) > maximum:

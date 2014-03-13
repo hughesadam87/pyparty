@@ -4,15 +4,14 @@ import math
 import random 
 import os
 import os.path as op
+import operator
 import functools
 from types import GeneratorType
-
 
 import numpy as np
 import matplotlib.colors as colors
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
-
 from matplotlib.axes import Subplot
 from skimage import img_as_float, img_as_ubyte
 from skimage.color import gray2rgb, rgb2gray
@@ -76,6 +75,24 @@ def rand_color(style=None):
     else:
         r = lambda: random.random()
         return  ( r(), r(), r() )
+    
+def guess_colors(guess, values):
+    """ Match closest via squared channel distance between user-guessed
+    colors and true values.  All are mapped to rgb, so guesses like 'red'
+    are valid.
+    """
+    if not hasattr(guess, '__iter__') and not hasattr(values, '__iter__'):
+        guess, values = [guess], [values]
+
+    if len(guess) != len(values):
+        raise UtilsError('Guesses and values must have equal lengths:'
+                         ' (%s vs %s)' %(len(guess),len(values) ) )
+
+    guess = map(to_normrgb, guess)
+    values = map(to_normrgb, values)
+    
+    NotImplemented
+    #Returns?
 
 
 def _pix_norm(value, imax=CBITS):
@@ -403,6 +420,54 @@ def splot(*args, **kwds):
         return (fig, args)
     else:
         return args
+
+def _mod_closest(count, testrange=[3,4,5,6]):
+    """ Computes n % count for n in range of values and returns n for 
+    which the modulo was closest (ie only needed to increase n by 1 for n%3;
+    however, may need to increase n by 2 to get n%4...  primarily used for
+    selecting plot columns that minimize number of empty cols in multiplots.
+    When difference is the same between several column values, returns lowest.
+    EG if 3 and 6 have same modulo (for example to 12), 3 is returned.
+    """
+    score = []
+    for j in testrange:
+        val = count
+        diff = 0
+        while val % j != 0:
+            val += 1        
+            diff += 1
+        if diff == 0:
+            return j
+        score.append((j,diff))
+    score = sorted(score, key=operator.itemgetter(1))
+    return score[0][0]
+
+# Eventually update w/ gridspect
+def multi_axes(count, **kwargs):
+    """ """
+    figsize = kwargs.pop('figsize', None)#, rcParams['figure.figsize'])
+    ncols = kwargs.pop('ncols', 4)
+        
+    if count <= ncols:
+        nrows = 1
+        ncols = count
+
+    else:  
+#       ncols = _mod_closest(count)
+        nrows = int(count/ncols)         
+        if count % ncols: #If not perfect division
+            nrows += 1
+    
+    if figsize:
+        fig, axes = splot(nrows, ncols, figsize=figsize, fig=True)
+    else:
+        fig, axes = splot(nrows, ncols,fig=True)
+        
+
+    while len(fig.axes) > count:
+        fig.delaxes(fig.axes[-1])
+    return fig.axes, kwargs
+        
 
 def mem_address(obj):
     """ Return memory address string for a python object.  Object must have
