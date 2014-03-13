@@ -233,8 +233,78 @@ class MultiCanvas(HasTraits):
 
         return _parse_generator(gen_out, as_type)        
         
+
+    # ------------------
+    # -- Plotting API
+    def show(self, *args, **kwargs):
+        """ see _show() docstring """
+        kwargs['showstyle'] = 'show'
+        return self._show(*args, **kwargs)
+    
+    def patchshow(self, *args, **kwargs):
+        """ see _show() docstring """        
+        kwargs['showstyle'] = 'patchshow'
+        return self._show(*args, **kwargs)        
+
+    def _show(self, *args, **kwargs):
+        """ show() and patchshow()** wrap their respective Canvas methods, 
+        so any valid arguments (like colormaps, grids etc...) should just
+        work.  In addition, multicanvas show methods have the following
+        additional keyword arguments:
         
-    # Better this way than as functions?
+        Parameters
+        ----------
+        names: bool (False)
+            Show multicanvas names at top of plot
+            
+        colors: bool (True):
+            Map stored color to each particle in subplot.
+
+        **kwargs:
+            Any valid splot arg (ncols, figsize etc...) or show/patchshow
+            args, such as cmap, grid etc...
+                    
+        If passing a pre-constructed axes/subplots to mc.show(), it must be 
+        as a keyword.  As a positional, it will not work! 
+        """
+        names = kwargs.pop('names', False)
+        colors = kwargs.pop('colors', True)
+        showstyle = kwargs.pop('showstyle', 'show')
+        
+        if showstyle not in ['show', 'patchshow']:
+            raise MultiError("showstyle must be show or patchshow, "
+                             "not %s" % showstyle)
+        
+        axes, kwargs = _parse_ax(*args, **kwargs)	
+                
+        if not axes:
+            axes, kwargs = multi_axes(len(self), **kwargs)
+
+        if len(axes) < len(self):
+            logger.warn("MultiCanvas has %s canvas, but only %s axes recieved"
+                        " in show()" % (len(self), len(axes)))
+            upperlim = len(axes)
+
+        else:
+            upperlim = len(self)
+            
+        pcolors = self._request_plotcolors()
+        
+        for idx in range(upperlim):
+            c = self.canvii[idx]
+            if colors:
+                def cmap(p):
+                    p.color = pcolors[idx]
+                    return p             
+                c = c.pmap(cmap)
+            
+            if names:
+                kwargs['title'] = self.names[idx]
+
+            getattr(c, showstyle)(axes[idx], **kwargs)
+        return axes
+        
+
     def pie(self, *chartargs, **chartkwargs):
         """ Pie chart wrapper to matplotlib.
         
@@ -319,55 +389,7 @@ class MultiCanvas(HasTraits):
                 attr = metavar
             axes.set_title('%s Distribution' % attr.title())
         return axes   
-        
-    def show(self, *args, **kwargs):
-        kwargs['showstyle'] = 'show'
-        return self._show(*args, **kwargs)
-    
-    def patchshow(self, *args, **kwargs):
-        kwargs['showstyle'] = 'patchshow'
-        return self._show(*args, **kwargs)        
 
-    # multishow?
-    def _show(self, *args, **kwargs):
-        # DESCRIBE KWARGS FROM MULTIAXES AND SHOW
-        names = kwargs.pop('names', False)
-        colors = kwargs.pop('colors', True)
-        showstyle = kwargs.pop('showstyle', 'show')
-        
-        if showstyle not in ['show', 'patchshow']:
-            raise MultiError("showstyle must be show or patchshow, "
-                             "not %s" % showstyle)
-        
-        axes, kwargs = _parse_ax(*args, **kwargs)	
-                
-        if not axes:
-            axes, kwargs = multi_axes(len(self), **kwargs)
-
-        if len(axes) < len(self):
-            logger.warn("MultiCanvas has %s canvas, but only %s axes recieved"
-                        " in show()" % (len(self), len(axes)))
-            upperlim = len(axes)
-
-        else:
-            upperlim = len(self)
-            
-        pcolors = self._request_plotcolors()
-        
-        for idx in range(upperlim):
-            c = self.canvii[idx]
-            if colors:
-                def cmap(p):
-                    p.color = pcolors[idx]
-                    return p             
-                c = c.pmap(cmap)
-            
-            if names:
-                kwargs['title'] = self.names[idx]
-
-            getattr(c, showstyle)(axes[idx], **kwargs)
-        return axes
-        
         
     def hist(self, *histargs, **histkwargs):
         """ matplotlib histogram wrapper. """

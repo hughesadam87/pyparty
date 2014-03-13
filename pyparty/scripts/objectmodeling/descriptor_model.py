@@ -1,4 +1,4 @@
-from traits.api import *
+from traits.api import HasTraits, Str, Property, Any, List, Instance
 import operator as oper
 from collections import OrderedDict
 
@@ -159,12 +159,35 @@ class Model(HasTraits):
     descriptors = List(Instance(Descriptor))
     colors = Property(depends_on = 'descriptors')
     aliases = Property(depends_on = 'descriptors')
-
     
     def __init__(self, *descriptors, **traitkwargs):
         self.descriptors = list(descriptors)
         super(Model, self).__init__(**traitkwargs)
     
+    def to_multicanvas(self, canvas, iterative=False, mapcolors=True):
+        
+        cout = []
+        f, cnull = self.descriptors[0].in_and_out_canvas(canvas)
+        cout.append(f)
+
+        # FIX ITERATIVE STUFF
+        for desc in self.descriptors[1:] :
+            if iterative:
+                f, cnull = desc.in_and_out_canvas(cnull)
+           
+            else:
+                f, cnull = desc.in_and_out_canvas(canvas)
+                
+            cout.append(f)                
+            
+#        return cout, cnull  
+        mcout = MultiCanvas(canvii=cout, names=self.aliases)
+        if mapcolors:
+            mcout.set_colors(*self.colors, fillnull=True)
+        return mcout    
+    
+    #-----------------
+    # --- Properties
     def _get_aliases(self):
         aliases = []
 
@@ -189,14 +212,8 @@ class Model(HasTraits):
         """ List of None and colors """
         return [c.color for c in self.descriptors]
         
-    
-    @classmethod
-    def from_textlist(self):
-        """ Read descriptors from a text file"""
-        raise NotImplementedError
-    
-    
-    # Item interface at descriptor level    
+    # ------------------
+    # --- Magic Methods 
     def __getitem__(self, keyslice):
         return self.descriptors.__getitem__(keyslice)
     
@@ -219,30 +236,6 @@ class Model(HasTraits):
         return '%s Descriptors: %s' % ( len(self), 
                     super(Model, self).__repr__() )
     
-    def to_multicanvas(self, canvas, iterative=False, mapcolors=True):
-        
-        cout = []
-        f, cnull = self.descriptors[0].in_and_out_canvas(canvas)
-        cout.append(f)
-
-        # FIX ITERATIVE STUFF
-        for desc in self.descriptors[1:] :
-            if iterative:
-                f, cnull = desc.in_and_out_canvas(cnull)
-           
-            else:
-                f, cnull = desc.in_and_out_canvas(canvas)
-                
-            cout.append(f)                
-            
-#        return cout, cnull  
-        mcout = MultiCanvas(canvii=cout, names=self.aliases)
-        if mapcolors:
-            mcout.set_colors(*self.colors, fillnull=True)
-        return mcout
-
-    # ADD ASTYPE STUFF FOR DICT
-    
 if __name__ == '__main__':   
 
     class Small(Descriptor):
@@ -263,7 +256,6 @@ if __name__ == '__main__':
         color = None    
       
     
-if __name__ == '__main__':
     import matplotlib.pyplot as mpl
     from pyparty import splot 
     
