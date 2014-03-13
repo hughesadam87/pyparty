@@ -103,7 +103,7 @@ class Descriptor(HasTraits):
             # NEED OBJECT ACCESS STARTING HERE!            
             descriptor_array = variable(canvas) #c.area
             
-            # Worth doing
+            # Worth doing?
             if not isinstance(descriptor_array, np.ndarray):
                 raise ModelError('Attribute inspection not return an array')
             
@@ -153,8 +153,10 @@ class Descriptor(HasTraits):
     
     
 class Model(HasTraits):
-    """ Simple container for descriptors; basically a type-checked List of
-    Descriptors."""
+    """ Simple container for Descriptors, organizes colors and names.
+    Provides an interface to MultiCanvas, which is the de-facto container
+    for pyparty (therefore, this container is as light as possible).
+    """
     
     descriptors = List(Instance(Descriptor))
     colors = Property(depends_on = 'descriptors')
@@ -249,7 +251,6 @@ if __name__ == '__main__':
     class Large(Descriptor):
         classifier = '(d > 30)'
         color = 'green'
-
 
     class LargeTriangles(Descriptor):
         classifier = '(d > 30) & (eccentricity > 0.01)'

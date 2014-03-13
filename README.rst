@@ -34,9 +34,11 @@ The current documentation (and in-a-pinch test suite) is a series of example not
    - `Labeling Nanoparticle Species`_
 
 - **MISCELLANEOUS**:
-   - `Basic Artificial SEM Images and Noise`
    - `Matplotlib Color Maps`_
    - `Watershedding Example Adapted`_
+
+- **ARTIFICIAL IMAGES**:
+   - `Basic Artificial SEM Images and Noise`_
 
 - **COMING SOON**:
    - *Advanced artificial SEM/TEM images*
