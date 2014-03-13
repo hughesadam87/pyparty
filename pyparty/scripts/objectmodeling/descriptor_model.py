@@ -3,7 +3,7 @@ import operator as oper
 from collections import OrderedDict
 
 import numpy as np
-from pyparty import Canvas
+from pyparty import Canvas, MultiCanvas
 from pyparty.utils import to_normrgb
 
 def radius(obj):
@@ -43,16 +43,6 @@ def multisplit(s, sep):
         if char in s:
             splitchar.append(char)
     return stack, splitchar
-
-
-def _mapcolor(desc, c):
-    if desc.color:
-        def cmap(p):
-            p.color = desc.color
-            return p 
-        c = c.pmap(cmap)
-    return c
-
 
 class ModelError(Exception):
     """ """
@@ -226,17 +216,16 @@ class Model(HasTraits):
         self.descriptors.append(descriptor)
         
     def __repr__(self):
-        return super(Model, self).__repr__()
+        return '%s Descriptors: %s' % ( len(self), 
+                    super(Model, self).__repr__() )
     
-    def apply_canvas(self, canvas, iterative=False, mapcolors=True):
+    def to_multicanvas(self, canvas, iterative=False, mapcolors=True):
         
         cout = []
         f, cnull = self.descriptors[0].in_and_out_canvas(canvas)
-
-        if mapcolors:
-            f = _mapcolor(self.descriptors[0], f)
         cout.append(f)
 
+        # FIX ITERATIVE STUFF
         for desc in self.descriptors[1:] :
             if iterative:
                 f, cnull = desc.in_and_out_canvas(cnull)
@@ -244,12 +233,13 @@ class Model(HasTraits):
             else:
                 f, cnull = desc.in_and_out_canvas(canvas)
                 
-            if mapcolors:
-                f = _mapcolor(desc, f)
             cout.append(f)                
             
-        return cout, cnull
-
+#        return cout, cnull  
+        mcout = MultiCanvas(canvii=cout, names=self.aliases)
+        if mapcolors:
+            mcout.set_colors(*self.colors, fillnull=True)
+        return mcout
 
     # ADD ASTYPE STUFF FOR DICT
     
@@ -261,9 +251,7 @@ if __name__ == '__main__':
 
     class SmallCircles(Descriptor):
         classifier = '(d < 30) & (eccentricity == 0.0)'
-        color = 'orange'
-  #      alias = 'aunp singles'
-        
+        color = 'orange'        
         
     class Large(Descriptor):
         classifier = '(d > 30)'
@@ -272,29 +260,37 @@ if __name__ == '__main__':
 
     class LargeTriangles(Descriptor):
         classifier = '(d > 30) & (eccentricity > 0.01)'
-        color = 'lime'
-  #      alias = 'aunp singles'
-    
+        color = None    
       
     
+if __name__ == '__main__':
     import matplotlib.pyplot as mpl
     from pyparty import splot 
     
              #This way to preserve model name
-    models = Model(Small(), SmallCircles(), Large(), LargeTriangles())    
+    models = Model(Small(), SmallCircles(alias='bret'), Large(), 
+                   LargeTriangles())    
+    for i in range(19):
+        models.append(Small(color=None))
     c = Canvas.random_circles() + Canvas.random_triangles()
-    cout, cnull = models.apply_canvas(c, iterative=False)
+    mc = models.to_multicanvas(c, iterative=False, mapcolors=True)
+    print models
+    mc.show(names=True, annotate=True)
 
-    print 'hi', c.eccentricity
+    #print 'hi', c.eccentricity
 
-    axes = splot(1,len(cout)+1)
-    for i, c in enumerate(cout):
-        c.show(axes[i], title=models.aliases[i])
+    #axes = splot(1,len(cout)+1)
+    #for i, c in enumerate(cout):
+        #c.show(axes[i], title=models.aliases[i])
         
-    cnull.show(axes[i+1], title='remaining')
+    #cnull.show(axes[i+1], title='remaining')
 
-    cnull.show()
-    mpl.show()
+ #   cnull.show()
+    import matplotlib.pyplot as plt
+    plt.tight_layout()
+    plt.show()
+    plt.tight_layout()
+    
         
     
     #ax1, ax2, ax3 = splot(1,3)
