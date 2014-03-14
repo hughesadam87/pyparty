@@ -6,15 +6,19 @@ import numpy as np
 from pyparty import Canvas, MultiCanvas
 from pyparty.utils import to_normrgb
 
+# These should be builtin descriptors
 def radius(obj):
     return getattr(obj, 'equivalent_diameter')/2.0
 
 def circularity(obj):
-    NotImplemented
+    area = getattr(obj, 'area')
+    perim = getattr(obj, 'perim')
+    return 4 * np.pi * (area / (perim)**2)
 
 
 SHORTCUTS = {'d':'equivalent_diameter',
-             'r': radius }  
+             'r': radius,
+             'circularity': circularity}  
 
 
 # DO NOT CHANGE ORDER!
@@ -166,26 +170,33 @@ class Model(HasTraits):
         self.descriptors = list(descriptors)
         super(Model, self).__init__(**traitkwargs)
     
-    def to_multicanvas(self, canvas, iterative=False, mapcolors=True):
-        
-        cout = []
-        f, cnull = self.descriptors[0].in_and_out_canvas(canvas)
-        cout.append(f)
+    def to_multicanvas(self, canvas, sequential=False, sans=False,
+                       modnames=True):
+        """ """
+        c_in = [] ; c_out = []
+        creduced, cnull = self.descriptors[0].in_and_out_canvas(canvas)
+        c_in.append(creduced) ; c_out.append(cnull)
 
-        # FIX ITERATIVE STUFF
         for desc in self.descriptors[1:] :
-            if iterative:
-                f, cnull = desc.in_and_out_canvas(cnull)
+            if sequential:
+                creduced, cnull = desc.in_and_out_canvas(cnull)
            
             else:
-                f, cnull = desc.in_and_out_canvas(canvas)
+                creduced, cnull = desc.in_and_out_canvas(canvas)
                 
-            cout.append(f)                
+            c_in.append(creduced) ; c_out.append(cnull)             
+        
+        outnames = self.aliases
+        if not sans:
+            c_final = c_in
             
-#        return cout, cnull  
-        mcout = MultiCanvas(canvii=cout, names=self.aliases)
-        if mapcolors:
-            mcout.set_colors(*self.colors, fillnull=True)
+        else:
+            c_final = c_out
+            if modnames:
+                outnames = ['sans %s' % name for name in outnames]
+
+        mcout = MultiCanvas(canvii=c_final, names=outnames)
+        mcout.set_colors(*self.colors, fillnull=True)
         return mcout    
     
     #-----------------
@@ -237,58 +248,3 @@ class Model(HasTraits):
     def __repr__(self):
         return '%s Descriptors: %s' % ( len(self), 
                     super(Model, self).__repr__() )
-    
-if __name__ == '__main__':   
-
-    class Small(Descriptor):
-        classifier = '(d < 30)'
-        color = 'r'
-
-    class SmallCircles(Descriptor):
-        classifier = '(d < 30) & (eccentricity == 0.0)'
-        color = 'orange'        
-        
-    class Large(Descriptor):
-        classifier = '(d > 30)'
-        color = 'green'
-
-    class LargeTriangles(Descriptor):
-        classifier = '(d > 30) & (eccentricity > 0.01)'
-        color = None    
-      
-    
-    import matplotlib.pyplot as mpl
-    from pyparty import splot 
-    
-             #This way to preserve model name
-    models = Model(Small(), SmallCircles(alias='bret'), Large(), 
-                   LargeTriangles())    
-    for i in range(19):
-        models.append(Small(color=None))
-    c = Canvas.random_circles() + Canvas.random_triangles()
-    mc = models.to_multicanvas(c, iterative=False, mapcolors=True)
-    print models
-    mc.show(names=True, annotate=True)
-
-    #print 'hi', c.eccentricity
-
-    #axes = splot(1,len(cout)+1)
-    #for i, c in enumerate(cout):
-        #c.show(axes[i], title=models.aliases[i])
-        
-    #cnull.show(axes[i+1], title='remaining')
-
- #   cnull.show()
-    import matplotlib.pyplot as plt
-    plt.tight_layout()
-    plt.show()
-    plt.tight_layout()
-    
-        
-    
-    #ax1, ax2, ax3 = splot(1,3)
-    #c.show(ax1)
-    #f.show(ax2)
-    #g.show(ax3)
-    #mpl.show()
-    

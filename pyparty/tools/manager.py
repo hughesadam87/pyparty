@@ -398,6 +398,11 @@ class ParticleManager(HasTraits):
             --------
             big_particles = p[p.perims > 50] """
         
+        # Bypasses a bug (or pyparty design flaw?) in ipython notebook 2.0 beta
+        # when ending a cell w/ c.particles
+        if attr == '_ipython_display_':
+            return         
+        
         out = tuple(getattr(p, attr) for p in self.plist)
         return np.array(out)
     

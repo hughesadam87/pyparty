@@ -243,7 +243,7 @@ I'm a PhD student at GWU (check me out on researchgate_, Linkedin_ or twitter_)
 and former Enthought intern. I work in biomolecule sensing and nanophotonics.  
 Like any PhD student, my time is stretched across many projects.  As such,
 the ``pyparty`` source code may is messy in places, and a test suite has
-yet to be developed yet.  Developing the iPython notebook tutorials 
+yet to be developed.  Developing the iPython notebook tutorials 
 alongside the code helped served as a basic test platform.  
 
    .. _researchgate : https://www.researchgate.net/profile/Adam_Hughes2/?ev=hdr_xprf
