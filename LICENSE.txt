@@ -32,7 +32,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 ---------------------------------------------------------------------
 
-The following agreements are from licenceses of pyparty dependencies.
+The following agreements are from licences of pyparty dependencies.
 
 Scikit-Image
 ============

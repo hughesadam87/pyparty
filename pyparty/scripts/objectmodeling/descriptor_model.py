@@ -8,7 +8,7 @@ from pyparty.utils import to_normrgb
 
 # These should be builtin descriptors
 def radius(obj):
-    return getattr(obj, 'equivalent_diameter')/2.0
+    return getattr(obj, 'equivalent_diameter') / 2.0
 
 def circularity(obj):
     area = getattr(obj, 'area')

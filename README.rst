@@ -148,7 +148,7 @@ in ImageJ_.
 License
 =======
 
-BSD_
+3-Clause Revised BSD_
 
    .. _BSD : https://github.com/hugadams/pyparty/blob/master/LICENSE.txt
 
@@ -244,7 +244,7 @@ and former Enthought intern. I work in biomolecule sensing and nanophotonics.
 Like any PhD student, my time is stretched across many projects.  As such,
 the ``pyparty`` source code may is messy in places, and a test suite has
 yet to be developed.  Developing the iPython notebook tutorials 
-alongside the code helped served as a basic test platform.  
+alongside the code helped served as a basic regression test platform.  
 
    .. _researchgate : https://www.researchgate.net/profile/Adam_Hughes2/?ev=hdr_xprf
    .. _Linkedin : http://www.linkedin.com/profile/view?id=121484744&goback=%2Enmp_*1_*1_*1_*1_*1_*1_*1_*1_*1_*1_*1&trk=spm_pic
