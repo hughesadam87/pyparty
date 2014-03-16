@@ -29,18 +29,18 @@ def from_color_res(color, resx, resy=None):
 
 
 def from_string(path_or_color, resx=None, resy=None):
-    """ Load an image from harddrive; wraps skimage.io.imread. 
+    """ Load an image from harddrive or URL; wraps skimage.io.imread. 
     os.path.expanduser is called to allow ~/foo/path calls.
     If not found, path_or_color is assumed to be a colorstring (eg 'aqua')
     """
     
     # Separte method because plan to expand later
     try:
-        return imread(op.expanduser( path_or_color) )
+        return imread(op.expanduser( path_or_color) ) #expand user ok for URL
     except IOError:
         if not resx:
-            raise BackgroundError("Background string interpreted as color; please pass"
-            " resolution as well!")
+            raise BackgroundError("Background string interpreted as color; "
+                "please pass resolution as well!")
         else:
             background = path_or_color
         
@@ -48,5 +48,5 @@ def from_string(path_or_color, resx=None, resy=None):
     try:
         return from_color_res(background, resx, resy)
     except Exception:
-        raise BackgroundError("Failed to interpret background as a path."
-            "  Failed to interpret background as a colorstring (eg 'aqua')")
+        raise BackgroundError("Failed to interpret background as a path,"
+            "  URL, or color string (eg 'aqua').")

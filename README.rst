@@ -67,7 +67,9 @@ For simple viewing, paste the github url of each notebook into the iPython Noteb
    .. _viewer: http://nbviewer.ipython.org/   
 
 **These notebooks are free for redistribution.  If referencing in publication, please cite as:**
-        - Hughes, A. (2012). [A Computational Framework for Plasmonic Nanobiosensing](https://www.researchgate.net/publication/236672995_A_Computational_Framework_for_Plasmonic_Nanobiosensing).  Python in Science Conference [SCIPY]. 
+        - Hughes, A. (2012). `A Computational Framework for Plasmonic Nanobiosensing`_.  Python in Science Conference [SCIPY]. 
+  
+   .. _`A Computational Framework for Plasmonic Nanobiosensing`: https://www.researchgate.net/publication/236672995_A_Computational_Framework_for_Plasmonic_Nanobiosensing:  
    
 Overview and Features
 =====================
