@@ -260,5 +260,7 @@ mailing list, and for putting together a great library for the community.
 Thank you countless developers who have patiently answered hundreds of 
 my questions on too many mailing lists and sites to list.
 
-Thank you Zhaowen Liu for all of your help with this project, our 
-other projects and for your unwaivering encouragement.  And for the panda.
+Thank you `Zhaowen Liu`_ for all of your help with this project, our 
+other projects and for your unwaivering encouragement (and for the panda).
+
+    .. _`https://github.com/EvelynLiu77`

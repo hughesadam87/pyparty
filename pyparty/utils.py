@@ -9,7 +9,7 @@ import functools
 from types import GeneratorType
 
 import numpy as np
-import matplotlib.colors as colors
+import matplotlib.colors as mplcolors
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from matplotlib.axes import Subplot
@@ -27,7 +27,7 @@ ERRORMESSAGE = 'Valid color arguments include color names ("aqua"), ' +  \
     ' hexcolorstrings (#00FFFF).' 
 
 #http://matplotlib.org/api/colors_api.html#matplotlib.colors.ColorConverter            
-_rgb_from_string = colors.ColorConverter().to_rgb
+_rgb_from_string = mplcolors.ColorConverter().to_rgb
 
 class UtilsError(Exception):
     """ General utilities error """ 

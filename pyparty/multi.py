@@ -88,7 +88,6 @@ class MultiError(Exception):
 class MultiKeyError(MultiError):
     """ """    
 
-    
 class MultiCanvas(HasTraits):
     """ Basic container for storing multiple canvases"""
    
@@ -101,11 +100,12 @@ class MultiCanvas(HasTraits):
     _mycolors = Dict()
     mycolors = Property() 
 
-    # THIS SHOULD TAKE COLORS TOOOOTOOOOTOOOOTOO (just call set colors)
-    def __init__(self, canvii=[], names=[]):
+    def __init__(self, canvii=[], names=[], _mycolors=None):
         
         self.canvii = canvii
         self.names = list(names) #Allow tuple input
+        if _mycolors:
+            self._mycolors = _mycolors # Should do more type checking
         
     def _names_changed(self, oldnames, newnames):
 
@@ -121,9 +121,8 @@ class MultiCanvas(HasTraits):
     def _get_mycolors(self):
         """ Updates self._mycolors to reflect any changes to
         names; eg user may have deleted or popped some"""
-        self._mycolors = dict((name, color) for name, color in 
+        return dict((name, color) for name, color in 
                       self._mycolors.items() if name in self.names)
-        return self._mycolors
 
 
     def _request_plotcolors(self):
@@ -201,7 +200,8 @@ class MultiCanvas(HasTraits):
         if inplace:
             self.names, self.canvii = names, canvii
         else:
-            return MultiCanvas(names=names, canvii=canvii)
+            return MultiCanvas(names=names, canvii=canvii, 
+                                _mycolors=self.mycolors)
         
     def super_map(self):
         """ """
@@ -445,12 +445,9 @@ class MultiCanvas(HasTraits):
         names, canvii = [], []
         names[:] = self.names[:]
         canvii[:] = self.canvii[:]
-        _mycolors = dict((k,v) for k, v in self._mycolors.items())
-        mc_out = MultiCanvas(names=names, canvii=canvii)
-        mc_out._mycolors = _mycolors        
-        return mc_out
+        return MultiCanvas(names=names, canvii=canvii, 
+                             _mycolors = self.mycolors)
         
-
     def pop(self, idx):
         self.names.pop(idx)
         cout = self.canvii.pop(idx)        
@@ -533,7 +530,14 @@ class MultiCanvas(HasTraits):
                             
             for idx, newname in enumerate(names):
                 oldname = self.names[idx]
-                self.rename(oldname, newname)      
+                self.rename(oldname, newname)   
+                
+    @property
+    def mycolors(self):
+        """ Returns current colors set by user; new dict to avoid reference
+        errors."""
+        return dict((k,v) for k, v in self._mycolors.items())
+        
 
     @property
     def _address(self):
@@ -561,7 +565,8 @@ class MultiCanvas(HasTraits):
         if not hasattr(names, '__iter__'):
             return canvii
         else:            
-            return MultiCanvas(canvii=canvii, names=names)
+            return MultiCanvas(canvii=canvii, names=names, 
+                               _mycolors=self.mycolors)
 
     def __delitem__(self, keyslice):
         """ Delete a single name, or a keyslice from names/canvas """        
@@ -693,3 +698,7 @@ if __name__ == '__main__':
     c2 = Canvas.random_triangles(n=10, pcolor='red')
     c3 = c1+ c2
     mc =  MultiCanvas.from_canvas(c3, 'dimer', 'trimer')
+    mc.set_colors('r','g')
+
+    mcout = mc[0:2]
+    print mcout._mycolors
