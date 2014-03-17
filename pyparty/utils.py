@@ -13,9 +13,8 @@ import matplotlib.colors as colors
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from matplotlib.axes import Subplot
-from skimage import img_as_float, img_as_ubyte
-from skimage.color import gray2rgb, rgb2gray
-from skimage import exposure
+import skimage.color as skcol
+from skimage import img_as_float, img_as_ubyte, exposure
 from pyparty.config import PCOLOR, COLORTYPE
 
 logger = logging.getLogger(__name__) 
@@ -216,7 +215,7 @@ def any2rgb(array, name=''):
     elif array.ndim == 2:
         logger.warn('%s color has been converted (1-channel to 3-channel RGB)'
                     % name)
-        return gray2rgb(array)
+        return skcol.gray2rgb(array)
 
     raise ColorError('%s must be 2 or 3 dimensional array!' % name )    
 
@@ -252,7 +251,7 @@ def rgb2uint(image, warnmsg=False):
         #	print c.grayimage.max(), c.image.max() * 255, img_as_uint(lena()).max()
 
     # DOES NOT CHECK IMAGE DIMENSIONS; LEAVES THAT TO CALLING OBJECT
-    grayimg = img_as_ubyte( rgb2gray(image) )
+    grayimg = img_as_ubyte( skcol.rgb2gray(image) )
     if warnmsg:
         if isinstance(warnmsg, str):
             logger.warn(warnmsg)
@@ -589,7 +588,7 @@ def grayhist(img, *args, **histkwargs):
 def rgbhist(img, *args, **kwargs):
     """ See imagej version """
     if img.ndim == 2:
-        img = gray2rgb(img) 
+        img = skcol.gray2rgb(img) 
         logger.warn("Converting 1-channel gray image to rgb")
 
     bins = histkwargs.pop('bins', 256) #used several places
@@ -730,10 +729,10 @@ def zoom(image, coords, *imshowargs, **imshowkwds):
     ----------
     image: a ndarray
     coords : (xi, yi, xf, yf)
-        lenngth-4 iterable with coordiantes corresponding to rectangle corners
-    in order (xi, yi, xf, yf)
-    *imshowargs, **imshowkwds : plotting *args, **kwargs
-        Passed directly to matplotlib imshow()
+        length-4 iterable of crop coordiantes corresponding 
+    axes : None
+        Optionally pass in a matplotlib axes instance.
+    *imshowargs, **imshowkwds : imshow() args
 
     Returns
     -------
@@ -748,13 +747,25 @@ def zoom(image, coords, *imshowargs, **imshowkwds):
     --------
     >>> from skimage import data
     >>> lena = img_as_float(data.lena())
-    >>> zoom(lena, (0,0,400,300), plt.cm.gray);
-
+    >>> zoom(lena, (0,0,400,300), 'gray');
     """    
+    
+    axes, kwargs = _parse_ax(*imshowargs, **imshowkwds)	
+    if not axes:
+        fig, axes = plt.subplots()
 
-    cropped_image = crop(image, coords)
-    return scaleshow(cropped_image, *imshowargs, **imshowkwds)    
+    if len(coords) != 4:
+        raise UtilsError("Coordinates must be lenth four iterable of form"
+                         "(xi, yi, xf, yf).  Received %s" % coords)
 
+    xi, yi, xf, yf = coords
+        
+    cropped_image = crop(image, coords) 
+    axes.imshow(image, *imshowargs, **imshowkwds)
+    axes.set_xlim(xi, xf)
+    axes.set_ylim(yf, yi)
+    return axes
+    
 
 def zoomshow(image, coords, *imshowargs, **imshowkwds):
     """
@@ -811,7 +822,7 @@ def zoomshow(image, coords, *imshowargs, **imshowkwds):
 
     if len(coords) != 4:
         raise UtilsError("Coordinates must be lenth four iterable of form"
-                         "(xi, yi, xf, yf).  Instead, received %s" % coords)
+                         "(xi, yi, xf, yf).  Received %s" % coords)
 
     xi, yi, xf, yf = coords
 
@@ -826,10 +837,7 @@ def zoomshow(image, coords, *imshowargs, **imshowkwds):
     ax_zoomed.imshow(image, *imshowargs, **imshowkwds)
 
     ax_zoomed.set_xlim(xi, xf)
-    ax_zoomed.set_ylim(yf, yi)
-
-#    ax_zoomed.set_xlim(xi, xf) #WTF?
-#    ax_zoomed.set_ylim(yi, yf)
+    ax_zoomed.set_ylim(yf, yi) #Y REVERSED
 
     # Add rectangle
     ax_full.axhline(y=yi, xmin=xi_norm, xmax=xf_norm, 

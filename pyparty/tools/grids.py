@@ -151,6 +151,17 @@ class Grid(HasTraits):
         return np.zeros(self.shape).astype(bool)
 
     @property
+    def div(self):
+        """ X and y div; setter is more useful """
+        return (self.xdiv, self.ydiv)
+
+    @div.setter
+    def div(self, div):
+        """ Return x and y divisions """
+        self.xdiv = div
+        self.ydiv = div
+
+    @property
     def xspacing(self):
         return (self.xend - self.xstart) / self.xdiv
 

@@ -850,7 +850,7 @@ class Canvas(HasTraits):
         # colorstring or hex
         elif isinstance(background, basestring):
             self._background = bgu.from_string(background, self.rx, self.ry)
-            self._bgstyle = 'file/colorstring'            
+            self._bgstyle = 'file/colorstring/url'            
 
         # If not array, color is assume as valid to_norm_rgb(color) arg
         # It will raise its own error if failure occurs
@@ -1030,11 +1030,4 @@ class ScaledCanvas(Canvas):
     
 if __name__ == '__main__':
     c=Canvas()
-    #c.add('tetramer', 3, center=(250, 250), color=(1,0,0))
-    #c.add('trimer', r1=30, center=(100,100), color=(.2,.2,.2))
-    c.add('tetramer', radius_1=20, center=(400, 400), color=(0, .5, 0))    
-    c=Canvas.random_circles()
-#    c = c + Canvas.random_triangles()
-    print c.names
-    c.patchshow(annotate=True)
-    plt.show()
+    print 'hi'
