@@ -91,8 +91,7 @@ class MultiKeyError(MultiError):
 class MultiCanvas(HasTraits):
     """ Basic container for storing multiple canvases"""
    
-    # Probably want these are property lists to prevent user fault
-    canvii = List(Instance(Canvas)) #MUST BE LISTS FOR SETTING AND SO FORTH
+    canvii = List(Instance(Canvas)) 
     names = List(Str)  # Names are unique, maybe enforce through property
 
     # _mycolors does storage.  mycolors calls an update based on changes
@@ -101,7 +100,12 @@ class MultiCanvas(HasTraits):
     mycolors = Property() 
 
     def __init__(self, canvii=[], names=[], _mycolors=None):
-        
+        """ Canvii and names are public.  _mycolors is private; used mainly
+        for copying.  Make sure _mycolors is a new dictionary and not a 
+        reference to the original. Calling self.mycolors makes a new object
+        through the property interface.  Passing self._mycolors is a 
+        bad idea (see copy or __getitem__) for correct syntax.
+        """
         self.canvii = canvii
         self.names = list(names) #Allow tuple input
         if _mycolors:
@@ -392,7 +396,29 @@ class MultiCanvas(HasTraits):
 
         
     def hist(self, *histargs, **histkwargs):
-        """ matplotlib histogram wrapper. """
+        """ Matplotlib histogram wrapper. 
+    
+        Parameters
+        ----------
+        **annotate:** bool - True
+            Add general legend, title, axis labels. 
+            
+        **attr:** str - "area"
+            Particle attribute for data.  (Also a pie chart keyword).
+            
+        **xlim:** range(start, stop) - None
+            Shortcut to set x-limits.  If **xlim=auto**, absolute min and 
+            absolute max of data will be used.  
+            This crops data AND sets axis limits; to only change plot axes,
+            use *axes.set_xlim()*.
+            
+        Notes
+        -----
+        We see that the **annotate** option adds a legend, title and axis 
+        labels.  The default attribute of the histogram is *area*, 
+        corresponding to the **attr** kwargs.  All other valid matplotlib 
+        histogram kwargs should work.
+        """
         
         annotate = histkwargs.pop('annotate', True)   
         attr = histkwargs.pop('attr', 'area')  
@@ -414,16 +440,25 @@ class MultiCanvas(HasTraits):
         if not axes:
             fig, axes = plt.subplots()        
         
-        attr_list = [getattr(c, attr) for c in self.canvii]            
+        # Get list of arrays for descriptor, slice if xlim
+        attr_list = [getattr(c, attr) for c in self.canvii]   
+        if xlim:
+            if xlim == 'auto':
+                xi, xf = min(map(min, attr_list)), max(map(max, attr_list))
+            else:
+                xi, xf = xlim     
+            
+            attr_list = [array[(array >= xi) & (array <= xf)] 
+                         for array in attr_list]
+            axes.set_xlim(xi, xf)
 
+        # Validate attr_list for empy arrays; avoid ambiguous mpl error
+        for idx, array in enumerate(attr_list):
+            if len(array) == 0:
+                raise MultiError('Empty array returned for "%s" attribute'
+                    ' on "%s" Canvas.' % (attr, self.names[idx]) )
+                
         axes.hist(attr_list, **histkwargs)         
-
-        if xlim is not None:
-            if xlim =='auto':
-                xmin = min( map(min, attr_list) )
-                xmax = max( map(max, attr_list) )
-                xlim = (xmin, xmax)
-            axes.set_xlim(xlim)
         
         if annotate:
             axes.set_xlabel(attr.title()) #Capitalize first letter
@@ -668,8 +703,6 @@ class MultiCanvas(HasTraits):
             canvii.append(canvas.of_ptypes(p))
         return cls(names=names, canvii=canvii)          
 
-        
-                
     @classmethod
     def from_labeled(cls, img, *names, **pmankwargs):
         """ Labels an image and creates multi-canvas, one for each species
@@ -694,11 +727,12 @@ class MultiCanvas(HasTraits):
         return cls(canvii=canvii, names=names)          
     
 if __name__ == '__main__':
-    c1 = Canvas.random_circles(n=10, pcolor='yellow')
-    c2 = Canvas.random_triangles(n=10, pcolor='red')
+    c1 = Canvas.random_circles(n=100, pcolor='yellow')
+    c2 = Canvas.random_triangles(n=100, pcolor='red')
     c3 = c1+ c2
     mc =  MultiCanvas.from_canvas(c3, 'dimer', 'trimer')
     mc.set_colors('r','g')
 
     mcout = mc[0:2]
-    print mcout._mycolors
+    mc.hist(xlim=(2000,50000), attr='equivalent_diameter', bins=30)
+    plt.show()
