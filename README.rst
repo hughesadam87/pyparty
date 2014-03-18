@@ -127,9 +127,9 @@ eccentricit and area.
    - sort and color ellipses in order of increasing eccentricity.
    - dilate all particles appearing in bottom half of an image
 
-3. Scripting without leaving Python.
+4. Scripting without leaving Python.
 
-4. Plot particles as rasterizations or matplotlib patches side-by-side.
+5. Plot particles as rasterizations or matplotlib patches side-by-side.
 
 In short, you may consider using ``pyparty`` if you are doing image analysis and find 
 generating, managing or labeling particles as a bottleneck.  
@@ -144,7 +144,7 @@ We really enjoyed scikit-image_ for image processing and sought to implement it 
 We sought to provide an API for managing labeled particles from real images.  Scikit-image draw and measure
 modules laid the groundwork to the core functionality that ``pyparty`` attempts to streamline. 
 
-I should also note that some of the inspiration can from the excellent ``Analyze Particles`` features
+I should also note that some of the inspiration came from the excellent ``Analyze Particles`` features
 in ImageJ_.
 
    .. _ImageJ : http://rsbweb.nih.gov/ij/
