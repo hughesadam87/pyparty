@@ -215,10 +215,11 @@ Related Libraries
 =================
 Interested in the Python ecosystem?   Check out some of these related libraries:
 
-   - SciPy_ (Collection of core scientific libraries)
-   - NumPy_ (Fundemental vectorized numerics package in Python)
-   - matplotlib_ (Defacto static plotting in Python)
-   - pandas_ (Data analysis library : inspired ``pyparty``` ParticleManager API)
+   - NumPy_ (Fundamental vectorized numerics in Python)
+   - SciPy_ (Collection of core, numpy-based scientific libraries)
+   - scikit-image_ (Scipy image processing suite)
+   - matplotlib_ (De facto static plotting in Python)
+   - pandas_ (Data analysis library : inspired ``pyparty`` ParticleManager API)
    - ilastik_ (Interactive Learning and Segmentation Tool)
    - Pillow_ (Python Image Library)
 
