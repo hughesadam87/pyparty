@@ -470,10 +470,12 @@ class MultiCanvas(HasTraits):
             axes.legend()
         return axes
 
+
     def summary(self):
         """ """
         # Breakdown of c things in names
         NotImplemented
+
 
     def copy(self): #, **kwargs):
         """ Copy multicanvas """
@@ -482,6 +484,7 @@ class MultiCanvas(HasTraits):
         canvii[:] = self.canvii[:]
         return MultiCanvas(names=names, canvii=canvii, 
                              _mycolors = self.mycolors)
+
         
     def pop(self, idx):
         self.names.pop(idx)

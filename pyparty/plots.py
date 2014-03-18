@@ -6,7 +6,10 @@ from pyparty.utils import grayhist, splot, showim, zoom, zoomshow
 from pyparty.utils import multi_axes
 
 def multishow(images, *args, **kwargs):
-    if getattr(images, '__iter__'):
+ 
+    names = kwargs.pop('names', [])
+    
+    if not getattr(images, '__iter__'):
         return showim(images, *args, **kwargs)
 
     if len(images) == 1:
@@ -14,5 +17,10 @@ def multishow(images, *args, **kwargs):
     
     axes, kwargs = multi_axes(len(images), **kwargs)
     for idx, ax in enumerate(axes):
-        showim(images[0], ax, *args, **kwargs)
+        showim(images[idx], ax, *args, **kwargs)
+        try:
+            ax.set_title(names[idx])
+        except IndexError:
+            pass
+        
     return axes

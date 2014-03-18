@@ -162,7 +162,7 @@ def _parse_set(array1, array2):
     s1, s2 = array1.shape, array2.shape
     type1, type2 = array1.dtype, array2.dtype
     if s1 != s2:
-        raise ArraySetError("Shape mismatch: %s vs. %s" % (ndim1, ndim2))
+        raise ArraySetError("Shape mismatch: %s vs. %s" % (s1, s2))
     if type1 != type2:
         raise ArraySetError("Dtype mismatch: %s vs. %s" % (type1, type2))
     
