@@ -76,7 +76,7 @@ For simple viewing, paste the github url of each notebook into the iPython Noteb
 Overview and Features
 =====================
 
-``pyparty`` provides a simple API for particle analysis in 2d images, while streamlining some
+``pyparty`` provides a simple API for particle analysis in 2d images, while streamlining 
 common operations in the image processing pipeline.  
 
 *Some key features include*:
@@ -85,9 +85,8 @@ common operations in the image processing pipeline.
    labels OR builtin shapes.  Some highlights of **Particles** include:
        - A common datastructure for array operations like rotations and 
          translations.
-       - ``skimage`` descriptors promoted as primary attributes.
-       - Mapping and logical indexing (numpy style) on particle attributes, including
-         descriptors. 
+       - ``skimage`` descriptors_ as primary attributes on all particles.
+       - Filtering and mapping based with numpy logical indexing syntax. 
          
 2. A **Grid** system for patterning particles, as well as mesh utilities for creating 
    image backgrounds.
@@ -96,40 +95,41 @@ common operations in the image processing pipeline.
    In addition, Canvas also provides simplified interfaces for:
       - binarization / thresholding
       - plotting
-      - pain-free access to colored, gray and binary image representations
+      - slicing and other pythonic container operations
 
-4. A plotting API that supports both *matplotlib.imshow* AND `matplotlib patches`_.
+4. A plotting API based on matplotlib.imshow() that generally supports 
+    rasterizaztions AND `matplotlib patches`_.
 
 5. Flexible color designations ('red', (1,0,0), 00FF00), and strict typing
    to ensure consistency in data and plots.
 
 6. General ndarray operations such as rotations and translations supported by ALL particle types.
 
-7. iPython Notebook tutorials.
+7. API for adding **Noise** to images.
 
-In essence, ``pyparty`` integrates pre-existing plotting and image processing tools 
-in a way that hopefully will help simplify many common operations, 
-especially in regard to particle analysis.
-
+   .. _descriptors : http://scikit-image.org/docs/dev/api/skimage.measure.html#regionprops
    .. _`matplotlib patches` : http://matplotlib.org/examples/api/patch_collection.html
 
 What are some use cases, and will pyparty help to me?
 =====================================================
 
-Some operations that ``pyparty`` would be particularly suited for would be:
+Tasked well-suited for ``pyparty`` include:
 
-1. Counting cells in an image and measuring their eccentricity.
+1. Filtering and characterization of cells based on descriptors like
+eccentricit and area.
 
 2. Patterning a grid of particles over a shadowed background to compare performance
    of thresholding algorithms.
 
-3. Manipulating particles based on descriptors.  For example:
+3. Manipulating particles in a *pythonic* manner:
 
    - delete all particles that have area > 50 pixels.
    - sort and color ellipses in order of increasing eccentricity.
    - dilate all particles appearing in bottom half of an image
 
-4. Plot particles as masks, or matplotlib patches side-by-side.
+3. Scripting without leaving Python.
+
+4. Plot particles as rasterizations or matplotlib patches side-by-side.
 
 In short, you may consider using ``pyparty`` if you are doing image analysis and find 
 generating, managing or labeling particles as a bottleneck.  
