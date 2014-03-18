@@ -140,8 +140,8 @@ def slice_by_value(array, vi=0, vf=None):
     
 def unique(array):
     """ Find unique values in array of arbitrary ndim.  If array.ndim < 3,
-    returns np.unique.  If 3 or greater, returns values as expected; 
-    whereas np.unique always flattens, and hence fails for rgb images.
+    returns np.unique(). Else, returns values sorted by sum of individual
+    elements. np.unique always flattens, so is not suitable rgb images.
     """
     if array.ndim < 3:
         return np.unique(array)
@@ -154,7 +154,7 @@ def unique(array):
     array_reshaped = array.reshape(L*W, rest)    
     o = [tuple(row) for row in array_reshaped]
     o_unique = tuple(set(o))
-    return np.array(o_unique)
+    return sorted(np.array(o_unique), key=sum)
     
 # Set operations
 def _parse_set(array1, array2):
