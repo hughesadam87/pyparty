@@ -16,7 +16,7 @@ NAME = 'pyparty'
 #requirements can probably be relaxed, especially chaco.
 setup(
     name = NAME,
-    version = '0.1', 
+    version = '0.2.0', 
     author = 'Adam Hughes',
     maintainer = 'Adam Hughes',
     maintainer_email = 'hughesadam87@gmail.com',

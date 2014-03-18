@@ -30,7 +30,7 @@ The current documentation (and in-a-pinch test suite) is a series of example not
    - `Intro to MultiCanvas`_
    
 - **LABELS FROM IMAGES**:
-   - `Labeling an Image`_
+   - `Intro to Labeling`_
    - `Labeling Nanoparticle Species`_
 
 - **MISCELLANEOUS**:
@@ -39,6 +39,7 @@ The current documentation (and in-a-pinch test suite) is a series of example not
 
 - **ARTIFICIAL IMAGES**:
    - `Basic Artificial SEM Images and Noise`_
+   - `Simple Images and Labels for JORS`_
 
 - **COMING SOON**:
    - *Advanced artificial SEM/TEM images*
@@ -47,11 +48,12 @@ The current documentation (and in-a-pinch test suite) is a series of example not
    .. _`Intro to Shapes`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/shapes.ipynb?create=1
    .. _`Intro to Grids` : http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/grids.ipynb?create=1
    .. _`Intro to MultiCanvas` : http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/multi_tutorial.ipynb?create=1
-   .. _`Labeling an Image`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/Analyze_Particles.ipynb?create=1
+   .. _`Intro to Labeling`: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/Analyze_Particles.ipynb?create=1
    .. _`Labeling Nanoparticle Species` :  http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/groups_of_labels.ipynb?create=1
    .. _`Basic Artificial SEM Images and Noise` : http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/making_noise.ipynb?create=1
    .. _`Matplotlib Color Maps` : http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/gwu_maps.ipynb?create=1
    .. _`Watershedding Example Adapted` : http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/watershed.ipynb?create=1
+   .. _`Simple Images and Labels for JORS` : http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/JORS_data.ipynb?create=1
 
 Notebooks were initialized with ``pylab``:
 
@@ -174,7 +176,7 @@ Installation
 
 I would recommend using `Enthought Canopy`_ and installing ``Traits`` and 
 ``scikit-image`` through the package manager; however, ``pyparty`` is also 
-registered in pip. (Checkit it out on PyPi_)
+registered on PyPi_.
 
    .. _PyPi : https://pypi.python.org/pypi/pyparty
 
@@ -206,7 +208,7 @@ The developmental version can be cloned from github:
 
     git clone https://github.com/hugadams/pyparty.git
     
-This will not install any dependencies (see above)
+This will not install any dependencies.
     
     
 Related Libraries
