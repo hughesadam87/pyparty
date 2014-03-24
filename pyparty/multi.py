@@ -734,8 +734,7 @@ if __name__ == '__main__':
     c2 = Canvas.random_triangles(n=100, pcolor='red')
     c3 = c1+ c2
     mc =  MultiCanvas.from_canvas(c3, 'dimer', 'trimer')
-    mc.set_colors('r','g')
-
-    mcout = mc[0:2]
-    mc.hist(xlim=(2000,50000), attr='equivalent_diameter', bins=30)
+    mc.show(nolabel=True)
+    import matplotlib.pyplot as plt
     plt.show()
+    

@@ -374,6 +374,7 @@ def _parse_ax(*args, **kwargs):
 def showim(image, *args, **kwargs):
     """ Similar to imshow with a few more keywords"""
 
+    nolabel = kwargs.pop('nolabel', False)
     if not isinstance(image, np.ndarray):
         raise UtilsError("First argument to showim() must be an ndarray/image, "
                          "got %s instead." % type(image))
@@ -385,6 +386,14 @@ def showim(image, *args, **kwargs):
         axes.imshow(image, **kwargs)
     else:      # matplotlib API asymmetry
         axes = plt.imshow(image, **kwargs).axes        
+        
+    if nolabel:
+        axes.xaxis.set_visible(False)
+        axes.yaxis.set_visible(False)
+        if nolabel == 'x':
+            axes.yaxis.set_visible(True)
+        elif nolabel == 'y':
+            axes.xaxis.set_visible(True)        
 
     if title:
         axes.set_title(title)
