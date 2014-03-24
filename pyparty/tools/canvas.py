@@ -321,6 +321,7 @@ class Canvas(HasTraits):
         gstyle = kwargs.pop('gstyle', None)
         gunder = kwargs.pop('gunder',False)
         pmap = kwargs.pop('pmap', None)
+        nolabel = kwargs.pop('nolabel', None)
         
         alpha = kwargs.get('alpha', None)
         edgecolor = kwargs.get('edgecolor', None)
@@ -409,6 +410,14 @@ class Canvas(HasTraits):
         
         axes = self._annotate_plot(axes, annotate, title)    
         
+        if nolabel:
+            axes.xaxis.set_visible(False)
+            axes.yaxis.set_visible(False)
+            if nolabel == 'x':
+                axes.yaxis.set_visible(True)
+            elif nolabel == 'y':
+                axes.xaxis.set_visible(True)        
+        
         if save:
             path = _parse_path(save)
             plt.savefig(path, dpi=dpi, bbox_inches=bbox_inches)
@@ -463,6 +472,7 @@ class Canvas(HasTraits):
         gcolor = kwargs.pop('gcolor', None)
         gunder = kwargs.pop('gunder', False)
         gstyle = kwargs.pop('gstyle', None) #NOT USED
+        nolabel = kwargs.pop('nolabel', False)
         
         if gstyle:
             raise CanvasPlotError('"gstyle" only valid for patchshow()')
@@ -536,6 +546,15 @@ class Canvas(HasTraits):
             axes = plt.imshow(image, **kwargs).axes        
             
         axes = self._annotate_plot(axes, annotate, title)            
+
+        if nolabel:
+            axes.xaxis.set_visible(False)
+            axes.yaxis.set_visible(False)
+            if nolabel == 'x':
+                axes.yaxis.set_visible(True)
+            elif nolabel == 'y':
+                axes.xaxis.set_visible(True)
+
         if save:
             path = _parse_path(save)
             skimage.io.imsave(path, image)   
@@ -1030,4 +1049,6 @@ class ScaledCanvas(Canvas):
     
 if __name__ == '__main__':
     c=Canvas()
-    print 'hi'
+    import matplotlib.pyplot as plt
+    c.patchshow(nolabel='y')
+    plt.show()
