@@ -12,7 +12,7 @@ def radius(obj):
 
 def circularity(obj):
     area = getattr(obj, 'area')
-    perim = getattr(obj, 'perim')
+    perim = getattr(obj, 'perimeter')
     return 4 * np.pi * (area / (perim)**2)
 
 
