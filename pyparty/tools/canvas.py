@@ -593,9 +593,6 @@ class Canvas(HasTraits):
          
         return axes
 
-            
-            
-
 
     def _draw_particles(self, image, force_binary=False):
         """ Draws particles over any image (ie background, background+grid.
