@@ -402,9 +402,17 @@ class ParticleManager(HasTraits):
         # when ending a cell w/ c.particles
         if attr == '_ipython_display_':
             return         
-        
+
+        # HACK HACK HACK
+        if attr == 'circularity':
+            area = np.array([getattr(p, 'area') for p in self.plist])
+            perim = np.array([getattr(p, 'perimeter') for p in self.plist])
+            return 4 *  np.pi * (  area / (perim**2) )
+
+        # Leave in tact
         out = tuple(getattr(p, attr) for p in self.plist)
         return np.array(out)
+    
     
     def __len__(self):
         return self.plist.__len__()

@@ -471,6 +471,40 @@ class MultiCanvas(HasTraits):
         return axes
 
 
+
+    def scatter(self, *args, **kwargs):
+        """ attr1/2 default to canvas.scatter """
+        
+        multi= kwargs.pop('multi', False)
+        colors = kwargs.pop('colors', self._request_plotcolors())
+        annotate = kwargs.pop('annotate', False)
+        
+        axes, kwargs = _parse_ax(*args, **kwargs)
+
+        # Multiplot style
+        if multi:
+            raise NotImplementedError
+    
+        # Overlaid plot style
+        else:
+            if not axes:
+                fig, axes = plt.subplots()
+            
+            for idx, c in enumerate(self.canvii):
+                # Only pass annotate once to avoid re-write axis labels/title
+                if idx == 0 and annotate:
+                    addlabel = True
+                else:
+                    addlabel = False
+                c.scatter(axes, color=colors[idx], annotate=addlabel, **kwargs)
+                
+
+            if annotate:
+                axes.legend(self.names)
+        
+        return axes    
+        
+        
     def summary(self):
         """ """
         # Breakdown of c things in names
@@ -734,7 +768,8 @@ if __name__ == '__main__':
     c2 = Canvas.random_triangles(n=100, pcolor='red')
     c3 = c1+ c2
     mc =  MultiCanvas.from_canvas(c3, 'dimer', 'trimer')
-    mc.show(nolabel=True)
-    import matplotlib.pyplot as plt
+    mc.scatter(annotate=True)
+    #mc.show(nolabel=True)
+    #import matplotlib.pyplot as plt
     plt.show()
     

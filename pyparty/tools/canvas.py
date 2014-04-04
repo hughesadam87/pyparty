@@ -561,6 +561,42 @@ class Canvas(HasTraits):
         return axes
 
 
+    def scatter(self, *args, **kwargs):
+        """ """
+
+        attr1 = kwargs.pop('attr1', 'area')
+        attr2 = kwargs.pop('attr2', 'perimeter')
+    
+        annotate = kwargs.pop('annotate', False)
+        title = kwargs.pop('title', None)
+        fancy = kwargs.pop('fancy', False)
+        
+        axes, kwargs = _parse_ax(*args, **kwargs)
+        if fancy:
+            raise NotImplementedError("Fancy kwarg not yet supported.")
+
+        if not axes:
+            fig, axes = plt.subplots()
+            
+        x, y = getattr(self, attr1), getattr(self, attr2)
+
+        axes.scatter(x, y, **kwargs)
+
+        if annotate:
+            if not title:
+                title = '%s - %s' % (attr1.title(), attr2.title())
+            axes.set_xlabel(attr1)
+            axes.set_ylabel(attr2)
+       
+        if title:
+            axes.set_title(title)
+         
+        return axes
+
+            
+            
+
+
     def _draw_particles(self, image, force_binary=False):
         """ Draws particles over any image (ie background, background+grid.
         force_binary is a hack to allow for drawing binary particles, useful
@@ -1048,7 +1084,9 @@ class ScaledCanvas(Canvas):
     
     
 if __name__ == '__main__':
-    c=Canvas()
+    c=Canvas.random_circles()
+    c.area
+    print c.circularity
     import matplotlib.pyplot as plt
-    c.patchshow(nolabel='y')
+#    c.patchshow(nolabel='y')
     plt.show()
