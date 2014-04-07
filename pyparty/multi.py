@@ -687,10 +687,15 @@ class MultiCanvas(HasTraits):
     def items(self):
         return zip(self.names, self.canvii)
     
+    @property
+    def pcount(self):
+        """ Also used in __repr__ """
+        return sum(len(c) for c in self.canvii)
+    
 
     def __repr__(self):
-        outstring = "%s (%s): " % \
-            (self.__class__.__name__, self._address)     
+        outstring = "%s (%s) %s: " % \
+            (self.__class__.__name__, self._address, self.pcount)     
         Ln = len(self)
         
         if Ln == 0:                
@@ -768,8 +773,9 @@ if __name__ == '__main__':
     c2 = Canvas.random_triangles(n=100, pcolor='red')
     c3 = c1+ c2
     mc =  MultiCanvas.from_canvas(c3, 'dimer', 'trimer')
+    print mc, mc.pcount
     mc.scatter(annotate=True)
     #mc.show(nolabel=True)
     #import matplotlib.pyplot as plt
-    plt.show()
+#    plt.show()
     
