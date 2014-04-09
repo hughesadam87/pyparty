@@ -536,6 +536,31 @@ class MultiCanvas(HasTraits):
     def insert(self, idx, name, canvas):
         self.names.insert(idx, name)
         self.canvii.insert(idx, canvas)    
+        
+
+    def reorder(self, *names_or_int, **kwds):
+        """ Reorder based on names or integers.  Does not enforce length or
+        non-duplication checks. Use at your own discretion"""
+        
+        inplace = kwds.pop('inplace', False)       
+       
+        def _to_index(item):
+            if isinstance(item, str):
+                return self.names.index(item)
+            return item
+        
+        indices = map(_to_index, names_or_int)
+        names = [self.names[i] for i in indices]
+        canvii = [self.canvii[i] for i in indices]
+        
+        if inplace:
+            self.names = names
+            self.canvii = canvii
+            
+        else:
+            return MultiCanvas(names=names, canvii=canvii,
+                               _mycolors = self.mycolors)
+            
               
     
     def set_colors(self, *colors, **kwcolors):
@@ -773,7 +798,10 @@ if __name__ == '__main__':
     c2 = Canvas.random_triangles(n=100, pcolor='red')
     c3 = c1+ c2
     mc =  MultiCanvas.from_canvas(c3, 'dimer', 'trimer')
-    print mc, mc.pcount
+    print mc
+    print mc.reorder(1,0)
+    print mc.reorder(0,0)
+    
     mc.scatter(annotate=True)
     #mc.show(nolabel=True)
     #import matplotlib.pyplot as plt

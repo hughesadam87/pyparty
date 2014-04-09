@@ -315,6 +315,7 @@ class Canvas(HasTraits):
         title = kwargs.pop('title', None)        
         bgonly = kwargs.pop('bgonly', False)
         annotate = kwargs.pop('annotate', False)
+        zoom = kwargs.pop('zoom', None)
 
         grid = kwargs.pop('grid', False)
         gcolor = kwargs.pop('gcolor', None)
@@ -364,6 +365,10 @@ class Canvas(HasTraits):
         else:
             bg = self.background
             
+        if zoom:
+            xi, yi, xf, yf = zoom
+            bg = crop(bg, zoom) 
+                        
         #Overwrite axes image
         if not axes:
             fig, axes = plt.subplots()
@@ -409,6 +414,10 @@ class Canvas(HasTraits):
                         edgecolors=gcolor, linestyles=gstyle))    
         
         axes = self._annotate_plot(axes, annotate, title)    
+        
+        if zoom:
+            axes.set_xlim(xi, xf)
+            axes.set_ylim(yf, yi)
         
         if nolabel:
             axes.xaxis.set_visible(False)
@@ -473,6 +482,7 @@ class Canvas(HasTraits):
         gunder = kwargs.pop('gunder', False)
         gstyle = kwargs.pop('gstyle', None) #NOT USED
         nolabel = kwargs.pop('nolabel', False)
+        zoom = kwargs.pop('zoom', None)
         
         if gstyle:
             raise CanvasPlotError('"gstyle" only valid for patchshow()')
@@ -534,18 +544,26 @@ class Canvas(HasTraits):
         else:
             image = self._draw_particles(bg, force_binary=PBINARY)
             image[gattr] = gcolor
+            
                         
         # GRAY CONVERT
         if 'cmap' in kwargs:
             image = rgb2uint(image)           
             
+            
         # Matplotlib
         if axes:
             axes.imshow(image, **kwargs)
         else:     
-            axes = plt.imshow(image, **kwargs).axes        
+            axes = plt.imshow(image, **kwargs).axes         
             
         axes = self._annotate_plot(axes, annotate, title)            
+        
+        # SHOW DOESNT ACTUALLY CROP ANYTHING WHEN ZOOMING
+        if zoom:
+            xi, yi, xf, yf = zoom
+            axes.set_xlim(xi, xf)
+            axes.set_ylim(yf, yi)
 
         if nolabel:
             axes.xaxis.set_visible(False)
@@ -1081,9 +1099,8 @@ class ScaledCanvas(Canvas):
     
     
 if __name__ == '__main__':
-    c=Canvas.random_circles()
-    c.area
-    print c.circularity
     import matplotlib.pyplot as plt
-#    c.patchshow(nolabel='y')
+    c=Canvas.random_circles()
+    print c.rez
+    c.show(zoom=(40,40,200,400), gcolor='orange')
     plt.show()
