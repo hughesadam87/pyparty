@@ -197,6 +197,9 @@ def any2rgb(array, name=''):
     name : str
         Name of array which will be referenced in logger messages"""
 
+    if not isinstance(array, np.ndarray):
+        return to_normrgb(array)
+
     # *****
     # Quick way to convert to float (don't use img_as_float becase we want
     # to enforce that upperlimit of 255 is checked
@@ -245,7 +248,7 @@ def coords_in_image(rr_cc, shape):
 
 def any2uint(color):
     
-    def _rgb_ta_grizz(rgb):
+    def _rgb2grizz(rgb):
         rgb = to_normrgb(rgb)
         r,g,b = rgb
         return int(round(255 *(0.2125 * r + 0.7154 * g + 0.0721 * b),0))
@@ -266,7 +269,7 @@ def any2uint(color):
         pass
 
     else:
-        color = _rgb_ta_grizz(color)
+        color = _rgb2grizz(color)
         
     if color < 0 or color > 255:
         raise ColorError("Color %s exceeded range 0-255" % str(color) )
