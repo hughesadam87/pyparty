@@ -142,6 +142,7 @@ def unique(array):
     """ Find unique values in array of arbitrary ndim.  If array.ndim < 3,
     returns np.unique(). Else, returns values sorted by sum of individual
     elements. np.unique always flattens, so is not suitable rgb images.
+    
     """
     if array.ndim < 3:
         return np.unique(array)

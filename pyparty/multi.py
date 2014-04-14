@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from traits.api import HasTraits, List, Instance, Str, Dict, Property
 
 from pyparty.tools import Canvas, ParticleManager
-from pyparty.utils import _get_ccycle, mem_address, \
+from pyparty.utils import _get_ccycle, mem_address, any2uint, \
     _parse_generator, _parse_ax, rgb2uint, rand_color, multi_axes
 import pyparty.tools.arraytools as ptools
 from pyparty.config import MAXOUT, PADDING, ALIGN
@@ -48,29 +48,30 @@ def _parse_names(names, default_names):
 
 
 def multi_mask(img, *names, **kwargs):
-    """ 
-    """
-    astype = kwargs.pop('astype', tuple)
-    ignore = kwargs.pop('ignore', 0)
-    names = list(names)
+    """ Return a list/tuple/generator of masks of an image, one for each unique
+    label found in a colored img. EVERYTHING DOWN-CONVERTED TO UINT: NECESSARY
+    FOR MORPHOLOGY.LABELS ANYWAY, ALTHOUGH POSSIBLY SHOULD DO RGB2GRAY OR 255
+    LABELS IS MAX"""
     
+    astype = kwargs.pop('astype', tuple)
+    ignore = kwargs.pop('ignore', 'black')
+    names = list(names)    
+    
+    # THIS WILL DRASTICALLY REDUCE NUMBER OF UNIQUE LABELS ALLOWED RIGHT? 
+    # SINCE IT ONLY HAS 255 POSSIBLE VALUES?!
     if img.ndim == 3:
         img = rgb2uint(img, warnmsg=True)
     
     # Labels requires on grayscale; npunique also doesn't play nice w/ rgb
     
-    if ignore == 'black':
+    if ignore == 'black' or ignore == (0,0,0):
         ignore = 0
-        if img.ndim == 3:
-            ignore = (0.0,0.0,0.0)
 
-    elif ignore == 'white':
-        ignore = 255    
-        if img.ndim == 3:
-            ignore = (1.0,1.0,1.0)
+    elif ignore == 'white' or ignore == (1,1,1):
+        ignore = 255
     
     unique = ptools.unique(img)
-
+    
     if ignore not in unique:
         logger.warn("Ignore set to %s but was not found on image." % ignore)
     else:
@@ -81,6 +82,7 @@ def multi_mask(img, *names, **kwargs):
     # Make the mask dict as generator
     out = ((str(names[idx]), (img==v)) for idx, v in enumerate(unique))
     return _parse_generator(out, astype)
+
 
 class MultiError(Exception):
     """ """
@@ -769,41 +771,98 @@ class MultiCanvas(HasTraits):
         for p in ptypes:
             canvii.append(canvas.of_ptypes(p))
         return cls(names=names, canvii=canvii)          
+    
 
     @classmethod
     def from_labeled(cls, img, *names, **pmankwargs):
         """ Labels an image and creates multi-canvas, one for each species
-        in the image."""
+        in the image.  Since labels require gray image, rgb2uint used 
+        internally.
+        
+        Attributes
+        ----------
+        mapper : iterable of pairs, ordered dict or dict
+            Specifies which colors correspond to which labels.  Order of labels
+            is also used as order of multicanvas names, so if using dict,
+            this will be scrambled.
+            
+        Examples
+        --------
+
+        mc = MultiCanvas.from_labeled(image, singles, doubles)
+        mc = MultiCanvas.from_labeled(image, 
+                 mapper=(('singles','red'), ('doubles',(1,1,0)) ))
+                 
+        """
         
         ignore = pmankwargs.pop('ignore', 0)        
         neighbors = pmankwargs.pop('neighbors', 4)
         maximum = pmankwargs.pop('maximum', MAXDEFAULT)
+        mapper = pmankwargs.pop('mapper', {})
+        
+        if mapper:
+            if names:
+                raise MultiError("Names must be positional arguments or"
+                " mapper, but not both.")
+
+            # BAD PRACTICE HERE CUZ SORTING
+            if isinstance(mapper, dict):
+                mapper = mapper.items()
+
+            cnames, colors = zip(*mapper)
+            _graymapper = dict((str(any2uint(c)),n) for n,c in mapper)
         
         name_masks = multi_mask(img, *names, astype=tuple, ignore=ignore)
         if len(name_masks) > maximum:
             raise MultiError("%s labels found, exceeding maximum of %s"
-                " increasing maximum may result in slowdown" % maximum)
+                " increasing maximum may result in slowdown." %
+                (len(name_masks), maximum) )
+            
         
         canvii = []
+        names = []
         for (name, mask) in name_masks:
             labels = morphology.label(mask, neighbors, background=False)                                 
             particles = ParticleManager.from_labels(labels, 
                             prefix=name, **pmankwargs)
             canvii.append(Canvas(particles=particles, rez=mask.shape) )
+            if mapper:
+                if name in _graymapper:
+                    name = _graymapper[name]
+
+            names.append(name)
+
+        mc = cls(canvii=canvii, names=names)              
+        
+        if mapper:            
+            cm = dict( (n,c) for n,c in mapper)
+            mc.set_colors(**cm)     
             
-        return cls(canvii=canvii, names=names)          
+            neworder = list(cnames)
+            for name in zip(*name_masks)[0]:
+                try:
+                    name = _graymapper[name]
+                except KeyError:
+                    pass
+                if name not in cnames:
+                    neworder.append(name)
+                
+        mc.reorder(*neworder, inplace=True)
+        return mc
+
     
 if __name__ == '__main__':
-    c1 = Canvas.random_circles(n=100, pcolor='yellow')
-    c2 = Canvas.random_triangles(n=100, pcolor='red')
-    c3 = c1+ c2
-    mc =  MultiCanvas.from_canvas(c3, 'dimer', 'trimer')
+    import matplotlib.pyplot as plt
+
+    from skimage.io import imread
+    from pyparty.utils import crop
+    img = imread('/home/glue/Desktop/imgproc_supplemental/images/Test_Data/Ilastik_Analysis_Final/class_10_labels/Noise_class_10labels_modified.png')
+    img = crop(img, (0,0,512,512))
+    mc = MultiCanvas.from_labeled(img, 
+        mapper=(('singles',(1,0,0)), ('doubles',(0,1,0))) )
+
     print mc
-    print mc.reorder(1,0)
-    print mc.reorder(0,0)
-    
-    mc.scatter(annotate=True)
-    #mc.show(nolabel=True)
-    #import matplotlib.pyplot as plt
-#    plt.show()
+    mc.show(annotate=False, names=True)
+    plt.show()
+
     

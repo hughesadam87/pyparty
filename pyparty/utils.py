@@ -243,6 +243,38 @@ def coords_in_image(rr_cc, shape):
     return (rr[mask], cc[mask])            
 
 
+def any2uint(color):
+    
+    def _rgb_ta_grizz(rgb):
+        rgb = to_normrgb(rgb)
+        r,g,b = rgb
+        return int(round(255 *(0.2125 * r + 0.7154 * g + 0.0721 * b),0))
+
+    if isinstance(color, np.ndarray):
+        return rgb2uint(color)
+
+    if isinstance(color, bool):
+        if color:
+            return 255
+        return 0    
+    
+
+    elif isinstance(color, float):
+        color = int(round(color, 0))
+    
+    elif isinstance(color, int):
+        pass
+
+    else:
+        color = _rgb_ta_grizz(color)
+        
+    if color < 0 or color > 255:
+        raise ColorError("Color %s exceeded range 0-255" % str(color) )
+    
+    return color
+
+
+
 def rgb2uint(image, warnmsg=False):
     """ Returns color image as 8-bit unsigned (0-255) int.  Unsigned 8bit gray 
     values are safer to plotting; so enforced throughout pyparty."""
@@ -250,7 +282,7 @@ def rgb2uint(image, warnmsg=False):
         # Try this:
         #	print c.grayimage.max(), c.image.max() * 255, img_as_uint(lena()).max()
 
-    # DOES NOT CHECK IMAGE DIMENSIONS; LEAVES THAT TO CALLING OBJECT
+    # DOES NOT CHECK IMAGE DIMENSIONS; LEAVES THAT TO CALLING OBJECT       
     grayimg = img_as_ubyte( skcol.rgb2gray(image) )
     if warnmsg:
         if isinstance(warnmsg, str):
