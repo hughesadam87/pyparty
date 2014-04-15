@@ -8,8 +8,7 @@ import matplotlib.pyplot as plt
 from traits.api import HasTraits, List, Instance, Str, Dict, Property
 
 from pyparty.tools import Canvas, ParticleManager
-from pyparty.utils import _get_ccycle, mem_address, any2uint, \
-    _parse_generator, _parse_ax, rgb2uint, rand_color, multi_axes
+import pyparty.utils as putil
 import pyparty.tools.arraytools as ptools
 from pyparty.config import MAXOUT, PADDING, ALIGN
 
@@ -60,7 +59,7 @@ def multi_mask(img, *names, **kwargs):
     # THIS WILL DRASTICALLY REDUCE NUMBER OF UNIQUE LABELS ALLOWED RIGHT? 
     # SINCE IT ONLY HAS 255 POSSIBLE VALUES?!
     if img.ndim == 3:
-        img = rgb2uint(img, warnmsg=True)
+        img = putil.rgb2uint(img, warnmsg=True)
     
     # Labels requires on grayscale; npunique also doesn't play nice w/ rgb
     
@@ -81,7 +80,7 @@ def multi_mask(img, *names, **kwargs):
             
     # Make the mask dict as generator
     out = ((str(names[idx]), (img==v)) for idx, v in enumerate(unique))
-    return _parse_generator(out, astype)
+    return putil._parse_generator(out, astype)
 
 
 class MultiError(Exception):
@@ -135,7 +134,7 @@ class MultiCanvas(HasTraits):
         """ Gives a list of colors based on stored colors AND
         plot color cycle."""
         
-        mplcolors = _get_ccycle(upto=len(self))
+        mplcolors = putil._get_ccycle(upto=len(self))
         colors = []
         
         for idx, name in enumerate(self.names):
@@ -156,7 +155,7 @@ class MultiCanvas(HasTraits):
         """        
         gen_out = ( (self.names[idx], c.pbinary) for idx, c 
                         in enumerate(self.canvii) )
-        return _parse_generator(gen_out, astype)
+        return putil._parse_generator(gen_out, astype)
     
     
     def to_canvas(self, mapnames=False, mapcolors=False):
@@ -237,7 +236,7 @@ class MultiCanvas(HasTraits):
             gen_out = ( (self.names[idx], getattr(c, attr)) for idx, c 
                         in enumerate(self.canvii) )
 
-        return _parse_generator(gen_out, as_type)        
+        return putil._parse_generator(gen_out, as_type)        
         
 
     # ------------------
@@ -281,10 +280,10 @@ class MultiCanvas(HasTraits):
             raise MultiError("showstyle must be show or patchshow, "
                              "not %s" % showstyle)
         
-        axes, kwargs = _parse_ax(*args, **kwargs)	
+        axes, kwargs = putil._parse_ax(*args, **kwargs)	
                 
         if not axes:
-            axes, kwargs = multi_axes(len(self), **kwargs)
+            axes, kwargs = putil.multi_axes(len(self), **kwargs)
 
         if len(axes) < len(self):
             logger.warn("MultiCanvas has %s canvas, but only %s axes recieved"
@@ -350,7 +349,7 @@ class MultiCanvas(HasTraits):
         else:
             autopct = chartkwargs.get('autopct', None)
     
-        axes, chartkwargs = _parse_ax(*chartargs, **chartkwargs)	
+        axes, chartkwargs = putil._parse_ax(*chartargs, **chartkwargs)	
         if not axes:
             fig, axes = plt.subplots()       
         
@@ -438,7 +437,7 @@ class MultiCanvas(HasTraits):
         if 'color' not in histkwargs:
             histkwargs['color'] = self._request_plotcolors()
             
-        axes, histkwargs = _parse_ax(*histargs, **histkwargs)	
+        axes, histkwargs = putil._parse_ax(*histargs, **histkwargs)	
         if not axes:
             fig, axes = plt.subplots()        
         
@@ -481,7 +480,7 @@ class MultiCanvas(HasTraits):
         colors = kwargs.pop('colors', self._request_plotcolors())
         annotate = kwargs.pop('annotate', False)
         
-        axes, kwargs = _parse_ax(*args, **kwargs)
+        axes, kwargs = putil._parse_ax(*args, **kwargs)
 
         # Multiplot style
         if multi:
@@ -582,7 +581,7 @@ class MultiCanvas(HasTraits):
         if kwcolors:
             names, colors = zip(*kwcolors.items())
             if fillnull:
-                colors = [c if c else rand_color(style='hex') for c in colors]                
+                colors = [c if c else putil.rand_color(style='hex') for c in colors]                
             
             for idx, name in enumerate(names):
                 if name not in self.names:
@@ -591,7 +590,7 @@ class MultiCanvas(HasTraits):
 
         else: #if *colors
             if fillnull:
-                colors = [c if c else rand_color(style='hex') for c in colors]
+                colors = [c if c else putil.rand_color(style='hex') for c in colors]
         
             for idx, name in enumerate(self.names):
                 self._mycolors[name] = colors[idx]
@@ -641,7 +640,7 @@ class MultiCanvas(HasTraits):
     @property
     def _address(self):
         """ Property to make easily accesible by multicanvas """
-        return mem_address(super(MultiCanvas, self).__repr__())   
+        return putil.mem_address(super(MultiCanvas, self).__repr__())   
 
 
     # ---------------
@@ -776,7 +775,7 @@ class MultiCanvas(HasTraits):
     @classmethod
     def from_labeled(cls, img, *names, **pmankwargs):
         """ Labels an image and creates multi-canvas, one for each species
-        in the image.  Since labels require gray image, rgb2uint used 
+        in the image.  Since labels require gray image, putil.rgb2uint used 
         internally.
         
         Attributes
@@ -795,59 +794,109 @@ class MultiCanvas(HasTraits):
                  
         """
         
-        ignore = pmankwargs.pop('ignore', 0)        
+        ignore = pmankwargs.pop('ignore', 'black')        
         neighbors = pmankwargs.pop('neighbors', 4)
         maximum = pmankwargs.pop('maximum', MAXDEFAULT)
-        mapper = pmankwargs.pop('mapper', {})
+        mapper = pmankwargs.pop('mapper', [])
+        usecolors = pmankwargs.pop('usecolors', True)
         
+#        if mapper:
+        if names:
+            raise MultiError("Names must be positional arguments or"
+            " mapper, but not both.")
+
+        # BAD PRACTICE TO USE DICT CUZ UNSORTED
+        if isinstance(mapper, dict):
+            mapper = mapper.items()
         if mapper:
-            if names:
-                raise MultiError("Names must be positional arguments or"
-                " mapper, but not both.")
-
-            # BAD PRACTICE HERE CUZ SORTING
-            if isinstance(mapper, dict):
-                mapper = mapper.items()
-
             cnames, colors = zip(*mapper)
-            _graymapper = dict((str(any2uint(c)),n) for n,c in mapper)
+        else:
+            cnames, colors = [], []
+
+
+        # TEST ON GRAY IMAGE
+        if img.ndim == 3:
+            img = putil.any2rgb(img)
+            unique = [tuple(v) for v in ptools.unique(img)]   
+            threechan=True
+        else:
+#            img = putil.any2uint(img)
+            unique = [float(v) for v in ptools.unique(img)]   
+            threechan=False
+
+        # Redundant w/ name masks but oh well
+        if not ignore:
+            color_ignore = []
+            
+        elif ignore == 'black' or ignore == (0,0,0) or ignore == 0:
+            color_ignore = [0, (0,0,0)]
+
+        elif ignore == 'white' or ignore == (1,1,1) or ignore == 255:
+            color_ignore = [255, (1,1,1), (255,255,255)]
+            
+        # A list of values, take besut guess
+        else:
+            color_ignore = zip(*putil.guess_colors(ignore, unique, 
+                                                   threechan=threechan))[1]
+    
+        # Store indicies to ignore 
+        index_ignore = [idx for idx, v in enumerate(unique) if v in color_ignore]
+        unique = [v for v in unique if v not in color_ignore]
+
         
-        name_masks = multi_mask(img, *names, astype=tuple, ignore=ignore)
+        # Sort by gray values; multimask will expect this
+        color_gray = zip(map(putil.any2rgb, unique), map(putil.any2uint, unique) )
+        unique, grayunique = zip(*sorted(color_gray, key=operator.itemgetter(1)))
+                      
+        if img.ndim < 3:
+            unique = grayunique
+            
+        _colormapper = dict(putil.guess_colors(colors, unique, threechan=threechan))
+        mout =[(str(c), c) for c in unique]
+        
+        _tempmap = {}
+        for k,v in mapper:
+            _tempmap[k] = _colormapper[v]
+        _tempmap = dict((str(v),k) for k,v in _tempmap.items())
+        
+        mapper = []
+        for k,v in mout:
+            if k in _tempmap:
+                mapper.append((_tempmap[k], v))
+            else:
+                mapper.append((k,v))
+        
+        
+        name_masks = multi_mask(img, *names, astype=tuple, ignore=None)
         if len(name_masks) > maximum:
             raise MultiError("%s labels found, exceeding maximum of %s"
                 " increasing maximum may result in slowdown." %
                 (len(name_masks), maximum) )
-            
-        
-        canvii = []
-        names = []
-        for (name, mask) in name_masks:
-            labels = morphology.label(mask, neighbors, background=False)                                 
-            particles = ParticleManager.from_labels(labels, 
-                            prefix=name, **pmankwargs)
-            canvii.append(Canvas(particles=particles, rez=mask.shape) )
-            if mapper:
-                if name in _graymapper:
-                    name = _graymapper[name]
-
-            names.append(name)
-
+                    
+        canvii = [] ; names = []
+        j=0
+        for idx, (name, mask) in enumerate(name_masks):
+            if idx not in index_ignore:
+                labels = morphology.label(mask, neighbors, background=False)                                 
+                particles = ParticleManager.from_labels(labels, 
+                                         prefix=name, **pmankwargs)
+                canvii.append(Canvas(particles=particles, rez=mask.shape) )
+                names.append(mapper[j][0])
+                j += 1
+                
         mc = cls(canvii=canvii, names=names)              
-        
-        if mapper:            
-            cm = dict( (n,c) for n,c in mapper)
-            mc.set_colors(**cm)     
-            
-            neworder = list(cnames)
-            for name in zip(*name_masks)[0]:
-                try:
-                    name = _graymapper[name]
-                except KeyError:
-                    pass
+
+        # Map colors
+        if usecolors:
+            mc.set_colors(**dict((k,v) for k,v in mapper if k in names))     
+
+        # Reorder names: user cnames first, then remaining in mapper
+        neworder = list(cnames)
+        for idx, (name, v) in enumerate(mapper):
+            if idx not in index_ignore:
                 if name not in cnames:
                     neworder.append(name)
-                
-        mc.reorder(*neworder, inplace=True)
+        mc.reorder(*neworder, inplace=True)     
         return mc
 
     
@@ -857,12 +906,23 @@ if __name__ == '__main__':
     from skimage.io import imread
     from pyparty.utils import crop
     img = imread('/home/glue/Desktop/imgproc_supplemental/images/Test_Data/Ilastik_Analysis_Final/class_10_labels/Noise_class_10labels_modified.png')
-    img = crop(img, (0,0,512,512))
-    mc = MultiCanvas.from_labeled(img, 
-        mapper=(('singles',(1,0,0)), ('doubles',(0,1,0))) )
+    from pyparty.data import nanolabels
+    from skimage.data import lena
+#    plt.show()
+    img = nanolabels()
 
-    print mc
-    mc.show(annotate=False, names=True)
+    img = crop(img, (0,0,512,512))
+    print np.unique(img)
+    mc = MultiCanvas.from_labeled(img, usecolors=True, ignore=[4],
+                                  mapper=[ 
+                                      ('singles', 1),
+                                      ('dimers', 2),
+                                      ('trimer', 3),
+                                      ('bigs', 4)],
+                                  )
+                                  
+    mc.show(annotate=False, names=True, nolabel=True)
+#    plt.imshow(nanolabels())
     plt.show()
 
     

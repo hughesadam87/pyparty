@@ -74,24 +74,64 @@ def rand_color(style=None):
     else:
         r = lambda: random.random()
         return  ( r(), r(), r() )
+
+
+def color_distance(rgb1, rgb2):
+    """ Compute absolute difference between 3-channels. """
+    r1, g1, b1 = rgb1
+    r2, g2, b2 = rgb2
+    return abs(r2-r1) + abs(g2-g1) + abs(b2-b1)
     
-def guess_colors(guess, values):
+def guess_colors(guesses, colors, threechan=True):
     """ Match closest via squared channel distance between user-guessed
-    colors and true values.  All are mapped to rgb, so guesses like 'red'
-    are valid.
-    """
-    if not hasattr(guess, '__iter__') and not hasattr(values, '__iter__'):
-        guess, values = [guess], [values]
-
-    if len(guess) != len(values):
-        raise UtilsError('Guesses and values must have equal lengths:'
-                         ' (%s vs %s)' %(len(guess),len(values) ) )
-
-    guess = map(to_normrgb, guess)
-    values = map(to_normrgb, values)
+    colors and true colors.  All are mapped to rgb, so guesses like 'red'
+    are valid.  If threechan, different in each channel is summed (with no weight/bias).  Otherwise,
+    difference of gray values is taken.
     
-    NotImplemented
-    #Returns?
+    Returns
+    -------
+    (guess, closest value) pairs eg if you guessed (.5, .5, .5) and closest was
+    (.5, .7, .5), would return [ ( (.5, .7, .5) , (.5, .5, .5) )]
+
+    """
+    # List being modified in place
+    guesses = guesses[:]
+    colors = colors[:]
+    
+    if not hasattr(guesses, '__iter__'): 
+        guesses = [guesses]
+    
+    if not hasattr(colors, '__iter__'):
+        colors = [colors]
+        
+    if len(guesses) > len(colors):
+        raise UtilsError('Guesses length cannot exceed value length:'
+                         ' (%s vs %s)' %(len(guesses), len(colors)) )
+    pairs = []
+    original_names = guesses[:]
+
+    if threechan:
+        guesses = map(any2rgb, guesses)
+        colors = map(any2rgb, colors)
+        distfcn = color_distance
+    
+    else:
+        guesses = map(any2uint, guesses)
+        colors = map(any2uint, colors)
+        def _subtract(x,y): return abs(y - x)
+        distfcn = _subtract
+
+    for idx, guess in enumerate(guesses):
+        # Pairwise all distances for this guess
+        distance = [distfcn(guess, v) for v in colors]
+
+        # One-line to return min index in a list of floats
+        idx_min = min(enumerate(distance), key=operator.itemgetter(1))[0] 
+        
+        pairs.append( (original_names[idx], colors.pop(idx_min)) )
+
+    return pairs
+    #Returns(guess, closest value) pairs
 
 
 def _pix_norm(value, imax=CBITS):
@@ -159,14 +199,11 @@ def to_normrgb(color):
         if r <= 1 and g <= 1 and b <= 1:
             return (r, g, b)
 
-        elif r >= 1 and g >= 1 and b >= 1:
+        # Any thing like (0, 255, 30) ... uses 255 as upper limit!
+        else:
             r, g, b = map(_pix_norm, (r, g, b) )        
             return (r, g, b)
 
-        else:
-            raise ColorError("Multi-channel color style ambiguous. (r, g, b)"
-                             " elements must all be < 1 or all > 1 (normalized to %s pixels)" 
-                             % CBITS)
 
     if isinstance(color, str):
         if color == 'random':
@@ -765,6 +802,7 @@ def crop(image, coords):
         image = image[yi:yf, xi:xf]   
     return image
 
+
 def zoom(image, coords, *imshowargs, **imshowkwds):
     """
     Plot zoomed-in region of rectangularly cropped image'
@@ -897,6 +935,6 @@ def zoomshow(image, coords, *imshowargs, **imshowkwds):
     return cropped_image, (ax_full, ax_zoomed)
 
 if __name__ == '__main__':
-    warpedbg = np.random.randint(0, 255, size=(500,500) )
-    zoomshow(warpedbg, (40,40,333,333))
-#    grayhist(warpedbg, xlim='auto', title='Gray Histogram',cdf=True);
+    c = ( (1,1,0), 'red', 'green') 
+    guess = 'pink'
+    print guess_colors(guess, c, threechan=True)

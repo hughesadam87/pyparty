@@ -125,7 +125,7 @@ def array2sphere(xyz_array):
     
     
 def nearest(array, value):
-    """Find nearest value in an array, return index."""
+    """Find nearest value in an array, RETURN INDEX."""
     return (np.abs(array-value)).argmin()
     
     
