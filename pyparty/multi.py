@@ -909,20 +909,26 @@ if __name__ == '__main__':
     from pyparty.data import nanolabels
     from skimage.data import lena
 #    plt.show()
-    img = nanolabels()
+ #   img = nanolabels()
+#    print ptools.unique(img)
+
+  #  plt.imshow(img, cmap='spectral')
+ #   plt.show()
 
     img = crop(img, (0,0,512,512))
-    print np.unique(img)
-    mc = MultiCanvas.from_labeled(img, usecolors=True, ignore=[4],
+    mc = MultiCanvas.from_labeled(img, 
+                                  usecolors=True, 
+                                  ignore=(0,0,0),
                                   mapper=[ 
-                                      ('singles', 1),
-                                      ('dimers', 2),
-                                      ('trimer', 3),
-                                      ('bigs', 4)],
+                                      ('singles', 'r'),
+                                      ('dimers', 'g'),
+                                      ('trimer', 'gold'),
+                                      ('bigs', 'magenta')],
                                   )
+    
                                   
     mc.show(annotate=False, names=True, nolabel=True)
-#    plt.imshow(nanolabels())
+#   plt.imshow(nanolabels())
     plt.show()
 
     

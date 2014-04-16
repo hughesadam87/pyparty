@@ -224,7 +224,10 @@ def log(level='info', show_args=False, show_values=False, crop_values=True,
         
             # -t USES sys.argv (until fixed; argparse must use -t)
             trace = False
-            if '-t'  or '--trace' in sys.argv:
+            if '-t' in sys.argv:
+                trace = True
+
+            if '--trace' in sys.argv:
                 trace = True
             
             if trace:
