@@ -28,6 +28,7 @@ DEF_CONFIG = './_configobjhunt.py'
 LOGNAME = '%s.py' % SCRIPTNAME # How this file is referred to by logger
 LOGFILE = 'runlog.txt' 
 PARAMSFILE = 'runparams.txt'
+SUMMARYFILE = 'summary.txt'
 
 
 # CUSTOM ERRORS 
@@ -37,9 +38,9 @@ class ScriptError(Exception):
 
 class ParserError(ScriptError):
     """ """
-    
-    
-   
+
+# Utilities 
+# ---------   
 def ext(afile): 
     ''' get file extension'''
     return op.splitext(afile)[1]
@@ -80,6 +81,7 @@ def continue_on_fail(func):
         except LogExit:
             pass
     return wrapper
+
 
 @logclass(log_name=LOGNAME , public_lvl='info', skip=[])
 class ObjectHunter(object):
@@ -150,6 +152,8 @@ class ObjectHunter(object):
                 self.logsavefig(op.join(multidir, self.PARAMS.multishow))        
             
     
+        summary = open(op.join(self.ARGS.outroot, SUMMARYFILE), 'a') #make method 
+
         stream = self.PARAMS.parameter_stream()
         paramspath = op.join(self.ARGS.outroot, PARAMSFILE)
         self.logstream(paramspath, '\n\n'.join(stream))
@@ -164,7 +168,15 @@ class ObjectHunter(object):
                                       ignore=self.PARAMS.ignore,
                                       mapper = self.PARAMS.mapper
                                       )
-    
+        
+        def sumwrite(string, newlines='\n\n'):
+            if newlines:
+                summary.write(string + newlines)
+            else:
+                summary.write(string)
+        
+        sumwrite(mc.__repr__())
+        
         multidir = mkfromrootdir(self.PARAMS.multidir)
     
         MHIST()
@@ -181,9 +193,11 @@ class ObjectHunter(object):
         canvasdir = mkfromrootdir(self.PARAMS.canvasdir)
         self.LOGGER.info("Creating Canvas...")
         canvas = mc.to_canvas(mapcolors=True)
+        sumwrite(canvas.__repr__())
+        sumwrite("### STATS ###")
+#        sumwrite(
         
-        
-    #    logstream(op.join(self.ARGS.outroot, 'foobar.txt'), 'basdfasdf')
+        summary.close()
     
     
     def load_parameters(self):
