@@ -13,9 +13,10 @@ __all__ = ['gwu',
            'nanogold',
            'nanolabels',
            'nanobinary',
-	   'test_plain',
-	   'test_contrast',
-           'test_salty'	   
+           'test_labeled',
+           'test_noise',
+           'test_raster',
+           'test_binary' 
            ]
 
 def load(f, rez=None):
@@ -67,18 +68,22 @@ def nanobinary(*args, **kwargs):
     """ binarized nanogold using trainable pixel classification """
     return load("nanobinary.tif", *args, **kwargs)
 
-def test_plain(*args, **kwargs):
-    """ 1024 x1024 resolution; 30nm Diameter circles; 
-    pure white (1,1,1) on gray (.5,.5,.5) background. """
-    return load("test_plain.png", *args, **kwargs)
+def test_binary(*args,**kwargs):
+    """ Binary, rasterized test particles """
+    return load("test_binary.png", *args, **kwargs)
 
-def test_contrast(*args, **kwargs):
-    """ See test_plain().__doc__.  Added local contrast fluctuations. """
-    return load("test_contrast.png", *args, **kwargs)
+def test_labeled(*args,**kwargs):
+    """ Colored, rasterized test particles """
+    return load("test_labeled.png", *args, **kwargs)
 
-def test_salty(*args, **kwargs):
-    """ See test_contrast.__doc__.  Added 45% salt (1,1,1) noise. """
-    return load("test_salty.png", *args, **kwargs)
+def test_raster(*args,**kwargs):
+    """ Rasterized test particles on varying background"""
+    return load("test_raster.png", *args, **kwargs)
+
+def test_noise(*args,**kwargs):
+    """ Smooth, noisy particles on varying background"""
+    return load("test_noise.png", *args, **kwargs)
+
 
 if __name__ == '__main__':
     print gwu(rez=(50,5000)).shape  

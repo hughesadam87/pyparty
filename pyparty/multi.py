@@ -798,7 +798,7 @@ class MultiCanvas(HasTraits):
         neighbors = pmankwargs.pop('neighbors', 4)
         maximum = pmankwargs.pop('maximum', MAXDEFAULT)
         mapper = pmankwargs.pop('mapper', [])
-        usecolors = pmankwargs.pop('usecolors', True)
+        storecolors = pmankwargs.pop('storecolors', True)
         
 #        if mapper:
         if names:
@@ -825,7 +825,7 @@ class MultiCanvas(HasTraits):
             threechan=False
 
         # Redundant w/ name masks but oh well
-        if not ignore:
+        if ignore is None:
             color_ignore = []
             
         elif ignore == 'black' or ignore == (0,0,0) or ignore == 0:
@@ -859,14 +859,33 @@ class MultiCanvas(HasTraits):
             _tempmap[k] = _colormapper[v]
         _tempmap = dict((str(v),k) for k,v in _tempmap.items())
         
+        def _tryeval(val):
+            
+            def r2(x): return round(x,2)
+
+            try:
+                val = eval(val)
+            except NameError:
+                return val
+            
+            try:
+                r,g,b = val
+            except TypeError:
+                return str(r2(val))
+            else:
+                return str(tuple(map(r2, val)))
+        
         mapper = []
         for k,v in mout:
             if k in _tempmap:
-                mapper.append((_tempmap[k], v))
+                kout = _tempmap[k]
             else:
-                mapper.append((k,v))
-        
-        
+                kout = k
+                
+            kout = _tryeval(kout)
+            mapper.append((kout,v))
+       
+                        
         name_masks = multi_mask(img, *names, astype=tuple, ignore=None)
         if len(name_masks) > maximum:
             raise MultiError("%s labels found, exceeding maximum of %s"
@@ -887,7 +906,7 @@ class MultiCanvas(HasTraits):
         mc = cls(canvii=canvii, names=names)              
 
         # Map colors
-        if usecolors:
+        if storecolors:
             mc.set_colors(**dict((k,v) for k,v in mapper if k in names))     
 
         # Reorder names: user cnames first, then remaining in mapper
@@ -905,11 +924,9 @@ if __name__ == '__main__':
 
     from skimage.io import imread
     from pyparty.utils import crop
-    img = imread('/home/glue/Desktop/imgproc_supplemental/images/Test_Data/Ilastik_Analysis_Final/class_10_labels/Noise_class_10labels_modified.png')
+#    img = imread('/home/glue/Desktop/imgproc_supplemental/images/Test_Data/Ilastik_Analysis_Final/class_10_labels/Noise_class_10labels_modified.png')
     from pyparty.data import nanolabels
-    from skimage.data import lena
-#    plt.show()
- #   img = nanolabels()
+    img = nanolabels()
 #    print ptools.unique(img)
 
   #  plt.imshow(img, cmap='spectral')
@@ -917,13 +934,14 @@ if __name__ == '__main__':
 
     img = crop(img, (0,0,512,512))
     mc = MultiCanvas.from_labeled(img, 
-                                  usecolors=True, 
-                                  ignore=(0,0,0),
+                                  storecolors=False, 
+                                  ignore=0,
                                   mapper=[ 
-                                      ('singles', 'r'),
-                                      ('dimers', 'g'),
-                                      ('trimer', 'gold'),
-                                      ('bigs', 'magenta')],
+                                      ('singles', 1),
+                                      ('dimers', 2),
+                                      ('trimer', 3),
+                                      ('bigs',  4)
+                                      ],
                                   )
     
                                   

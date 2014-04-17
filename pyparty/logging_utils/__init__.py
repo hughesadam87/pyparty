@@ -1,1 +1,1 @@
-from logger import configure_logger, log, LogExit
+from logger import configure_logger, log, LogExit, logclass

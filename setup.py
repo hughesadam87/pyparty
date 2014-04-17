@@ -30,10 +30,10 @@ setup(
       'pyparty.data':['*'],
                  },
        
-#    entry_points = {'console_scripts': [
-#                       'gwuspec = pyuvvis.scripts.gwu_script.gwuspec:main',
-#                       'gwureport = pyuvvis.scripts.gwu_script.gwureport:main']
-#                    },
+    entry_points = {'console_scripts': 
+                    [
+                        'objecthunt = pyparty.scripts.objectmodeling.objecthunt:main'
+                    ] },
     
     url = 'http://pypi.python.org/pypi/pyparty/',
     download_url = 'https://github.com/hugadams/pyparty',
