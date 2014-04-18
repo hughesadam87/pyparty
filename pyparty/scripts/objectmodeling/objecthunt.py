@@ -15,6 +15,8 @@ import datetime as dt
 import matplotlib.pyplot as plt
 
 from pyparty.logging_utils import configure_logger, log, LogExit, logclass
+from _configobjhunt import Parameters
+
 import logging
 
 from pyparty import MultiCanvas
@@ -134,7 +136,7 @@ class ObjectHunter(object):
      
         @continue_on_fail
         def MHIST():
-            if self.PARAMS.multihist:
+            if getattr(self.PARAMS.multihist, None):
                 mc.hist(**self.PARAMS.multihistkwds)
                 self.logsavefig(op.join(multidir, self.PARAMS.multihist))   
     
@@ -149,7 +151,9 @@ class ObjectHunter(object):
         def MSHOW():
             if self.PARAMS.multishow:
                 mc.show(**self.PARAMS.multishowkwd)
-                self.logsavefig(op.join(multidir, self.PARAMS.multishow))        
+                self.logsavefig(op.join(multidir, self.PARAMS.multishow))   
+                
+                
             
     
         summary = open(op.join(self.ARGS.outroot, SUMMARYFILE), 'a') #make method 
@@ -187,14 +191,24 @@ class ObjectHunter(object):
         # CANVAS OPERATIONS
         #-----------------------        
         #Early exit if not canvas operations
-        if not self.PARAMS.canvasdir:
+        if not getattr(self.PARAMS.canvasdir, None):
             return
         
         canvasdir = mkfromrootdir(self.PARAMS.canvasdir)
         self.LOGGER.info("Creating Canvas...")
         canvas = mc.to_canvas(mapcolors=True)
+
+#        if getattr(self.PARAMS.grayimage, None):
+#            c.
+#            self.logsavefig(op.join(multidir, self.PARAMS.multihist))   
+
+
+        # Canvas Summary (FUNCTION AND ITERATE)
         sumwrite(canvas.__repr__())
         sumwrite("### STATS ###")
+        sumwrite("Image Resolution: %s"% str(canvas.rez))
+        sumwrite("Particle coverage: %.2f%%" % round(100*canvas.pixarea,2))
+
 #        sumwrite(
         
         summary.close()
@@ -209,12 +223,13 @@ class ObjectHunter(object):
         Also inspects the user-set params against the class attributes.  If they
         are invalid, raises error.
         """
-        modulename = op.splitext(op.basename(self.ARGS.config))[0]
-        try:
-            source = imp.load_source(modulename, self.ARGS.config)
-        except Exception as exc:
-            raise ParserError("Failed to load parameter model from config file:\n %s" % exc)
-        return source.Parameters(**self.ARGS.params)
+        #modulename = op.splitext(op.basename(self.ARGS.config))[0]
+        #try:
+            #source = imp.load_source(modulename, self.ARGS.config)
+        #except Exception as exc:
+            #raise ParserError("Failed to load parameter model from config file:\n %s" % exc)
+        #return source.Parameters(**self.ARGS.params)
+        return Parameters(**self.ARGS.params)
     
     
     def parse(self):
