@@ -48,7 +48,7 @@ class Parameters(HasTraits):
     multipiekwds = {}
 
     multishow = 'multiplot.png'
-    multishowkwd = {'nolabel': True,  'names':True}
+    multishowkwds = {'nolabel': True,  'names':True}
 
 
     # Canvas Options

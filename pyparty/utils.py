@@ -193,7 +193,11 @@ def to_normrgb(color):
     # If iterable, assume 3-channel RGB
     if hasattr(color, '__iter__'):
         if len(color) != 3:
-            raise ColorError("Multi-channel color must be 3-channel;"
+            if len(color) == 4:
+                color = color[0:3]
+                logger.warn("4-channel RGBA recieved; ignoring A channel")
+            else:
+                raise ColorError("Multi-channel color must be 3-channel;"
                              " recieved %s" % len(color))
         r, g, b = color
         if r <= 1 and g <= 1 and b <= 1:

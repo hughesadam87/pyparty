@@ -32,6 +32,9 @@ LOGFILE = 'runlog.txt'
 PARAMSFILE = 'runparams.txt'
 SUMMARYFILE = 'summary.txt'
 
+_ROUND = 2 # round to how many units
+_INDENT = ' ' * 3
+
 
 # CUSTOM ERRORS 
 # -------------
@@ -77,9 +80,9 @@ def logging_decorator(func):
 
 def continue_on_fail(func):
     """ Failure in function will not break script """
-    def wrapper():
+    def wrapper(*args, **kwargs):
         try:
-            func()
+            func(*args, **kwargs)
         except LogExit:
             pass
     return wrapper
@@ -127,6 +130,9 @@ class ObjectHunter(object):
     # ------------
     def run_main(self):
         """ Define a series of sub-functions so logging/traceback easier """
+        
+        def getPARAM(attr):
+            return getattr(self.PARAMS, attr, None)
                 
         def mkfromrootdir(dirname):
             """ Make a directory relative to self.ARGS.root; log it """
@@ -134,26 +140,19 @@ class ObjectHunter(object):
             self.logmkdir(fullpath)
             return fullpath
      
+               
         @continue_on_fail
-        def MHIST():
-            if getattr(self.PARAMS.multihist, None):
-                mc.hist(**self.PARAMS.multihistkwds)
-                self.logsavefig(op.join(multidir, self.PARAMS.multihist))   
-    
-        @continue_on_fail
-        def MPIE():
-            if self.PARAMS.multipie:
-                mc.pie(**self.PARAMS.multipiekwds)
-                self.logsavefig(op.join(multidir, self.PARAMS.multipie))        
+        def MPLOT(mcattr, mcpltfcn, mcpltkwds, outdirectory):
+            """ boilerplate reduction; if multiplot parameter, runs the plot."""
             
-    
-        @continue_on_fail
-        def MSHOW():
-            if self.PARAMS.multishow:
-                mc.show(**self.PARAMS.multishowkwd)
-                self.logsavefig(op.join(multidir, self.PARAMS.multishow))   
-                
-                
+            if getPARAM(mcattr):
+                mcpltfcn, mcpltkwds = getattr(mc, mcpltfcn), getPARAM(mcpltkwds)
+                if not mcpltkwds:
+                    mcpltfcn()
+                else:
+                    mcpltfcn(**mcpltkwds)
+                    
+                self.logsavefig(op.join(outdirectory, getPARAM(mcattr) ))                  
             
     
         summary = open(op.join(self.ARGS.outroot, SUMMARYFILE), 'a') #make method 
@@ -173,46 +172,50 @@ class ObjectHunter(object):
                                       mapper = self.PARAMS.mapper
                                       )
         
-        def sumwrite(string, newlines='\n\n'):
-            if newlines:
-                summary.write(string + newlines)
-            else:
-                summary.write(string)
+        def sumwrite(string, newlines='\n\n', indent=''):
+            summary.write(indent + string + newlines)
         
         sumwrite(mc.__repr__())
         
         multidir = mkfromrootdir(self.PARAMS.multidir)
     
-        MHIST()
-        MPIE()
-        MSHOW()
+        MPLOT('multihist', 'hist', 'multihistkwds', multidir)
+        MPLOT('multipie', 'pie', 'multipiekwds', multidir)
+        MPLOT('multishow', 'show', 'multishowkwds', multidir)
+
     
     
         # CANVAS OPERATIONS
         #-----------------------        
         #Early exit if not canvas operations
-        if not getattr(self.PARAMS.canvasdir, None):
+        if not getattr(self.PARAMS, 'canvasdir', None):
             return
+
+
+        @continue_on_fail
+        def canvas_stats(canvas, name='STATS'):
+            """ Writes a text stream of various canvas parameters. """
+            head = '### %s ###'% name            
+            sumwrite(head, newlines='\n')
+            sumwrite('-' * len(head))
+
+            sumwrite(canvas.__repr__())
+            sumwrite("Image Resolution: %s"% str(canvas.rez), indent=_INDENT)
+            sumwrite("Particle coverage: %.2f%%" % 
+                     round(100*canvas.pixarea, _ROUND), indent=_INDENT)
         
         canvasdir = mkfromrootdir(self.PARAMS.canvasdir)
         self.LOGGER.info("Creating Canvas...")
-        canvas = mc.to_canvas(mapcolors=True)
 
-#        if getattr(self.PARAMS.grayimage, None):
-#            c.
-#            self.logsavefig(op.join(multidir, self.PARAMS.multihist))   
+        total_canvas = mc.to_canvas(mapcolors=True)
+        canvas_stats(total_canvas, 'Net Canvas')
 
-
-        # Canvas Summary (FUNCTION AND ITERATE)
-        sumwrite(canvas.__repr__())
-        sumwrite("### STATS ###")
-        sumwrite("Image Resolution: %s"% str(canvas.rez))
-        sumwrite("Particle coverage: %.2f%%" % round(100*canvas.pixarea,2))
-
-#        sumwrite(
+        # Stats of each canvas pairwise
+        for (name, canvas) in mc.items():
+            canvas_stats(canvas, name)
         
         summary.close()
-    
+        
     
     def load_parameters(self):
         """ Load Parameters object from config file using imp package:
