@@ -266,4 +266,4 @@ my questions on too many mailing lists and sites to list.
 Thank you `Zhaowen Liu`_ for all of your help with this project, our 
 other projects and for your unwaivering encouragement (and for the panda).
 
-    .. _`https://github.com/EvelynLiu77`
+    .. _`Zhaowen Liu` : https://github.com/EvelynLiu77
