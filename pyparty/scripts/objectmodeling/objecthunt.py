@@ -293,7 +293,6 @@ class ObjectHunter(object):
                 else:
                     canvas_hist(canvas, attr, savepath=savepath, **histkwds)
 
-
         
         summary.close()
         
@@ -323,8 +322,8 @@ class ObjectHunter(object):
         parser = argparse.ArgumentParser(
             prog=SCRIPTNAME,
             usage='%s <image> <outdir> --options' % SCRIPTNAME,
-            description = 'ADD SHORT DESCRIPTION HERE',
-            epilog = 'ADD EPILOG HERE'
+            description = 'Measure and separate objects in image based on color.',
+            epilog = 'Please consult tutorial: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/objecthunt_tutorial.ipynb'
             )   
         
         parser.add_argument("-t", "--trace", help='Explict traceback in logging', 
@@ -340,7 +339,7 @@ class ObjectHunter(object):
         parser.add_argument("-f", "--force",
                             action='store_true',
                             help='Overwrite outdirectory if it exists.  WARNING:'
-                            ' this will overwrite and rename materials at will!')
+                            ' this will remove entire directory tree!')
     
         parser.add_argument('-c', '--config', 
                             default = DEF_CONFIG,  
