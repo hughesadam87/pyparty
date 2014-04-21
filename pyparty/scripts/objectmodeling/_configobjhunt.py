@@ -12,59 +12,15 @@ from traits.api import HasTraits
 class ParametersError(Exception):
     """ """
 
-class Parameters(HasTraits):
-    """ Stores parameters for the run.
+class ABCParameters(HasTraits):
+    """ Abstract base class for parameter storage for script.  SUBCLASS
     
     Notes
     -----
     HasTraits subclass allows any parameter to be overwritten without
     defining an __init__().  Useful for overwritting arguments
     directly from command line.
-    """
-
-    
-    # Multicanvas Options
-    # -------------------
-   
-    multidir = 'multi'   # Directory name where multicanvas plots saved
-
-    storecolors = True     # Object colors from image are retained
-    ignore = 'white'
-    mapper = [
-        ('patch1','black'),
-        ('patch2','red'),
-        ('patch3', (0,1,0) ),
-        ('patch4', 'magenta')
-        ]
-    
-    # Histogram 
-    multihist = 'hist.png' 
-    multihistkwds = {
-        'stacked':True,
-         }
-
-    # Pie chart
-    multipie = 'pie.png'
-    multipiekwds = {}
-
-    multishow = 'multiplot.png'
-    multishowkwds = {'nolabel': True,  'names':True}
-
-
-    # Canvas Options
-    # --------------
-    
-    canvasdir = 'canvas' # Directory where canvas plots/summary saved    
-                         # if None, no canvas is created
-                         
-    grayimage = 'grayimage.png'
-    binaryimage = 'binaryimage.png'
-    scatter = [
-              ('circularity', 'minor_axis_length'),
-              ('area', 'equivalent_diameter')
-              ]
-    
-    
+    """    
 
     # Methods (Don't mess with these)
     # ---------------------------------
@@ -80,7 +36,7 @@ class Parameters(HasTraits):
                 raise ParametersError('Invalid parameter "%s" is not a class '
                    'attribute of %s.%s' % (key, modulename, cname) )
 
-        super(Parameters, self).__init__(*args, **kwargs)
+        super(ABCParameters, self).__init__(*args, **kwargs)
 
     
     def _class_attributes(self):    
@@ -95,9 +51,98 @@ class Parameters(HasTraits):
     def parameter_stream(self, delim='\t'):
         """ Summarize all parameters into a stream """
         return [k+':'+delim+str(v) for k,v in tuple(self._class_attributes())]
-            
     
+    @classmethod
+    def from_textfile(stream):
+        """ Intialize parameters from stream using eval/exec? """
+        
+        # Would prevent sublcassing Parameteres when specifying params sheet.
+        NotImplemented
 
+
+
+class Parameters(ABCParameters):
+    """ Stores parameters for the run.
+    
+    Notes
+    -----
+    HasTraits subclass allows any parameter to be overwritten without
+    defining an __init__().  Useful for overwritting arguments
+    directly from command line.
+    """
+
+    
+    # Multicanvas Options
+    # -------------------
+   
+    multidir = 'Multi Canvas'   # Directory name where multicanvas plots saved
+
+    storecolors = True     # Object colors from image are retained
+    ignore = 'white'
+    mapper = [
+        ('patch1','black'),
+        ('patch2','red'),
+        ('patch3', (0,1,0) ),
+        ('patch4', 'magenta')
+        ]
+    
+    # Histogram 
+    multihist = 'hist.png' 
+    multihistkwds = {
+        'attr':'area',
+        'stacked':True,
+         }
+
+    # Pie chart
+    multipie = 'pie.png'
+    multipiekwds = {}
+
+    multishow = 'multiplot.png'
+    multishowkwds = {
+                     'nolabel': True,  
+                     'names': True
+                    }
+
+
+    # Canvas Options
+    # --------------
+
+    canvasdir = 'Net Canvas' # Directory where canvas plots/summary saved    
+                             # if None, no canvii are created !!
+    canvas_by_canvas = True 
+    autocolor = True #Color of particles in image preserved in plots (rewrite)
+                         
+
+    canvas_background = 'gold'                         
+                         
+    # To save color image (canvas.show(**kwds) )
+    colorimage = False
+    showkwds = {}
+
+
+    # To save gray image (canvas.show(cmap='gray') )
+    grayimage = True
+    graykwds = {'cmap':'spectral'}
+
+    
+    binaryimage = True
+    binarykwds = {}
+    
+    scatter = [
+              ('circularity', 'minor_axis_length'),
+              ('area', 'equivalent_diameter')
+              ]
+    scatterkwds = {
+                   'annotate':True,
+                   'title':''
+                  }
+
+
+    # Canvas attributes to include in summary
+    summary_attr = [ 'area', 'circularity', 'equivalent_diameter']
+    histkwds = {}
+    
+    
 if __name__ == '__main__':
 #    x=Parameters()
     y=Parameters(storecolors=False, foo='bar')

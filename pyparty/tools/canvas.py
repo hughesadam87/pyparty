@@ -580,10 +580,14 @@ class Canvas(HasTraits):
 
 
     def scatter(self, *args, **kwargs):
-        """ """
+        """ plt.scatter wrapper.  Requires keywords attr1, attr2 """
 
-        attr1 = kwargs.pop('attr1', 'area')
-        attr2 = kwargs.pop('attr2', 'perimeter')
+        attr1 = kwargs.pop('attr1', None)
+        attr2 = kwargs.pop('attr2', None)
+        
+        if not attr1 or not attr2:
+            raise CanvasPlotError('Scatter attributes must be specified as'
+                ' keywords (IE c.scatter(attr1=area, attr2=eccentricity ...)')
     
         annotate = kwargs.pop('annotate', False)
         title = kwargs.pop('title', None)

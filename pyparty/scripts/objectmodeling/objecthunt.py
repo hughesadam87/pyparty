@@ -118,8 +118,6 @@ class ObjectHunter(object):
         self.LOGGER.info('Saving figure: %s' % fullpath)
         plt.savefig(fullpath, dpi=self.ARGS.dpi)
         plt.clf()
-    
-
 
     def logmkdir(self, fullpath):
         """ Makes directory path/folder, and logs."""
@@ -131,8 +129,10 @@ class ObjectHunter(object):
     def run_main(self):
         """ Define a series of sub-functions so logging/traceback easier """
         
-        def getPARAM(attr):
-            return getattr(self.PARAMS, attr, None)
+        def getPARAM(attr, null=None):
+            """ Geattr on self.PARAMS with optional null to return empty lists
+            or dicts instead of None """
+            return getattr(self.PARAMS, attr, null)
                 
         def mkfromrootdir(dirname):
             """ Make a directory relative to self.ARGS.root; log it """
@@ -146,12 +146,8 @@ class ObjectHunter(object):
             """ boilerplate reduction; if multiplot parameter, runs the plot."""
             
             if getPARAM(mcattr):
-                mcpltfcn, mcpltkwds = getattr(mc, mcpltfcn), getPARAM(mcpltkwds)
-                if not mcpltkwds:
-                    mcpltfcn()
-                else:
-                    mcpltfcn(**mcpltkwds)
-                    
+                mcpltfcn, mcpltkwds = getattr(mc, mcpltfcn), getPARAM(mcpltkwds, null={})
+                mcpltfcn(**mcpltkwds)                    
                 self.logsavefig(op.join(outdirectory, getPARAM(mcattr) ))                  
             
     
@@ -184,7 +180,6 @@ class ObjectHunter(object):
         MPLOT('multishow', 'show', 'multishowkwds', multidir)
 
     
-    
         # CANVAS OPERATIONS
         #-----------------------        
         #Early exit if not canvas operations
@@ -203,16 +198,102 @@ class ObjectHunter(object):
             sumwrite("Image Resolution: %s"% str(canvas.rez), indent=_INDENT)
             sumwrite("Particle coverage: %.2f%%" % 
                      round(100*canvas.pixarea, _ROUND), indent=_INDENT)
-        
-        canvasdir = mkfromrootdir(self.PARAMS.canvasdir)
-        self.LOGGER.info("Creating Canvas...")
 
-        total_canvas = mc.to_canvas(mapcolors=True)
-        canvas_stats(total_canvas, 'Net Canvas')
+            for attr in getPARAM('summary_attr'):
+                val = getattr(canvas, attr)
+                xmin, xmax = min(val), max(val)
+                sumwrite("%s (min, max):   (%.2f - %.2f)" % (attr, xmin, xmax), 
+                         indent=_INDENT)
+            sumwrite('')
+
+        @continue_on_fail
+        def canvas_hist(canvas, attr, savepath=None, **histkwds):
+            """ Histogram of canvas attribute """
+
+            attr_array = getattr(canvas, attr)
+            plt.hist(attr_array, **histkwds)
+            plt.xlabel(attr)
+            plt.ylabel('counts')
+            if savepath:
+                self.logsavefig(savepath)
+
+        
+        self.LOGGER.info("Creating Canvas List")
+
+        # List of new canvas and canvas-by-canvas breakdown
+        total_canvas = mc.to_canvas(mapcolors=True)  
+
+        #X Don't mess w/ order, net canvas must be first (see below idx==0)
+        ALLITEMS = [(getPARAM('canvasdir', null='Net Canvas'), total_canvas)]
+        if getPARAM('canvas_by_canvas'):
+            ALLITEMS.extend(mc.items())
+            canbycandir = mkfromrootdir('canvas_by_canvas')
+      
 
         # Stats of each canvas pairwise
-        for (name, canvas) in mc.items():
+        for idx, (name, canvas) in enumerate(ALLITEMS):
+            if idx == 0:
+                workingcanvasdir = mkfromrootdir(name)
+            else:
+                workingcanvasdir = mkfromrootdir('%s/%s' % (canbycandir, name))
+
+            autocolor = None
+            if getPARAM('autocolor'):
+                if idx != 0:
+                    autocolor = mc._request_plotcolors()[idx-1]
+
+            # Set canvas background
+            if getPARAM('canvas_background'):
+                canvas = canvas.set_bg(getPARAM('canvas_background'))
+
             canvas_stats(canvas, name)
+            
+            # Color/ Gray/ Binary image  #Maybe refactor in future boilerplate
+            if getPARAM('colorimage'):
+                colorkwds = getPARAM('showkwds', null={})
+                canvas.show(**colorkwds)
+                self.logsavefig(op.join(workingcanvasdir, '%s_colored.png' % name))
+                
+            if getPARAM('grayimage'):
+                graykwds = getPARAM('graykwds', null={})
+                if 'cmap' not in graykwds:
+                    graykwds['cmap'] = 'gray'
+                canvas.show(**graykwds)
+                self.logsavefig(op.join(workingcanvasdir, '%s_gray.png' % name))
+
+                
+            if getPARAM('binaryimage'):
+                binarykwds = getPARAM('binarykwds', null={})
+                binarykwds.update({'cmap':'pbinary'})
+                canvas.show(**binarykwds)
+                self.logsavefig(op.join(workingcanvasdir, '%s_binary.png' % name))
+
+
+            # Scatter plots
+            for (x,y) in getPARAM('scatter', null=[]):
+
+                scatterkwds = getPARAM('scatterkwds')
+                
+                if autocolor and 'color' not in scatterkwds:       #Don't use update         
+                    canvas.scatter(attr1=x, attr2=y, color=autocolor, **scatterkwds)
+                else:
+                    canvas.scatter(attr1=x, attr2=y, **scatterkwds)
+                self.logsavefig(op.join(workingcanvasdir, '%s_scatter.png' % name))
+                
+
+            # Generate histograms
+            
+            for attr in getPARAM('summary_attr'):
+                savepath = op.join(workingcanvasdir, '%s_hist.png'%name)
+                histkwds = getPARAM('histkwds', null={})
+
+                if autocolor and 'color' not in histkwds:
+                    canvas_hist(canvas, attr, color=autocolor, 
+                                savepath=savepath, **histkwds)
+                else:
+                    canvas_hist(canvas, attr, savepath=savepath, **histkwds)
+
+
         
         summary.close()
         
