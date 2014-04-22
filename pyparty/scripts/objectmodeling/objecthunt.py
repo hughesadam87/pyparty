@@ -201,9 +201,9 @@ class ObjectHunter(object):
 
             for attr in getPARAM('summary_attr'):
                 val = getattr(canvas, attr)
-                xmin, xmax = min(val), max(val)
-                sumwrite("%s (min, max):   (%.2f - %.2f)" % (attr, xmin, xmax), 
-                         indent=_INDENT)
+                xmin, xmax, xmean = min(val), max(val), np.mean(val)
+                sumwrite("%s (min, max, mean):   (%.2f - %.2f, %.2f)"
+                         % (attr, xmin, xmax, xmean), indent=_INDENT)
             sumwrite('')
 
         @continue_on_fail
