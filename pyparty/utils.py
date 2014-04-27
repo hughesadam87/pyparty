@@ -254,6 +254,10 @@ def any2rgb(array, name=''):
         array = array / COLORTYPE[1] 
 
     if array.ndim == 3:
+        # If RGBA
+        if array.shape[2] == 4:
+            array = array[..., 0:3]
+            logger.warn("4-channel RGBA recieved; ignoring A channel")            
         return array 
 
     elif array.ndim == 2:
