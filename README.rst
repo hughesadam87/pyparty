@@ -4,7 +4,15 @@
    :scale: 50 %
    :alt: alternate text
    :align: left
-   
+
+==========
+What's New
+==========
+Check out _`Object Hunter`, a ``pyparty`` script for identifying, summarizing and plotting 
+groups of objects in an image.
+
+   .. _`Object Hunter` : http://nbviewer.ipython.org/urls/raw.github.com/hugadams/pyparty/master/examples/Notebooks/objecthunt_tutorial.ipynb?create=1
+
    
 ======================================
 pyparty: Python (py) particles (party) 
@@ -41,6 +49,9 @@ The current documentation (and in-a-pinch test suite) is a series of example not
    - `Basic Artificial SEM Images and Noise`_
    - `Simple Images and Labels for JORS`_
 
+- **SCRIPTS**:
+   - `Object Hunter`_
+
 - **COMING SOON**:
    - *Advanced artificial SEM/TEM images*
    
@@ -54,6 +65,7 @@ The current documentation (and in-a-pinch test suite) is a series of example not
    .. _`Matplotlib Color Maps` : http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/gwu_maps.ipynb?create=1
    .. _`Watershedding Example Adapted` : http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/watershed.ipynb?create=1
    .. _`Simple Images and Labels for JORS` : http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/JORS_data.ipynb?create=1
+   .. _`Object Hunter` : http://nbviewer.ipython.org/urls/raw.github.com/hugadams/pyparty/master/examples/Notebooks/objecthunt_tutorial.ipynb?create=1
 
 Notebooks were initialized with ``pylab``:
 
