@@ -13,6 +13,7 @@ import argparse #http://docs.python.org/dev/library/argparse.html
 import skimage.io as io
 import datetime as dt
 import matplotlib.pyplot as plt
+import numpy as np
 
 from pyparty.logging_utils import configure_logger, log, LogExit, logclass
 from _configobjhunt import Parameters
@@ -326,27 +327,34 @@ class ObjectHunter(object):
             epilog = 'Please consult tutorial: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/examples/Notebooks/objecthunt_tutorial.ipynb'
             )   
         
-        parser.add_argument("-t", "--trace", help='Explict traceback in logging', 
-                            action='store_true')
-    
         parser.add_argument("image", 
                             help='Path to image')
     
         parser.add_argument("outroot", 
                             metavar='out directory', 
                             help='Path to outdirectory')
-        
-        parser.add_argument("-f", "--force",
-                            action='store_true',
-                            help='Overwrite outdirectory if it exists.  WARNING:'
-                            ' this will remove entire directory tree!')
-    
+            
         parser.add_argument('-c', '--config', 
                             default = DEF_CONFIG,  
                             metavar = '', 
                             help = 'Path to config file.  '
                                 'Defaults to "%s"' % DEF_CONFIG)   
+           
+        parser.add_argument('-p','--params', 
+                            nargs='*',
+                            metavar='',
+                            help='Overwrite configuration parameters manually '
+                            '(e.g. %s <image> <outdir> -p ignore=black' % SCRIPTNAME)
+
+        parser.add_argument("-f", "--force",
+                            action='store_true',
+                            help='Overwrite outdirectory if it exists.  WARNING:'
+                            ' this will remove entire directory tree!')
     
+        parser.add_argument('--dpi', 
+                            type=int, #is None if not passed
+                            help='Plotting resolution (dots per inch)')
+        
         parser.add_argument('-v', '--verbosity', 
                             nargs='?',
                             default='warning', 
@@ -354,19 +362,10 @@ class ObjectHunter(object):
                             metavar = '', #For printout
                             help='Set screen logging.  If no argument, defaults to'
                                  ' info' )
+    
+        parser.add_argument("-t", "--trace", help='Show traceback on errors', 
+                            action='store_true')    
         
-        parser.add_argument('-p','--params', 
-                            nargs='*',
-                            metavar='',
-                            help='Overwrite config parameters manually in form '
-                            'k="foo value" (e.g. ?????)')
-    
-        parser.add_argument('--dpi', 
-                            type=int, #is None if not passed
-                            help='Plotting resolution (dots per inch)')
-    
-        
-    
         args = parser.parse_args()
     
         # Parse --params

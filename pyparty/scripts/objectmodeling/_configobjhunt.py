@@ -75,15 +75,22 @@ class Parameters(ABCParameters):
     # Multicanvas Options
     # -------------------
    
-    multidir = 'Multi Canvas'   # Directory name where multicanvas plots saved
+    multidir = 'Multi_Canvas'   # Directory name where multicanvas plots saved
 
     storecolors = True     # Object colors from image are retained
     ignore = 'white'
+    #mapper = [
+        #('patch1','black'),
+        #('patch2','red'),
+        #('patch3', (0,1,0) ),
+        #('patch4', 'magenta')
+        #]
+
     mapper = [
-        ('patch1','black'),
-        ('patch2','red'),
-        ('patch3', (0,1,0) ),
-        ('patch4', 'magenta')
+        ('singles','red'),
+        ('doubles',(0,1,0)),
+        ('trimers', 'gold' ),
+        ('clusters', 'magenta')
         ]
     
     # Histogram 
@@ -107,16 +114,16 @@ class Parameters(ABCParameters):
     # Canvas Options
     # --------------
 
-    canvasdir = 'Net Canvas' # Directory where canvas plots/summary saved    
+    canvasdir = 'Net_Canvas' # Directory where canvas plots/summary saved    
                              # if None, no canvii are created !!
     canvas_by_canvas = True 
     autocolor = True #Color of particles in image preserved in plots (rewrite)
                          
 
-    canvas_background = 'gold'                         
+    canvas_background = 'white'                         
                          
     # To save color image (canvas.show(**kwds) )
-    colorimage = False
+    colorimage = True
     showkwds = {}
 
 
