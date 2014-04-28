@@ -8,7 +8,7 @@
 ==========
 What's New
 ==========
-Check out _`Object Hunter`, a ``pyparty`` script for identifying, summarizing and plotting 
+Check out `Object Hunter`_, a ``pyparty`` script for identifying, summarizing and plotting 
 groups of objects in an image.
 
    .. _`Object Hunter` : http://nbviewer.ipython.org/urls/raw.github.com/hugadams/pyparty/master/examples/Notebooks/objecthunt_tutorial.ipynb?create=1
