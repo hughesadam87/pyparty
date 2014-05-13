@@ -259,9 +259,9 @@ About the Author
 I'm a PhD student at GWU (check me out on researchgate_, Linkedin_ or twitter_(@hughesadam87))
 and former Enthought intern. I work in biomolecule sensing and nanophotonics.  
 Like any PhD student, my time is stretched across many projects.  As such,
-the ``pyparty`` source code may is messy in places, and a test suite has
-yet to be developed.  Developing the iPython notebook tutorials 
-alongside the code helped served as a basic regression test platform.  
+the ``pyparty`` source code may is messy in places, and a proper nosetests
+platform is still under development.  Batch running the iPython notebook tutorials 
+serves as a basic regression test platform.  
 
    .. _researchgate : https://www.researchgate.net/profile/Adam_Hughes2/?ev=hdr_xprf
    .. _Linkedin : http://www.linkedin.com/profile/view?id=121484744&goback=%2Enmp_*1_*1_*1_*1_*1_*1_*1_*1_*1_*1_*1&trk=spm_pic
