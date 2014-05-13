@@ -257,7 +257,7 @@ About the Author
 ================
 
 I'm a PhD student at GWU (check me out on researchgate_, Linkedin_ or twitter_)
-and former Enthought intern. I work in biomolecule sensing and nanophotonics.  
+and former Enthought intern. I work in biomolecule sensing and plasmonics.  
 Like any PhD student, my time is stretched across many projects.  As such,
 the ``pyparty`` source code may is messy in places, and a proper nosetests
 platform is still under development.  Batch running the IPython notebook tutorials 
