@@ -800,10 +800,13 @@ class MultiCanvas(HasTraits):
         mapper = pmankwargs.pop('mapper', [])
         storecolors = pmankwargs.pop('storecolors', True)
         
-#        if mapper:
+        # Retro-support *names positional arg by converting to mapper
+        # since mapper already works downstream
         if names:
-            raise MultiError("Names must be positional arguments or"
-            " mapper, but not both.")
+            if mapper:
+                raise MultiError("Names must be positional arguments or"
+                                 " mapper, but not both.")
+            mapper = zip(names, putil._get_ccycle(upto=len(names)) )
 
         # BAD PRACTICE TO USE DICT CUZ UNSORTED
         if isinstance(mapper, dict):
@@ -813,12 +816,11 @@ class MultiCanvas(HasTraits):
         else:
             cnames, colors = [], []
 
-
         # TEST ON GRAY IMAGE
         if img.ndim == 3:
             img = putil.any2rgb(img)
             unique = [tuple(v) for v in ptools.unique(img)]   
-            threechan=True
+            threechan = True
         else:
 #            img = putil.any2uint(img)
             unique = [float(v) for v in ptools.unique(img)]   
@@ -933,15 +935,15 @@ if __name__ == '__main__':
  #   plt.show()
 
     img = crop(img, (0,0,512,512))
-    mc = MultiCanvas.from_labeled(img, 
+    mc = MultiCanvas.from_labeled(img, 'gay', 'fag',
                                   storecolors=False, 
                                   ignore=0,
-                                  mapper=[ 
-                                      ('singles', 1),
-                                      ('dimers', 2),
-                                      ('trimer', 3),
-                                      ('bigs',  4)
-                                      ],
+                                  #mapper=[ 
+                                      #('singles', 1),
+                                      #('dimers', 2),
+                                      #('trimer', 3),
+                                      #('bigs',  4)
+                                      #],
                                   )
     
                                   
