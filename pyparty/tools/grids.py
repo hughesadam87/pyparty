@@ -421,10 +421,9 @@ class TiledGrid(Grid):
 
     @property
     def tiles(self):
-        return self.as_tiles(key=None, sort=False)
+        return self.as_tiles(key=None)
 
-
-    def as_tiles(self, key=None, sort=True):
+    def as_tiles(self, key=None):
         """ Return tiles as list of xs, ys or as dictionary.
 
         Attributes
@@ -435,9 +434,6 @@ class TiledGrid(Grid):
             to iterating over self.centers
             If '2d', dict keyed by (I, J) indicies, corresponding to 2d 
             index pairs in range (0-self.xdiv, 0-self.ydiv)
-
-        sort : bool
-            On dictionary return, OrderedDict will be returned
 
         """
 
@@ -452,7 +448,8 @@ class TiledGrid(Grid):
 
 
         tiles = []
-        for (cx, cy) in sorted(self.pairs('centers')):
+        centers = sorted(self.pairs('centers'))
+        for (cx, cy) in centers:
 
             xl, xr = int(cx - xhalf), int(cx + xhalf)
             yl, yr = int(cy - yhalf), int(cy + yhalf)
@@ -464,33 +461,35 @@ class TiledGrid(Grid):
 
         tiles = enumerate(tiles)
 
-        if sort:
-            try:
-                from collections import OrderedDict
-            except ImportError:
-                raise GridImportError('Tile sorting requires OrderedDict form '
-                                      'python.collection package; package is standard in 2.7 and '
-                                      'higher')
+        try:
+            from collections import OrderedDict
+        except ImportError:
+            raise GridImportError('Tile sorting requires OrderedDict form '
+                                  'python.collection package; package is standard in 2.7 and '
+                                  'higher')
 
-            tiledict = OrderedDict(tiles)
-            tiles2d = OrderedDict()
-
-        else:
-            tiledict = dict(tiles)
-            toles2d = {}
+        tiledict = OrderedDict(tiles)
+        tiles2d = OrderedDict()
 
         # Key == flat
         if key == True or key == 'flat':
             return tiledict
 
         # Key == 2d
-        idx = 0
-        for i in range(self.xdiv):
-            for j in range(self.ydiv):
-
-                tiles2d[(i,j)] = tiledict.pop(idx)
-                idx += 1
-
+#        idx = 0
+#        for i in range(self.xdiv):
+#            for j in range(self.ydiv):
+        cx_old, cy_old = centers[0]
+        i = 0
+        j = 0
+        for idx, center in enumerate(centers):
+            cx, cy = center
+            tiles2d[(i,j)] = tiledict.pop(idx)
+            j += 1
+            if cx != cx_old:
+                i += 1
+                j = 0
+                cx_old = cx
         return tiles2d
 
     @property

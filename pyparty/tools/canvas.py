@@ -1106,5 +1106,6 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
     c=Canvas.random_circles()
     print c.rez
-    c.show(zoom=(40,40,200,400), gcolor='orange')
-    plt.show()
+#    c.show(zoom=(40,40,200,400), gcolor='orange')
+#    plt.show()
+    print c.grid.as_tiles(key='2d').keys()
