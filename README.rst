@@ -256,7 +256,7 @@ issue_ with the appropriate label.
 About the Author
 ================
 
-I'm a PhD student at GWU (check me out on researchgate_, Linkedin_ or twitter_(@hughesadam87))
+I'm a PhD student at GWU (check me out on researchgate_, Linkedin_ or twitter(@hughesadam87)_)
 and former Enthought intern. I work in biomolecule sensing and nanophotonics.  
 Like any PhD student, my time is stretched across many projects.  As such,
 the ``pyparty`` source code may is messy in places, and a proper nosetests
@@ -265,7 +265,7 @@ serves as a basic regression test platform.
 
    .. _researchgate : https://www.researchgate.net/profile/Adam_Hughes2/?ev=hdr_xprf
    .. _Linkedin : http://www.linkedin.com/profile/view?id=121484744&goback=%2Enmp_*1_*1_*1_*1_*1_*1_*1_*1_*1_*1_*1&trk=spm_pic
-   .. _twitter : https://twitter.com/hughesadam87
+   .. _twitter(@hughesadam87) : https://twitter.com/hughesadam87
 
 Acknowledgements
 ================
