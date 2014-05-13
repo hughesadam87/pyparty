@@ -29,7 +29,7 @@ Getting Started
 ===============
 
 The current documentation (and in-a-pinch test suite) is a series of example notebooks 
-(`iPython Notebook`_), which cover most of the basics. These have been linked below:
+(`IPython Notebook`_), which cover most of the basics. These have been linked below:
 
 - **TUTORIALS**:
    - `Intro to Canvas: Basic Operations`_ 
@@ -73,10 +73,10 @@ Notebooks were initialized with ``pylab``:
    
 Having trouble viewing/editing notebooks?  Consider using `Enthought
 Canopy`_, which has a notebook kernel builtin, as well as a graphical package manager. 
-For simple viewing, paste the github url of each notebook into the iPython Notebook viewer_. 
+For simple viewing, paste the github url of each notebook into the IPython Notebook viewer_. 
  
    .. _documentation: http://hugadams.github.com/pyparty/
-   .. _`iPython Notebook`: http://ipython.org/notebook.html?utm_content=buffer83c2c&utm_source=buffer&utm_medium=twitter&utm_campaign=Buffer
+   .. _`IPython Notebook`: http://ipython.org/notebook.html?utm_content=buffer83c2c&utm_source=buffer&utm_medium=twitter&utm_campaign=Buffer
    .. _`Enthought Canopy`: https://www.enthought.com/products/canopy/
    .. _viewer: http://nbviewer.ipython.org/   
 
@@ -260,7 +260,7 @@ I'm a PhD student at GWU (check me out on researchgate_, Linkedin_ or twitter_)
 and former Enthought intern. I work in biomolecule sensing and nanophotonics.  
 Like any PhD student, my time is stretched across many projects.  As such,
 the ``pyparty`` source code may is messy in places, and a proper nosetests
-platform is still under development.  Batch running the iPython notebook tutorials 
+platform is still under development.  Batch running the IPython notebook tutorials 
 serves as a basic regression test platform.  
 
    .. _researchgate : https://www.researchgate.net/profile/Adam_Hughes2/?ev=hdr_xprf
