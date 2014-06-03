@@ -6,7 +6,7 @@ from pyparty.utils import grayhist, splot, showim, zoom, zoomshow
 from pyparty.utils import multi_axes
 
 def multishow(images, *args, **kwargs):
- 
+    """ """
     names = kwargs.pop('names', [])
     
     if not getattr(images, '__iter__'):
