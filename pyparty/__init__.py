@@ -10,3 +10,6 @@ from pyparty.multi import MultiCanvas
 pkg_dir = op.abspath(op.dirname(__file__))
 data_dir = op.join(pkg_dir, 'data')
 bundled_dir = op.join(pkg_dir, 'bundled')
+
+#Abspath will merge the .. and go up and into examples
+examples_dir = op.abspath(op.join(pkg_dir, '../examples/Notebooks'))
