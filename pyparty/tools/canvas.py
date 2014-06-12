@@ -580,8 +580,21 @@ class Canvas(HasTraits):
 
 
     def scatter(self, *args, **kwargs):
-        """ plt.scatter wrapper.  Requires keywords attr1, attr2 """
+        """ Scatter plot of two particles attributes (eg area vs ccircularity).
+        
+        Parameters
+        ----------
+        attr1: str
+            X-attribute
+            
+        attr2: str
+            Y-attribute
+            
+        annotate: False
+            Adds title, x and y labels
+        """
 
+        # Would it make more sense to default these to something
         attr1 = kwargs.pop('attr1', None)
         attr2 = kwargs.pop('attr2', None)
         
