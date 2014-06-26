@@ -61,7 +61,7 @@ class ABCParameters(HasTraits):
 
 
 
-class Parameters(ABCParameters):
+class DefaultParameters(ABCParameters):
     """ Stores parameters for the run.
     
     Notes

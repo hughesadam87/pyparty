@@ -14,9 +14,9 @@ import skimage.io as io
 import datetime as dt
 import matplotlib.pyplot as plt
 import numpy as np
+import _configobjhunt
 
 from pyparty.logging_utils import configure_logger, log, LogExit, logclass
-from _configobjhunt import Parameters
 
 import logging
 
@@ -27,7 +27,7 @@ from pyparty import MultiCanvas
 # ------------------
 SCRIPTNAME = 'objecthunt'
 DEF_OUTROOT = './output'
-DEF_CONFIG = './_configobjhunt.py'
+DEF_CONFIG = _configobjhunt.__file__#'./_configobjhunt.py'
 LOGNAME = '%s.py' % SCRIPTNAME # How this file is referred to by logger
 LOGFILE = 'runlog.txt' 
 PARAMSFILE = 'runparams.txt'
@@ -307,13 +307,21 @@ class ObjectHunter(object):
         Also inspects the user-set params against the class attributes.  If they
         are invalid, raises error.
         """
-        #modulename = op.splitext(op.basename(self.ARGS.config))[0]
-        #try:
-            #source = imp.load_source(modulename, self.ARGS.config)
-        #except Exception as exc:
-            #raise ParserError("Failed to load parameter model from config file:\n %s" % exc)
-        #return source.Parameters(**self.ARGS.params)
-        return Parameters(**self.ARGS.params)
+        
+        if self.ARGS.config:
+            modulename = op.splitext(op.basename(self.ARGS.config))[0]
+            
+            try:
+                source = imp.load_source(modulename, self.ARGS.config)
+            except Exception as exc:
+                raise ParserError("Failed to load parameter model from"
+                                  " config file:\n %s" % modulename)
+            
+            else:
+                return source.Parameters(**self.ARGS.params)
+
+        # Import default Parameters
+        return _configobjhunt.DefaultParameters(**self.ARGS.params)
     
     
     def parse(self):
@@ -334,11 +342,10 @@ class ObjectHunter(object):
                             metavar='out directory', 
                             help='Path to outdirectory')
             
-        parser.add_argument('-c', '--config', 
-                            default = DEF_CONFIG,  
+        parser.add_argument('-c', '--config',   
                             metavar = '', 
                             help = 'Path to config file.  '
-                                'Defaults to "%s"' % DEF_CONFIG)   
+                                'Defaults to "%s"' % DEF_CONFIG)
            
         parser.add_argument('-p','--params', 
                             nargs='*',
@@ -386,7 +393,8 @@ class ObjectHunter(object):
             return path
     
         # Validate config/image paths
-        args.config = _validatepath(args.config)
+        if args.config:
+            args.config = _validatepath(args.config)
         args.image = _validatepath(args.image)
     
         #Load image
