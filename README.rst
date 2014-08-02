@@ -148,19 +148,6 @@ generating, managing or labeling particles as a bottleneck.
 
    .. _patchcollection : http://matplotlib.org/examples/api/patch_collection.html
 
-History
-=======
-``pyparty`` originally began at the George Washington University (2013) in an 
-effort to generate test data for SEM and AFM images of gold nanoparticles on glass substrates.
-We really enjoyed scikit-image_ for image processing and sought to implement it in generating test data.  
-We sought to provide an API for managing labeled particles from real images.  Scikit-image draw and measure
-modules laid the groundwork to the core functionality that ``pyparty`` attempts to streamline. 
-
-I should also note that some of the inspiration came from the excellent ``Analyze Particles`` features
-in ImageJ_.
-
-   .. _ImageJ : http://rsbweb.nih.gov/ij/
-
 License
 =======
 
@@ -222,6 +209,22 @@ The developmental version can be cloned from github:
     
 This will not install any dependencies.
     
+
+Testing 
+-------
+
+To quickly test your installation, open python and type:
+
+    from pyparty import *
+
+If this results in no errors, the installation probably went smoothly.
+
+While a proper nosetests platform is still under development, there is a 
+quasi-regression test suite in `pyparty/testing/REGRESSION.ipynb`.  This 
+will run all of the available pyparty ipython notebooks located in `pyparty/examples/Notebooks`,
+and capture the output.  If any of the operations in these notebooks raises an error,
+it will be reported back to the REGRESSION notebook.  This requires **ipython 3.0.0** to run!
+
     
 Related Libraries
 =================
@@ -253,15 +256,25 @@ issue_ with the appropriate label.
 
 .. _issue : https://github.com/hugadams/pyparty/issues
 
+History
+=======
+``pyparty`` originally began at the George Washington University (2013) in an 
+effort to generate test data for SEM and AFM images of gold nanoparticles on glass substrates.
+We really enjoyed scikit-image_ for image processing and sought to implement it in generating test data.  
+We sought to provide an API for managing labeled particles from real images.  Scikit-image draw and measure
+modules laid the groundwork to the core functionality that ``pyparty`` attempts to streamline. 
+
+I should also note that some of the inspiration came from the excellent ``Analyze Particles`` features
+in ImageJ_.
+
+   .. _ImageJ : http://rsbweb.nih.gov/ij/
+
+
 About the Author
 ================
 
 I'm a PhD student at GWU (check me out on researchgate_, Linkedin_ or twitter_)
-and former Enthought intern. I work in biomolecule sensing and plasmonics.  
-Like any PhD student, my time is stretched across many projects.  As such,
-the ``pyparty`` source code may is messy in places, and a proper nosetests
-platform is still under development.  Batch running the IPython notebook tutorials 
-serves as a basic regression test platform.  
+and former Enthought intern. I work in biomolecule sensing and plasmonics.   
 
    .. _researchgate : https://www.researchgate.net/profile/Adam_Hughes2/?ev=hdr_xprf
    .. _Linkedin : http://www.linkedin.com/profile/view?id=121484744&goback=%2Enmp_*1_*1_*1_*1_*1_*1_*1_*1_*1_*1_*1&trk=spm_pic
