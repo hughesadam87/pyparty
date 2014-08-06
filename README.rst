@@ -8,11 +8,7 @@
 ==========
 What's New
 ==========
-**Version 0.3.1**.  
-
-.. image:: https://zenodo.org/badge/5399/hugadams/pyparty.png   :target: http://dx.doi.org/10.5281/zenodo.11194
-
-[![DOI](https://zenodo.org/badge/5399/hugadams/pyparty.png)](http://dx.doi.org/10.5281/zenodo.11194)
+**Version 0.3.1**
 
 Check out `Object Hunter`_, a ``pyparty`` script for identifying, summarizing and plotting 
 groups of objects in an image.
@@ -34,7 +30,7 @@ image processing library, scikit-image_.
 Getting Started
 ===============
 
-The current documentation (and in-a-pinch test suite) is a series of example notebooks 
+The current documentation is a series of example notebooks 
 (`IPython Notebook`_), which cover most of the basics. These have been linked below:
 
 - **TUTORIALS**:
@@ -230,6 +226,18 @@ quasi-regression test suite in **pyparty/testing/REGRESSION.ipynb**.  This
 will run all of the available pyparty ipython notebooks located in **pyparty/examples/Notebooks**,
 and capture the output.  If any of the operations in these notebooks raises an error,
 it will be reported back to the REGRESSION notebook.  This requires **ipython 3.0.0** to run!
+A static version of the test suite may be viewed here_.
+
+   .. _here: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/testing/REGRESSION.ipynb
+
+
+Archive
+-------
+
+`pyparty` is archived on Zenodo (DOI 10.5281/zenodo.11194)
+
+http://dx.doi.org/10.5281/zenodo.11194
+
 
     
 Related Libraries
