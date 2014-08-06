@@ -222,8 +222,8 @@ To quickly test your installation, open python and type:
 If this results in no errors, the installation probably went smoothly.
 
 While a proper nosetests platform is still under development, there is a 
-quasi-regression test suite in **pyparty/testing/REGRESSION.ipynb**.  This 
-will run all of the available pyparty ipython notebooks located in **pyparty/examples/Notebooks**,
+quasi-regression test suite in `pyparty/testing/REGRESSION.ipynb`.  This 
+will run all of the available pyparty ipython notebooks located in `pyparty/examples/Notebooks`,
 and capture the output.  If any of the operations in these notebooks raises an error,
 it will be reported back to the REGRESSION notebook.  This requires **ipython 3.0.0** to run!
 A static version of the test suite may be viewed here_.
