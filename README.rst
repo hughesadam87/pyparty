@@ -8,6 +8,10 @@
 ==========
 What's New
 ==========
+**Version 0.3.1**.  
+
+.. image:: https://zenodo.org/badge/5399/hugadams/pyparty.png   :target: http://dx.doi.org/10.5281/zenodo.11194
+
 Check out `Object Hunter`_, a ``pyparty`` script for identifying, summarizing and plotting 
 groups of objects in an image.
 
