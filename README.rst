@@ -226,6 +226,7 @@ quasi-regression test suite in *pyparty/testing/REGRESSION.ipynb*.  This
 will run all of the available pyparty ipython notebooks located in *pyparty/examples/Notebooks*,
 and capture the output.  If any of the operations in these notebooks raises an error,
 it will be reported back to the REGRESSION notebook.  This requires **ipython 3.0.0** to run!
+
 A static version of the test suite may be viewed here_.
 
    .. _here: http://nbviewer.ipython.org/github/hugadams/pyparty/blob/master/testing/REGRESSION.ipynb
