@@ -85,6 +85,24 @@ For simple viewing, paste the github url of each notebook into the IPython Noteb
   
    .. _`A Computational Framework for Plasmonic Nanobiosensing`: https://www.researchgate.net/publication/236672995_A_Computational_Framework_for_Plasmonic_Nanobiosensing:  
    
+Support
+=======
+
+For help, please write to our group, **pyparty@googlegroups.com**
+
+Have a feature request, or want to report a bug?  Please fill out a github
+issue_ with the appropriate label.	
+
+.. _issue : https://github.com/hugadams/pyparty/issues
+
+
+License
+=======
+
+3-Clause Revised BSD_
+
+   .. _BSD : https://github.com/hugadams/pyuvvis/blob/master/LICENSE.txt
+
 Overview and Features
 =====================
 
@@ -203,7 +221,7 @@ Then:
    
     pip install pyparty
     
-To install all of the dependencies, download ``pyparty`` from github, navigate
+To install all of the dependencies (scikit-image, traits and their various dependencies), download ``pyparty`` from github, navigate
 to the base directory and type:
 
     pip install -r requirements.txt
