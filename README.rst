@@ -8,10 +8,15 @@
 ==========
 What's New
 ==========
+
+``pyparty`` is now `published`.  
+
 Check out `Object Hunter`_, a ``pyparty`` script for identifying, summarizing and plotting 
 groups of objects in an image.
 
    .. _`Object Hunter` : http://nbviewer.ipython.org/urls/raw.github.com/hugadams/pyparty/master/examples/Notebooks/objecthunt_tutorial.ipynb?create=1
+   .. _`published` : http://dx.doi.org/10.5334/jors.bh
+
 
    
 ======================================
@@ -81,10 +86,8 @@ For simple viewing, paste the github url of each notebook into the IPython Noteb
    .. _viewer: http://nbviewer.ipython.org/   
 
 **These notebooks are free for redistribution.  If referencing in publication, please cite as:**
-        - Hughes, A. (2012). `A Computational Framework for Plasmonic Nanobiosensing`_.  Python in Science Conference [SCIPY]. 
-  
-   .. _`A Computational Framework for Plasmonic Nanobiosensing`: https://www.researchgate.net/publication/236672995_A_Computational_Framework_for_Plasmonic_Nanobiosensing:  
-   
+	- Hughes, A 2014 pyparty: Blob Detection, Drawing and Manipulation in Python. Journal of Open Research Software, 2: e26, DOI: http://dx.doi.org/10.5334/jors.bh
+
 Support
 =======
 
