@@ -8,7 +8,7 @@
 ==========
 What's New
 ==========
-``pyparty`` is now `published`.  
+``pyparty`` is now `published`_.  
 
 Check out `Object Hunter`_, a ``pyparty`` script for identifying, summarizing and plotting 
 groups of objects in an image.
