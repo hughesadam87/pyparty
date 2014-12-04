@@ -209,7 +209,7 @@ def to_normrgb(color):
             return (r, g, b)
 
 
-    if isinstance(color, str):
+    if isinstance(color, basestring):
         if color == 'random':
             color = rand_color(style='hex')            
         return _rgb_from_string(color)
