@@ -5,7 +5,7 @@ import copy
 
 # 3rd Party Imports
 import numpy as np
-from enthought.traits.api import HasTraits, Instance, Property, Tuple,\
+from traits.api import HasTraits, Instance, Property, Tuple,\
      cached_property, List
 
 # pyparty Imports

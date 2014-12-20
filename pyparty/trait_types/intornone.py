@@ -1,4 +1,4 @@
-from enthought.traits.api import BaseInt
+from traits.api import BaseInt
 
 class IntOrNone(BaseInt):
     """ Traits whose value is an integer or None"""
