@@ -16,7 +16,6 @@ groups of objects in an image.
    .. _`Object Hunter` : http://nbviewer.ipython.org/urls/raw.github.com/hugadams/pyparty/master/examples/Notebooks/objecthunt_tutorial.ipynb?create=1
    .. _`published` : http://dx.doi.org/10.5334/jors.bh
 
-
    
 ======================================
 pyparty: Python (py) particles (party) 
@@ -31,6 +30,13 @@ image processing library, scikit-image_.
 
 Getting Started
 ===============
+
+Videos 
+``````
+
+Check out Zhaowen Liu's `great screencast`_ on using Ilastik to segregate AuNP types on SEM images.
+
+   .. _`great screencast` : https://www.youtube.com/watch?v=YzylgLw4iTA
 
 The current documentation is a series of example notebooks 
 (`IPython Notebook`_), which cover most of the basics. These have been linked below:
