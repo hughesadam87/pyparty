@@ -8,6 +8,8 @@
 ==========
 What's New
 ==========
+Check out this study on `sickle cells`_ using ``pyparty'' and ``skimage'' from Clay Mortin.
+
 ``pyparty`` is now `published`_.  
 
 Check out `Object Hunter`_, a ``pyparty`` script for identifying, summarizing and plotting 
@@ -16,7 +18,9 @@ groups of objects in an image.
    .. _`Object Hunter` : http://nbviewer.ipython.org/urls/raw.github.com/hugadams/pyparty/master/examples/Notebooks/objecthunt_tutorial.ipynb?create=1
    .. _`published` : http://dx.doi.org/10.5334/jors.bh
 
-   
+   .. _`sickle cells` : https://github.com/hugadams/pyparty/blob/master/clay.html
+
+
 ======================================
 pyparty: Python (py) particles (party) 
 ======================================
