@@ -5,6 +5,16 @@
    :alt: alternate text
    :align: left
 
+======================================
+pyparty: Python (py) particles (party) 
+======================================
+
+``pyparty`` is a small library for drawing, labeling, patterning and manipulating 
+particles in 2d images.  ``pyparty`` was built primarily over the excellent
+image processing library, scikit-image_.
+
+   .. _scikit-image: http://scikit-image.org
+
 ==========
 What's New
 ==========
@@ -20,16 +30,6 @@ groups of objects in an image.
 
    .. _`sickle cells` : https://github.com/hugadams/pyparty/blob/master/clay.html
 
-
-======================================
-pyparty: Python (py) particles (party) 
-======================================
-
-``pyparty`` is a small library for drawing, labeling, patterning and manipulating 
-particles in 2d images.  ``pyparty`` was built primarily over the excellent
-image processing library, scikit-image_.
-
-   .. _scikit-image: http://scikit-image.org
 
 
 Getting Started
