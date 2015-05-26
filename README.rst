@@ -10,8 +10,7 @@ pyparty: Python (py) particles (party)
 ======================================
 
 ``pyparty`` is a small library for drawing, labeling, patterning and manipulating 
-particles in 2d images.  ``pyparty`` was built primarily over the excellent
-image processing library, scikit-image_.
+particles in 2d images.  pyparty was built atop the excellent image processing library, scikit-image_.
 
    .. _scikit-image: http://scikit-image.org
 
