@@ -1,3 +1,10 @@
+.. image:: pyparty/data/coverimage.png
+   :height: 100px
+   :width: 200 px
+   :scale: 50 %
+   :alt: alternate text
+   :align: left
+
 ======================================
 pyparty: Python (py) particles (party) 
 ======================================
@@ -98,7 +105,7 @@ For help, please write to our group, **pyparty@googlegroups.com**
 Have a feature request, or want to report a bug?  Please fill out a github
 issue_ with the appropriate label.	
 
-.. _issue : https://github.com/hugadams/pyparty/issues
+    .. _issue : https://github.com/hugadams/pyparty/issues
 
 
 License
@@ -146,9 +153,9 @@ common operations in the image processing pipeline.
    .. _`matplotlib patches` : http://matplotlib.org/examples/api/patch_collection.html
 
 What are some use cases, and will pyparty help to me?
-=====================================================
+`````````````````````````````````````````````````````
 
-Tasked well-suited for ``pyparty`` include:
+Tasks well-suited for ``pyparty`` include:
 
 1. Filtering and characterization of cells based on descriptors like
 eccentricit and area.
@@ -203,7 +210,7 @@ registered on PyPi_.
    .. _PyPi : https://pypi.python.org/pypi/pyparty
 
 Pip Install
------------
+```````````
 
 Make sure you have pip installed:
 
